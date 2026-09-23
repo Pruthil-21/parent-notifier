@@ -1,0 +1,100 @@
+/* Design tokens. The only file with raw colour, size and font values.
+   light-dark() picks the value from the active colour scheme, so each token is written
+   once. The scheme follows the system unless the mentor pins one on <html data-theme>. */
+
+:root {
+  color-scheme: light dark;
+
+  /* Surfaces */
+  --color-bg: light-dark(#f4f5f7, #14171b);
+  --color-surface: light-dark(#ffffff, #1c2025);
+  --color-surface-subtle: light-dark(#f9fafb, #22272d);
+  --color-surface-hover: light-dark(#eef0f3, #2a3037);
+  --color-border: light-dark(#e1e4e8, #323941);
+  --color-border-strong: light-dark(#c5cad1, #46505a);
+
+  /* Text */
+  --color-text: light-dark(#1a1d21, #e7eaee);
+  --color-text-secondary: light-dark(#555c66, #a9b1bb);
+  --color-text-muted: light-dark(#646b76, #8b949e);
+  --color-text-on-accent: #ffffff;
+
+  /* Accent: deep petrol blue-teal */
+  --color-accent: light-dark(#0b5c73, #5db3cb);
+  --color-accent-hover: light-dark(#084a5d, #7cc4d8);
+  --color-accent-subtle: light-dark(#e4eff2, #16333c);
+  --color-accent-text: light-dark(#0b5c73, #8fd0e2);
+
+  /* Top bar */
+  --color-topbar: light-dark(#0a3642, #0e1418);
+  --color-topbar-text: #ffffff;
+  --color-topbar-hover: light-dark(#124a59, #1b252c);
+
+  /* Status */
+  --color-danger: light-dark(#b42318, #ff9c92);
+  --color-danger-bg: light-dark(#fdecea, #3a1d1b);
+  --color-warning: light-dark(#8f5200, #f4c06a);
+  --color-warning-bg: light-dark(#fff4db, #35290f);
+  --color-success: light-dark(#0e6b2e, #86d69a);
+  --color-success-bg: light-dark(#e6f4ea, #17301f);
+  --color-info: light-dark(#1d5fa8, #8dbbf0);
+  --color-info-bg: light-dark(#e8f1fb, #172a40);
+
+  /* Type: native Windows face, no download; Nirmala UI renders Gujarati on Windows */
+  --font-ui: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto,
+    "Nirmala UI", sans-serif;
+  --font-mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
+  --text-caption: 0.75rem;
+  --text-body: 0.875rem;
+  --text-subtitle: 1rem;
+  --text-title: 1.25rem;
+  --text-page-title: 1.5rem;
+  --leading-caption: 1rem;
+  --leading-body: 1.25rem;
+  --leading-subtitle: 1.375rem;
+  --leading-title: 1.75rem;
+  --leading-page-title: 2rem;
+  --weight-regular: 400;
+  --weight-semibold: 600;
+
+  /* Space: 4px grid */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+
+  /* Shape and depth */
+  --radius-control: 4px;
+  --radius-panel: 8px;
+  --shadow-flyout: 0 2px 4px rgb(0 0 0 / 0.08), 0 8px 24px rgb(0 0 0 / 0.14);
+  --shadow-dialog: 0 4px 8px rgb(0 0 0 / 0.1), 0 24px 56px rgb(0 0 0 / 0.2);
+
+  /* Shell dimensions */
+  --topbar-height: 48px;
+  --navpane-width: 240px;
+  --navpane-rail-width: 48px;
+  --content-max-width: 1440px;
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Layering */
+  --z-topbar: 20;
+  --z-navpane: 30;
+  --z-flyout: 40;
+  --z-dialog: 50;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
