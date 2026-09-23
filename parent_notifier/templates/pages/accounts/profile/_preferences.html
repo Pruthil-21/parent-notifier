@@ -1,0 +1,18 @@
+{% from "components/forms/error_summary.html" import error_summary %}
+<section class="settings-section" aria-labelledby="preferences-heading">
+  <div class="settings-section__intro">
+    <h2 id="preferences-heading">Preferences</h2>
+    <p>The language each message starts in. You can still switch for one parent in the
+      message window.</p>
+  </div>
+  <form class="settings-section__form form-stack" method="post"
+        action="{{ url_for('profile.save_preferences') }}" novalidate>
+    {{ error_summary(preferences_form, first_field=preferences_form.message_language) }}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field">
+      {{ preferences_form.message_language.label(class_="field__label") }}
+      {{ preferences_form.message_language(class_="input") }}
+    </div>
+    <div><button class="button button--primary" type="submit">Save preferences</button></div>
+  </form>
+</section>

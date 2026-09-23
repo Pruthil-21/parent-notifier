@@ -1,0 +1,20 @@
+{% from "components/forms/error_summary.html" import error_summary %}
+{% from "components/forms/field.html" import text_field %}
+<section class="settings-section" aria-labelledby="safety-heading">
+  <div class="settings-section__intro">
+    <h2 id="safety-heading">Sending safety</h2>
+    <p>WhatsApp can restrict a personal number that messages many people who have not
+      saved it, all at once. These limits space your messages out. The defaults suit most
+      classes; lower them if your number has been warned before.</p>
+  </div>
+  <form class="settings-section__form form-stack" method="post"
+        action="{{ url_for('profile.save_sending_safety') }}" novalidate>
+    {{ error_summary(safety_form, first_field=safety_form.send_gap_seconds) }}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {{ text_field(safety_form.send_gap_seconds, hint="Seconds between two messages. Recommended: 20", inputmode="numeric", autocomplete="off") }}
+    {{ text_field(safety_form.burst_size, hint="Messages sent before a longer pause. Recommended: 15", inputmode="numeric", autocomplete="off") }}
+    {{ text_field(safety_form.burst_pause_minutes, hint="Minutes to wait after each set. Recommended: 5", inputmode="numeric", autocomplete="off") }}
+    {{ text_field(safety_form.daily_send_limit, hint="Messages a day across all your classes. Recommended: 60", inputmode="numeric", autocomplete="off") }}
+    <div><button class="button button--primary" type="submit">Save sending safety</button></div>
+  </form>
+</section>
