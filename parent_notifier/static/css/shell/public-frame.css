@@ -46,6 +46,13 @@
   margin-bottom: var(--space-5);
 }
 
+.public-panel__links {
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+
 .public-frame__footer {
   padding-top: var(--space-6);
   font-size: var(--text-caption);

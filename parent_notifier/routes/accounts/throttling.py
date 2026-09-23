@@ -5,7 +5,6 @@ at, and per IP address, so one computer cannot work through many usernames. Sign
 password reset share both counters: a lockout on one is a lockout on the other.
 """
 
-import math
 import time
 from collections.abc import Callable
 
@@ -50,10 +49,16 @@ def record_failed_attempt() -> None:
     g.credentials_failed = True
 
 
-def lockout_message(action: str) -> str:
-    """For example "Too many sign-in attempts. Try again in 12 minutes." """
+def retry_wait() -> str:
+    """How long until the breached limit lets the next request through, like "12 minutes"."""
     breached = limiter.current_limit
     seconds = breached.reset_at - time.time() if breached else WINDOW_MINUTES * 60
-    minutes = max(1, math.ceil(seconds / 60))
-    unit = "minute" if minutes == 1 else "minutes"
-    return f"Too many {action} attempts. Try again in {minutes} {unit}."
+    # The limiter rounds its reset time up to the next second, so rounding up again
+    # could promise 16 minutes for a 15-minute window.
+    minutes = max(1, round(seconds / 60))
+    return f"{minutes} minute" if minutes == 1 else f"{minutes} minutes"
+
+
+def lockout_message(action: str) -> str:
+    """For example "Too many sign-in attempts. Try again in 12 minutes." """
+    return f"Too many {action} attempts. Try again in {retry_wait()}."
