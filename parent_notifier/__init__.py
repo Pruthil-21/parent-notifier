@@ -6,6 +6,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from flask import Flask
 
+from parent_notifier.core.cli import init_cli
 from parent_notifier.core.config import load_config
 from parent_notifier.core.errors import init_error_pages
 from parent_notifier.core.extensions import init_extensions
@@ -33,4 +34,5 @@ def create_app(env: str | None = None) -> Flask:
     init_navigation(app)
     init_error_pages(app)
     init_security(app)
+    init_cli(app)
     return app

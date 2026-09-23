@@ -52,6 +52,18 @@ uv sync
 uv run pre-commit install
 ```
 
+Create the database, load the demo (a fictional class with two imported semesters) and
+start the app at http://127.0.0.1:5000:
+
+```
+uv run flask --app parent_notifier db upgrade
+uv run flask --app parent_notifier seed-demo
+uv run flask --app parent_notifier run
+```
+
+Sign in with the username and password that `seed-demo` prints. The sample sheets it
+loads are in `samples/`; `uv run python scripts/dev/make_samples.py` rebuilds them.
+
 Run the linter, the formatter check and the tests:
 
 ```
