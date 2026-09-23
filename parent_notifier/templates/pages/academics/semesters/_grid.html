@@ -1,0 +1,44 @@
+{# The student grid. Figures below the class's limits are marked in words, not colour alone. #}
+{% from "components/feedback/badge.html" import student_badge %}
+{% macro number(value) %}{{ "%g" | format(value) }}{% endmacro %}
+<div class="data-grid student-grid">
+  <table>
+    <caption class="visually-hidden">Students in Sem {{ semester.number }}</caption>
+    <thead>
+      <tr>
+        <th scope="col" class="col-optional">Enrollment</th>
+        <th scope="col">Student</th>
+        <th scope="col" class="col-optional">Parent</th>
+        <th scope="col">Lowest attendance</th>
+        <th scope="col" class="col-optional">Mid-Sem</th>
+        <th scope="col">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td class="col-optional">{{ row.enrollment_no }}</td>
+        <th scope="row">{{ row.full_name }}</th>
+        <td class="col-optional">{{ row.parent_name or "–" }}</td>
+        <td>
+          {% if row.lowest %}
+          {% set short = row.lowest.percent < view.rules.attendance_threshold %}
+          <span class="{{ 'figure-short' if short else '' }}">{{ number(row.lowest.percent) }}%</span>
+          <span class="text-secondary">· {{ row.lowest.subject }} {{ row.lowest.component }}</span>
+          {% else %}<span class="text-muted">No data</span>{% endif %}
+        </td>
+        <td class="col-optional">
+          {% if row.fails %}
+          {% set first = row.fails[0] %}
+          <span class="figure-fail">{{ "Absent" if first.marks is none else "Fail" }}</span>
+          {{ first.subject }}{% if first.marks is not none %} {{ number(first.marks) }}/{{ view.rules.midsem_max }}{% endif %}
+          {% if row.fails | length > 1 %}<span class="text-secondary">+{{ row.fails | length - 1 }} more</span>{% endif %}
+          {% elif row.average is not none %}Avg {{ number(row.average) }}/{{ view.rules.midsem_max }}
+          {% else %}<span class="text-muted">Not held</span>{% endif %}
+        </td>
+        <td>{{ student_badge(row) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

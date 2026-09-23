@@ -2,6 +2,10 @@
 {% from "components/navigation/breadcrumb.html" import breadcrumb %}
 {% from "components/feedback/empty_state.html" import empty_state %}
 
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/semester.css') }}">
+{% endblock %}
+
 {% block title %}Sem {{ semester.number }} · {{ class_group.name }}{% endblock %}
 {% block breadcrumb %}{{ breadcrumb([("Home", url_for("home.index")), ("Classes", url_for("classes.index")), (class_group.name, url_for("classes.open_class", class_id=class_group.id)), ("Sem " ~ semester.number, None)]) }}{% endblock %}
 {% block page_title %}{{ class_group.name }}{% endblock %}
@@ -14,9 +18,9 @@
 {% block content %}
 {% set current = summaries | selectattr("number", "equalto", semester.number) | first %}
 {% if current.students %}
-{% call empty_state("Sem " ~ semester.number ~ " sheet imported", current.students ~ " students and " ~ (semester.subjects | length) ~ " subjects, last updated " ~ (semester.last_imported_at | date) ~ ". Upload the sheet again whenever attendance or marks change.") %}
-{% include "pages/imports/upload/_upload_button.html" %}
-{% endcall %}
+<p class="sheet-summary text-secondary">Last sheet {{ semester.last_imported_at | date }} · {{ current.students }} students · {{ semester.subjects | length }} subjects</p>
+{% include "pages/academics/semesters/_tiles.html" %}
+{% with rows = view.active_rows %}{% include "pages/academics/semesters/_grid.html" %}{% endwith %}
 {% else %}
 {% call empty_state("No sheet for Sem " ~ semester.number ~ " yet", "Upload this semester's sheet to see every student's attendance and Mid-Sem marks here.") %}
 {% include "pages/imports/upload/_upload_button.html" %}

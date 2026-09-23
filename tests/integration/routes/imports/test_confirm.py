@@ -41,8 +41,8 @@ def test_confirm_saves_the_sheet_and_reports(app, signed_in_client, base):
     assert response.headers["Location"] == base
     html = signed_in_client.get(base).get_data(as_text=True)
     assert "Sheet imported: 2 new and 0 existing students." in html
-    assert "Sem 4 sheet imported" in html
-    assert "2 students and 2 subjects" in html
+    assert "2 students · 2 subjects" in html
+    assert "Avi Shah" in html
     assert _students(app) == 2
     assert list((Path(app.instance_path) / "imports").glob("*.json")) == []
 

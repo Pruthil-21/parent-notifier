@@ -1,0 +1,31 @@
+/* The semester workspace: sheet summary line and the student grid's figures. */
+
+@layer pages {
+  .sheet-summary {
+    margin-bottom: var(--space-4);
+  }
+
+  .student-grid tbody th {
+    min-width: 140px;
+    white-space: normal;
+  }
+
+  .figure-short,
+  .figure-fail {
+    font-weight: var(--weight-semibold);
+  }
+
+  .figure-short {
+    color: var(--color-danger);
+  }
+
+  .figure-fail {
+    color: var(--color-warning);
+  }
+
+  @media (max-width: 699px) {
+    .student-grid .col-optional {
+      display: none;
+    }
+  }
+}
