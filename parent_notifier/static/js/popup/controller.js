@@ -26,6 +26,7 @@ function createPopup(dialog, students) {
       student: students.get(currentId),
       link: links().find((link) => link.dataset.studentLink === currentId),
     }),
+    student: (id) => students.get(id),
     note: () => note.value,
     onShow: (listener) => showListeners.push(listener),
     refreshMessage: () => {

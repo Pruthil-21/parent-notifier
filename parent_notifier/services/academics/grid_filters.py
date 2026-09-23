@@ -10,12 +10,14 @@ from parent_notifier.services.academics import risk
 from parent_notifier.services.academics.semester_view import StudentRow
 
 INACTIVE = "inactive"
+PENDING = "pending"
 STATUS_FILTERS = {
     "": "All active students",
     risk.AT_RISK: "At risk",
     risk.NEEDS_ATTENTION: "Needs attention",
     risk.DOING_WELL: "Doing well",
     risk.NO_DATA: "No data",
+    PENDING: "Message pending",
     INACTIVE: "Left or detained",
 }
 SORTS = ("enrollment", "name", "attendance")
@@ -45,9 +47,11 @@ class GridQuery:
         return bool(self.search or self.status)
 
 
-def _matches(row: StudentRow, query: GridQuery) -> bool:
+def _matches(row: StudentRow, query: GridQuery, pending: set[int]) -> bool:
     if query.status == INACTIVE:
         in_status = not row.active
+    elif query.status == PENDING:
+        in_status = row.id in pending
     else:
         in_status = row.active and (not query.status or row.band == query.status)
     needle = query.search.casefold()
@@ -67,8 +71,11 @@ def _sort_key(row: StudentRow, sort: str):
     return (row.enrollment_no,)
 
 
-def apply(rows: list[StudentRow], query: GridQuery) -> list[StudentRow]:
-    kept = [row for row in rows if _matches(row, query)]
+def apply(
+    rows: list[StudentRow], query: GridQuery, pending: set[int] | None = None
+) -> list[StudentRow]:
+    """`pending` holds the ids of parents still to be messaged, for that filter."""
+    kept = [row for row in rows if _matches(row, query, pending or set())]
     ordered = sorted(kept, key=lambda row: _sort_key(row, query.sort), reverse=query.descending)
     if query.sort == "attendance" and query.descending:
         ordered = [row for row in ordered if row.lowest] + [r for r in ordered if not r.lowest]

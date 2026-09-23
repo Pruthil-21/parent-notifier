@@ -24,7 +24,7 @@ def load_semester(class_id: int, number: int) -> tuple[ClassGroup, Semester]:
     return class_group, semester
 
 
-def _popup_payload(class_group, semester, view, rows, marks) -> list[dict]:
+def _popup_payload(class_group, semester, view, rows, marks, pending) -> list[dict]:
     """The popup's data for the rows on screen: figures, both messages and send status."""
     config = current_app.config
     context = previews.context_for(
@@ -35,6 +35,7 @@ def _popup_payload(class_group, semester, view, rows, marks) -> list[dict]:
     for entry, row in zip(payload, rows, strict=True):
         entry["messages"] = previews.messages_for(row, context)
         entry["mark"] = labels[row.id]
+        entry["pending"] = row.id in pending
     return payload
 
 
@@ -52,8 +53,9 @@ def workspace(class_id: int, number: int):
     class_group, semester = load_semester(class_id, number)
     view = semester_view.build(class_group, semester)
     query = grid_filters.GridQuery.from_args(request.args)
-    rows = grid_filters.apply(view.rows, query)
     marks = send_log.marks_for(semester)
+    pending = send_log.pending_ids(view.rows, marks)
+    rows = grid_filters.apply(view.rows, query, pending)
     return render_template(
         "pages/academics/semesters/workspace.html",
         class_group=class_group,
@@ -67,7 +69,8 @@ def workspace(class_id: int, number: int):
         query=query,
         rows=rows,
         status_filters=grid_filters.STATUS_FILTERS,
-        popup=_popup_payload(class_group, semester, view, rows, marks),
+        popup=_popup_payload(class_group, semester, view, rows, marks, pending),
+        pending_count=len(pending),
         marks=marks,
         labels=_labels(view, marks),
         sent_ids={sid for sid, mark in marks.items() if mark.status == "sent"},

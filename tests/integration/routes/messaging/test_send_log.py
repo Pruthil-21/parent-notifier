@@ -1,4 +1,5 @@
 import io
+import json
 import re
 from urllib.parse import parse_qs, urlsplit
 
@@ -161,3 +162,29 @@ def test_popup_has_a_note_box_limited_to_500_characters(signed_in_client, setup)
     base, _ = setup
     html = signed_in_client.get(base).get_data(as_text=True)
     assert 'maxlength="500" data-note' in html
+
+
+def test_queue_button_counts_pending_parents_and_falls_back_to_a_filter(signed_in_client, setup):
+    base, ids = setup
+    html = signed_in_client.get(base).get_data(as_text=True)
+    assert "Message pending parents (1)" in html
+    assert f'href="{base}?status=pending">Message pending parents' in html
+    pending_page = signed_in_client.get(f"{base}?status=pending").get_data(as_text=True)
+    assert "Showing 1 of 2 students" in pending_page
+    avi = next(s for s in _data(html) if s["id"] == ids["23CE001"])
+    assert avi["pending"] is True
+
+
+def test_queue_button_goes_once_everyone_is_done(signed_in_client, setup):
+    base, ids = setup
+    _log(signed_in_client, base, ids["23CE001"], status="skipped")
+    html = signed_in_client.get(base).get_data(as_text=True)
+    assert "Message pending parents" not in html
+    assert "Showing 0 of 2 students" in signed_in_client.get(f"{base}?status=pending").get_data(
+        as_text=True
+    )
+
+
+def _data(html):
+    block = re.search(r'id="students-data">(.*?)</script>', html, re.S)
+    return json.loads(block.group(1))

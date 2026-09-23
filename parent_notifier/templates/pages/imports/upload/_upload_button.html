@@ -1,3 +1,3 @@
 {# Opens the upload dialog; without JavaScript it links to the upload page. #}
-<a class="button button--primary" data-dialog-open="upload-sheet"
+<a class="button {{ upload_button_class | default('button--primary') }}" data-dialog-open="upload-sheet"
    href="{{ url_for('imports.upload_page', class_id=class_group.id, number=semester.number) }}">Upload sheet</a>
