@@ -3,6 +3,8 @@
 // only when the server accepts it does the tab go to WhatsApp Web with the text the
 // server rendered and stored.
 
+import { confirmThen } from "./sending-as.js";
+
 const TAB_NAME = "parent-notifier-whatsapp";
 
 function csrfToken() {
@@ -39,6 +41,11 @@ function closeIfBlank(tab) {
 // Must be called straight from a click handler, before any await.
 export async function sendToParent(logUrl, language, note) {
   const tab = window.open("", TAB_NAME);
+  try {
+    if (tab) tab.opener = null; // WhatsApp's page must not be able to steer this one
+  } catch {
+    // Already cross-origin from an earlier send: it had no opener to clear.
+  }
   let data;
   try {
     data = await postLog(logUrl, { status: "sent", language, note });
@@ -68,7 +75,9 @@ export function initSendButton(popup) {
     say(student.phoneValid ? "" : "This parent has no valid mobile number. Edit the student to fix it.");
   });
 
-  button.addEventListener("click", async () => {
+  button.addEventListener("click", () => confirmThen(send));
+
+  async function send() {
     const { id, link } = popup.current();
     button.setAttribute("aria-busy", "true");
     try {
@@ -80,5 +89,5 @@ export function initSendButton(popup) {
     } finally {
       button.removeAttribute("aria-busy");
     }
-  });
+  }
 }
