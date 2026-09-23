@@ -1,0 +1,8 @@
+# Store text with LF endings in the repository, whatever the contributor's OS.
+* text=auto eol=lf
+
+# Binary files: never touch line endings or show text diffs.
+*.png binary
+*.jpg binary
+*.ico binary
+*.xlsx binary
