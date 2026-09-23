@@ -1,0 +1,18 @@
+{% extends "layouts/base.html" %}
+
+{% block body %}
+<div class="public-frame">
+  <main id="main" class="public-frame__main" tabindex="-1">
+    <div class="public-panel">
+      <header class="public-panel__brand">
+        <span class="public-panel__product">Parent Notifier</span>
+        <span class="public-panel__org">{{ config.COLLEGE_NAME }}</span>
+      </header>
+      {% block panel %}{% endblock %}
+    </div>
+  </main>
+  <footer class="public-frame__footer">
+    Attendance and marks updates for parents, sent by their ward's mentor.
+  </footer>
+</div>
+{% endblock %}

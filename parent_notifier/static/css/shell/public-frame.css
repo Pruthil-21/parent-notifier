@@ -1,0 +1,56 @@
+/* Pages seen before sign-in: one centred panel on the page background. */
+
+.public-frame {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-height: 100dvh;
+  padding: var(--space-6) var(--space-4);
+}
+
+.public-frame__main {
+  display: grid;
+  place-items: center;
+  outline: none;
+}
+
+.public-panel {
+  width: min(100%, 400px);
+  padding: var(--space-8);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+}
+
+.public-panel__brand {
+  display: grid;
+  gap: var(--space-1);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.public-panel__product {
+  font-size: var(--text-title);
+  line-height: var(--leading-title);
+  font-weight: var(--weight-semibold);
+  color: var(--color-accent-text);
+}
+
+.public-panel__org {
+  font-size: var(--text-caption);
+  line-height: var(--leading-caption);
+  color: var(--color-text-secondary);
+}
+
+.public-frame__footer {
+  padding-top: var(--space-6);
+  font-size: var(--text-caption);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .public-panel {
+    padding: var(--space-6) var(--space-5);
+  }
+}
