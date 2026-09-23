@@ -22,6 +22,16 @@ instance/
 *.log
 .env
 
+# Keys and certificates
+*.pem
+*.key
+*.p12
+
+# Local documents; README.md is the only tracked document
+CHANGELOG.md
+CONTRIBUTING.md
+docs/
+
 # Editors and operating systems
 .vscode/
 .idea/
