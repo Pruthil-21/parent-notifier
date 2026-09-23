@@ -1,0 +1,14 @@
+{% extends "layouts/app.html" %}
+{% from "components/navigation/breadcrumb.html" import breadcrumb %}
+{% from "components/forms/error_summary.html" import error_summary %}
+
+{% block title %}Add semester · {{ class_group.name }}{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Home", url_for("home.index")), ("Classes", url_for("classes.index")), (class_group.name, url_for("classes.open_class", class_id=class_group.id)), ("Add semester", None)]) }}{% endblock %}
+{% block page_title %}Add semester{% endblock %}
+
+{% block content %}
+<div class="form-panel">
+  {{ error_summary(form, first_field=form.number) }}
+  {% with add_form = form, in_dialog = false %}{% include "pages/academics/semesters/_add_form.html" %}{% endwith %}
+</div>
+{% endblock %}

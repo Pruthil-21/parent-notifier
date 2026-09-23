@@ -6,7 +6,15 @@
 {% block breadcrumb %}{{ breadcrumb([("Home", url_for("home.index")), ("Classes", url_for("classes.index")), (class_group.name, None)]) }}{% endblock %}
 {% block page_title %}{{ class_group.name }}{% endblock %}
 
+{% block page_meta %}{{ class_group.department }} · {{ class_group.admission_year }} batch{% endblock %}
+
 {% block content %}
-<p class="page-meta">{{ class_group.department }} · {{ class_group.admission_year }} batch</p>
-{{ empty_state("No semesters yet", "Add the semester you are mentoring now, then upload its sheet.") }}
+{% call empty_state("No semesters yet", "Add the semester you are mentoring now, then upload its sheet.") %}
+{% with button_class = "button button--primary" %}{% include "pages/academics/semesters/_add_button.html" %}{% endwith %}
+{% endcall %}
+{% include "pages/academics/semesters/_add_dialog.html" %}
+{% endblock %}
+
+{% block page_scripts %}
+<script type="module" src="{{ url_for('static', filename='js/pages/semester.js') }}"></script>
 {% endblock %}

@@ -1,0 +1,93 @@
+/* Drop-down menus on light surfaces, such as the semester switcher. Built on <details>,
+   so they open without JavaScript; shell/menus.js closes them on Escape or outside clicks. */
+
+.menu {
+  position: relative;
+}
+
+.menu__button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 32px;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  font-weight: var(--weight-semibold);
+  list-style: none;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) ease;
+}
+
+.menu__button::-webkit-details-marker {
+  display: none;
+}
+
+.menu__button:hover,
+.menu[open] > .menu__button {
+  background: var(--color-surface-hover);
+}
+
+.menu[open] > .menu__button .icon {
+  transform: rotate(180deg);
+}
+
+.menu__panel {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  z-index: var(--z-flyout);
+  min-width: 240px;
+  padding: var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-flyout);
+}
+
+.menu__items {
+  display: grid;
+  gap: 2px;
+}
+
+.menu__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  width: 100%;
+  min-height: 36px;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.menu__item:hover {
+  background: var(--color-surface-hover);
+}
+
+.menu__item[aria-current="page"] {
+  background: var(--color-accent-subtle);
+  color: var(--color-accent-text);
+  font-weight: var(--weight-semibold);
+}
+
+.menu__item-note {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-regular);
+  color: var(--color-text-secondary);
+}
+
+.menu__footer {
+  margin-top: var(--space-1);
+  padding-top: var(--space-1);
+  border-top: 1px solid var(--color-border);
+}
+
+.menu__footer .menu__item {
+  justify-content: flex-start;
+  gap: var(--space-2);
+  color: var(--color-accent-text);
+}

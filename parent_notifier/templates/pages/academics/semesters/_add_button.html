@@ -1,0 +1,5 @@
+{# Opens the dialog; without JavaScript it is a plain link to the add-semester page. #}
+<a class="{{ button_class | default('button') }}" data-dialog-open="add-semester"
+   href="{{ url_for('semesters.new_semester', class_id=class_group.id) }}">
+  {{ icon("add") }}Add semester
+</a>

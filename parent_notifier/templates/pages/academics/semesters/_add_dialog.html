@@ -1,0 +1,4 @@
+{% from "components/overlays/dialog.html" import dialog %}
+{% call dialog("add-semester", "Add semester") %}
+{% with in_dialog = true %}{% include "pages/academics/semesters/_add_form.html" %}{% endwith %}
+{% endcall %}

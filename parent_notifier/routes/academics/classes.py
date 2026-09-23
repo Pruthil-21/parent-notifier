@@ -4,7 +4,7 @@ from flask import Blueprint, abort, flash, redirect, render_template, request, u
 from flask_login import current_user, login_required
 
 from parent_notifier.core.navigation import register_child_links
-from parent_notifier.forms.academics import CLASS_NAME_TAKEN, ClassDetailsForm
+from parent_notifier.forms.academics import CLASS_NAME_TAKEN, ClassDetailsForm, add_semester_form
 from parent_notifier.models.academics import ClassGroup
 from parent_notifier.services.academics import classes, ownership
 
@@ -63,5 +63,13 @@ def new_class():
 @bp.get("/<int:class_id>")
 @login_required
 def open_class(class_id: int):
+    """Open the latest semester, or the start panel when there is none yet."""
     class_group = load_class(class_id)
-    return render_template("pages/academics/classes/start.html", class_group=class_group)
+    if class_group.semesters:
+        latest = class_group.semesters[-1].number
+        return redirect(url_for("semesters.workspace", class_id=class_id, number=latest))
+    return render_template(
+        "pages/academics/classes/start.html",
+        class_group=class_group,
+        add_form=add_semester_form(class_group),
+    )

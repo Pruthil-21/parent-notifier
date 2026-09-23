@@ -3,10 +3,11 @@
 from flask import current_app
 from flask_wtf import FlaskForm
 from wtforms import StringField
-from wtforms.validators import InputRequired, Length, ValidationError
+from wtforms.validators import InputRequired, Length, NumberRange, ValidationError
 
 from parent_notifier.forms.fields import WholeNumberField, printable, single_spaced
-from parent_notifier.services.academics import classes
+from parent_notifier.models.academics import MAX_SEMESTER, MIN_SEMESTER, ClassGroup
+from parent_notifier.services.academics import classes, semester_numbers
 from parent_notifier.services.shared import clock
 
 CLASS_NAME_TAKEN = "You already have a class with this name. Choose another"
@@ -52,3 +53,28 @@ class ClassDetailsForm(FlaskForm):
     def validate_name(self, field) -> None:
         if classes.name_taken(self.mentor_id, field.data, except_class_id=self.class_id):
             raise ValidationError(CLASS_NAME_TAKEN)
+
+
+class AddSemesterForm(FlaskForm):
+    number = WholeNumberField(
+        "Semester number",
+        invalid_message=f"Enter the semester as a number from {MIN_SEMESTER} to {MAX_SEMESTER}",
+        validators=[
+            InputRequired("Enter the semester number"),
+            NumberRange(
+                min=MIN_SEMESTER,
+                max=MAX_SEMESTER,
+                message=f"Semester must be from {MIN_SEMESTER} to {MAX_SEMESTER}",
+            ),
+        ],
+    )
+
+
+def add_semester_form(class_group: ClassGroup, formdata=None) -> AddSemesterForm:
+    """The add-semester form, pre-filled with the suggested number unless submitted."""
+    suggested = semester_numbers.suggest(
+        (semester.number for semester in class_group.semesters),
+        class_group.admission_year,
+        clock.today(current_app.config["APP_TIMEZONE"]),
+    )
+    return AddSemesterForm(formdata=formdata, data={"number": suggested})
