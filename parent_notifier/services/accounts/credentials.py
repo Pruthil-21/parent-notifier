@@ -10,10 +10,14 @@ from parent_notifier.models.accounts import Mentor
 
 MIN_PASSWORD_LENGTH = 8
 MAX_PASSWORD_LENGTH = 128
+# Werkzeug's full-strength scrypt. Tests swap in a lighter setting through HASH_METHOD so
+# the suite stays fast; stored hashes carry their own settings, so checks still work.
+DEFAULT_HASH_METHOD = "scrypt"
+HASH_METHOD = DEFAULT_HASH_METHOD
 
 
 def hash_password(password: str) -> str:
-    return generate_password_hash(password, method="scrypt")
+    return generate_password_hash(password, method=HASH_METHOD)
 
 
 def normalise_username(username: str) -> str:

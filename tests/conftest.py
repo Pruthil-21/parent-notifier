@@ -2,7 +2,12 @@ import pytest
 
 from parent_notifier import create_app
 from parent_notifier.core.extensions import db
+from parent_notifier.services.accounts import credentials
 from tests.factories.accounts import PASSWORD, make_mentor, sign_in
+
+# A light scrypt setting keeps the suite fast; production uses full strength (a test in
+# test_credentials checks the default).
+credentials.HASH_METHOD = "scrypt:1024:8:1"
 
 
 @pytest.fixture

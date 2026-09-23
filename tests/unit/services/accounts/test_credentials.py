@@ -6,6 +6,10 @@ from tests.factories.accounts import PASSWORD, make_mentor
 pytestmark = pytest.mark.usefixtures("app_context")
 
 
+def test_production_uses_full_strength_scrypt():
+    assert credentials.DEFAULT_HASH_METHOD == "scrypt"
+
+
 def test_passwords_are_hashed_with_scrypt():
     hashed = credentials.hash_password(PASSWORD)
     assert hashed.startswith("scrypt:")
