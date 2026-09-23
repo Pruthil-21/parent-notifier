@@ -1,0 +1,24 @@
+{# Result of the last action, shown under the page header. Categories come from flash();
+   anything unexpected is shown as info. Errors interrupt screen readers, others wait. #}
+{% set kinds = {
+  "success": ("success", "status"),
+  "warning": ("warning", "status"),
+  "error": ("error", "alert"),
+  "info": ("info", "status"),
+} %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="message-stack">
+  {% for category, message in messages %}
+  {% set icon_name, role = kinds.get(category, kinds["info"]) %}
+  <div class="message-bar message-bar--{{ icon_name }}" role="{{ role }}" data-message-bar>
+    {{ icon(icon_name) }}
+    <p class="message-bar__text">{{ message }}</p>
+    <button type="button" class="message-bar__dismiss" data-dismiss-message>
+      {{ icon("dismiss", size=16, label="Dismiss message") }}
+    </button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endwith %}

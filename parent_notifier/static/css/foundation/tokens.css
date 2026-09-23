@@ -17,7 +17,7 @@
   --color-text: light-dark(#1a1d21, #e7eaee);
   --color-text-secondary: light-dark(#555c66, #a9b1bb);
   --color-text-muted: light-dark(#646b76, #8b949e);
-  --color-text-on-accent: #ffffff;
+  --color-text-on-accent: light-dark(#ffffff, #0b1f26);
 
   /* Accent: deep petrol blue-teal */
   --color-accent: light-dark(#0b5c73, #5db3cb);
@@ -29,6 +29,9 @@
   --color-topbar: light-dark(#0a3642, #0e1418);
   --color-topbar-text: #ffffff;
   --color-topbar-hover: light-dark(#124a59, #1b252c);
+  --color-topbar-divider: rgb(255 255 255 / 0.35);
+  --color-topbar-border: light-dark(transparent, #2a3037);
+  --color-backdrop: rgb(0 0 0 / 0.32);
 
   /* Status */
   --color-danger: light-dark(#b42318, #ff9c92);

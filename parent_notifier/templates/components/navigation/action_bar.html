@@ -1,0 +1,7 @@
+{# {% call action_bar() %}<button ...>{% endcall %}: commands that apply to the whole
+   page. Commands for one record belong with that record, not here. #}
+{% macro action_bar() -%}
+<div class="action-bar">
+  {{ caller() }}
+</div>
+{%- endmacro %}

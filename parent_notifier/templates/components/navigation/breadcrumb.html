@@ -1,0 +1,18 @@
+{# breadcrumb([("Home", url), ("Classes", url), ("CE-A", None)]): the last item is the
+   current page and is plain text, not a link. #}
+{% macro breadcrumb(items) -%}
+<nav class="breadcrumb" aria-label="Breadcrumb">
+  <ol role="list" class="breadcrumb__list">
+    {% for label, url in items %}
+    <li class="breadcrumb__item">
+      {% if loop.last or not url %}
+      <span aria-current="page">{{ label }}</span>
+      {% else %}
+      <a href="{{ url }}">{{ label }}</a>
+      {{ icon("chevron-right", size=12) }}
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+</nav>
+{%- endmacro %}

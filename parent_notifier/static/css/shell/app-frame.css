@@ -31,7 +31,7 @@
   position: fixed;
   inset: var(--topbar-height) 0 0;
   z-index: calc(var(--z-navpane) - 1);
-  background: rgb(0 0 0 / 0.32);
+  background: var(--color-backdrop);
 }
 
 .skip-link {

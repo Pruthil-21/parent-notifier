@@ -8,7 +8,17 @@
 
   <main id="main" class="app-main" tabindex="-1">
     <div class="page">
-      {% block page_header %}{% endblock %}
+      <header class="page-header">
+        {% block breadcrumb %}{% endblock %}
+        {% if self.page_title() %}
+        <div class="page-header__title-row">
+          <h1 class="page-header__title">{% block page_title %}{% endblock %}</h1>
+          {% block title_extra %}{% endblock %}
+        </div>
+        {% endif %}
+        {% block actions %}{% endblock %}
+      </header>
+      {% include "components/feedback/message_bar.html" %}
       {% block content %}{% endblock %}
     </div>
   </main>
@@ -17,5 +27,6 @@
 
 {% block scripts %}
 <script type="module" src="{{ url_for('static', filename='js/shell/nav-pane.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/components/message-bar.js') }}"></script>
 {% block page_scripts %}{% endblock %}
 {% endblock %}
