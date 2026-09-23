@@ -1,0 +1,14 @@
+{% extends "layouts/app.html" %}
+{% from "components/navigation/breadcrumb.html" import breadcrumb %}
+
+{% block title %}Settings · {{ class_group.name }}{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Home", url_for("home.index")), ("Classes", url_for("classes.index")), (class_group.name, url_for("classes.open_class", class_id=class_group.id)), ("Settings", None)]) }}{% endblock %}
+{% block page_title %}Class settings{% endblock %}
+{% block page_meta %}{{ class_group.name }} · {{ class_group.department }} · {{ class_group.admission_year }} batch{% endblock %}
+
+{% block content %}
+<div class="settings">
+  {% include "pages/academics/classes/settings/_details.html" %}
+  {% include "pages/academics/classes/settings/_rules.html" %}
+</div>
+{% endblock %}

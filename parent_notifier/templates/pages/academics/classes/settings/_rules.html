@@ -1,0 +1,21 @@
+{% from "components/forms/error_summary.html" import error_summary %}
+{% from "components/forms/field.html" import text_field %}
+<section class="settings-section" aria-labelledby="rules-heading">
+  <div class="settings-section__intro">
+    <h2 id="rules-heading">Status rules</h2>
+    <p>A student is at risk when theory or practical attendance in any subject is below the
+      minimum. Otherwise they need attention when any Mid-Sem mark is below the pass mark,
+      or they were absent.</p>
+  </div>
+  <form class="settings-section__form form-stack" method="post"
+        action="{{ url_for('class_settings.save_rules', class_id=class_group.id) }}" novalidate>
+    {{ error_summary(rules_form, first_field=rules_form.attendance_threshold) }}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {{ text_field(rules_form.attendance_threshold, hint="The college rule is 75",
+                  inputmode="numeric", autocomplete="off") }}
+    {{ text_field(rules_form.midsem_max, inputmode="numeric", autocomplete="off") }}
+    {{ text_field(rules_form.midsem_pass_mark, hint="Marks below this need attention",
+                  inputmode="numeric", autocomplete="off") }}
+    <div><button class="button button--primary" type="submit">Save status rules</button></div>
+  </form>
+</section>

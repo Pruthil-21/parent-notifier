@@ -9,6 +9,8 @@
 
 {% block page_meta %}{{ class_group.department }} · {{ class_group.admission_year }} batch{% endblock %}
 
+{% block actions %}{% include "pages/academics/classes/_settings_action.html" %}{% endblock %}
+
 {% block content %}
 {% call empty_state("No sheet for Sem " ~ semester.number ~ " yet", "Once this semester's sheet is uploaded, every student's attendance and Mid-Sem marks show here.") %}
 {% if can_remove %}

@@ -34,3 +34,18 @@ def test_exact_duplicate_at_save_time_raises(owner):
     make_class(owner, name="CE-A")
     with pytest.raises(classes.ClassNameTakenError):
         classes.create_class(owner.id, "CE-A", "Computer Engineering", 2024)
+
+
+def test_update_details_and_rules(owner):
+    class_group = make_class(owner)
+    classes.update_details(class_group, "CE-A2", "Information Technology", 2024)
+    classes.update_rules(class_group, 80, 12, 30)
+    assert (class_group.name, class_group.admission_year) == ("CE-A2", 2024)
+    assert (class_group.attendance_threshold, class_group.midsem_pass_mark) == (80, 12)
+
+
+def test_renaming_onto_an_existing_name_raises(owner):
+    make_class(owner, name="CE-B")
+    class_group = make_class(owner, name="CE-A")
+    with pytest.raises(classes.ClassNameTakenError):
+        classes.update_details(class_group, "CE-B", "Computer Engineering", 2023)

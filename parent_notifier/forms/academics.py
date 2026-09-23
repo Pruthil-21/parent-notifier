@@ -78,3 +78,35 @@ def add_semester_form(class_group: ClassGroup, formdata=None) -> AddSemesterForm
         clock.today(current_app.config["APP_TIMEZONE"]),
     )
     return AddSemesterForm(formdata=formdata, data={"number": suggested})
+
+
+class StatusRulesForm(FlaskForm):
+    attendance_threshold = WholeNumberField(
+        "Minimum attendance (%)",
+        invalid_message="Enter the minimum attendance as a whole number, like 75",
+        validators=[
+            InputRequired("Enter the minimum attendance"),
+            NumberRange(min=1, max=100, message="Minimum attendance must be from 1 to 100"),
+        ],
+    )
+    midsem_max = WholeNumberField(
+        "Mid-Sem out of",
+        invalid_message="Enter the Mid-Sem total as a whole number, like 20",
+        validators=[
+            InputRequired("Enter what the Mid-Sem is out of"),
+            NumberRange(min=1, max=100, message="Mid-Sem total must be from 1 to 100"),
+        ],
+    )
+    midsem_pass_mark = WholeNumberField(
+        "Mid-Sem pass mark",
+        invalid_message="Enter the pass mark as a whole number, like 7",
+        validators=[
+            InputRequired("Enter the Mid-Sem pass mark"),
+            NumberRange(min=0, max=100, message="Pass mark must be from 0 to 100"),
+        ],
+    )
+
+    def validate_midsem_pass_mark(self, field) -> None:
+        total = self.midsem_max.data
+        if field.data is not None and total is not None and field.data > total:
+            raise ValidationError(f"Pass mark cannot be more than the Mid-Sem total of {total}")
