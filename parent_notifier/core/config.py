@@ -16,6 +16,7 @@ def load_config(env: str, instance_path: Path) -> dict[str, object]:
         "ENV_NAME": env,
         "TESTING": env == "testing",
         "SECRET_KEY": _secret_key(env, instance_path),
+        "SQLALCHEMY_DATABASE_URI": _database_url(env, instance_path),
         "APP_TIMEZONE": os.environ.get("APP_TIMEZONE", "Asia/Kolkata"),
         "MAX_CONTENT_LENGTH": _int("MAX_UPLOAD_MB", 5) * 1024 * 1024,
         "SESSION_COOKIE_HTTPONLY": True,
@@ -43,6 +44,17 @@ def _secret_key(env: str, instance_path: Path) -> str:
         instance_path.mkdir(parents=True, exist_ok=True)
         key_file.write_text(secrets.token_hex(32), encoding="utf-8")
     return key_file.read_text(encoding="utf-8").strip()
+
+
+def _database_url(env: str, instance_path: Path) -> str:
+    """DATABASE_URL wins; otherwise tests get a private in-memory database and the other
+    environments a SQLite file in the instance folder."""
+    url = os.environ.get("DATABASE_URL")
+    if url:
+        return url
+    if env == "testing":
+        return "sqlite://"
+    return f"sqlite:///{(instance_path / 'parent_notifier.db').as_posix()}"
 
 
 def _flag(name: str) -> bool:
