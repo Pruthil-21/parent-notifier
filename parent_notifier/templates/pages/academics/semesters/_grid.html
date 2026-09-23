@@ -1,15 +1,24 @@
 {# The student grid. Figures below the class's limits are marked in words, not colour alone. #}
 {% from "components/feedback/badge.html" import student_badge %}
 {% macro number(value) %}{{ "%g" | format(value) }}{% endmacro %}
+{# A sortable header: a link that sorts by this column, toggling direction when active. #}
+{% macro sort_header(label, key, extra_class="") %}
+{% set active = query.sort == key %}
+<th scope="col" class="{{ extra_class }}"{% if active %} aria-sort="{{ 'descending' if query.descending else 'ascending' }}"{% endif %}>
+  <a class="sort-link" href="{{ url_for('semesters.workspace', class_id=class_group.id, number=semester.number, q=query.search or None, status=query.status or None, sort=key, dir='desc' if active and not query.descending else None) }}">
+    {{ label }}{% if active %}{{ icon("chevron-up" if not query.descending else "chevron-down", size=12) }}{% endif %}
+  </a>
+</th>
+{% endmacro %}
 <div class="data-grid student-grid">
   <table>
     <caption class="visually-hidden">Students in Sem {{ semester.number }}</caption>
     <thead>
       <tr>
-        <th scope="col" class="col-optional">Enrollment</th>
-        <th scope="col">Student</th>
+        {{ sort_header("Enrollment", "enrollment", "col-optional") }}
+        {{ sort_header("Student", "name") }}
         <th scope="col" class="col-optional">Parent</th>
-        <th scope="col">Lowest attendance</th>
+        {{ sort_header("Lowest attendance", "attendance") }}
         <th scope="col" class="col-optional">Mid-Sem</th>
         <th scope="col">Status</th>
       </tr>
@@ -38,6 +47,8 @@
         </td>
         <td>{{ student_badge(row) }}</td>
       </tr>
+      {% else %}
+      <tr><td colspan="6" class="grid-empty">No students match. <a href="{{ url_for('semesters.workspace', class_id=class_group.id, number=semester.number) }}">Clear the search and filter</a></td></tr>
       {% endfor %}
     </tbody>
   </table>

@@ -1,0 +1,27 @@
+{# Search and status filter: a plain GET form, so it works without JavaScript and the
+   filtered view has its own address. #}
+<form class="grid-filters" method="get" role="search" aria-label="Find students"
+      action="{{ url_for('semesters.workspace', class_id=class_group.id, number=semester.number) }}">
+  <div class="grid-filters__field">
+    <label for="grid-search">Search</label>
+    <input class="input" id="grid-search" type="search" name="q" value="{{ query.search }}"
+           maxlength="100" placeholder="Name, parent or enrollment no." autocomplete="off">
+  </div>
+  <div class="grid-filters__field">
+    <label for="grid-status">Status</label>
+    <select class="input" id="grid-status" name="status" data-auto-submit>
+      {% for value, label in status_filters.items() %}
+      <option value="{{ value }}" {{ "selected" if value == query.status }}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% if query.sort != "enrollment" %}<input type="hidden" name="sort" value="{{ query.sort }}">{% endif %}
+  {% if query.descending %}<input type="hidden" name="dir" value="desc">{% endif %}
+  <button class="button" type="submit">Apply</button>
+  {% if query.filtered %}
+  <a class="button button--subtle" href="{{ url_for('semesters.workspace', class_id=class_group.id, number=semester.number) }}">Clear</a>
+  {% endif %}
+</form>
+<p class="grid-count text-secondary" role="status">
+  {% if query.filtered %}Showing {{ rows | length }} of {{ view.rows | length }} students{% else %}{{ rows | length }} students{% endif %}
+</p>

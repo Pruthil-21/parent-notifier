@@ -20,7 +20,8 @@
 {% if current.students %}
 <p class="sheet-summary text-secondary">Last sheet {{ semester.last_imported_at | date }} · {{ current.students }} students · {{ semester.subjects | length }} subjects</p>
 {% include "pages/academics/semesters/_tiles.html" %}
-{% with rows = view.active_rows %}{% include "pages/academics/semesters/_grid.html" %}{% endwith %}
+{% include "pages/academics/semesters/_filters.html" %}
+{% include "pages/academics/semesters/_grid.html" %}
 {% else %}
 {% call empty_state("No sheet for Sem " ~ semester.number ~ " yet", "Upload this semester's sheet to see every student's attendance and Mid-Sem marks here.") %}
 {% include "pages/imports/upload/_upload_button.html" %}
