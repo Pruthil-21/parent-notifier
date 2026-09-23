@@ -9,7 +9,7 @@ from parent_notifier.models.academics import ClassGroup, Semester
 from parent_notifier.routes.academics.classes import load_class
 from parent_notifier.services.academics import grid_filters, semester_view, semesters
 from parent_notifier.services.imports import undo
-from parent_notifier.services.messaging import previews, send_log
+from parent_notifier.services.messaging import pacing, previews, send_log
 from parent_notifier.services.messaging.message_templates import LANGUAGES
 
 bp = Blueprint("semesters", __name__, url_prefix="/classes/<int:class_id>")
@@ -71,6 +71,7 @@ def workspace(class_id: int, number: int):
         status_filters=grid_filters.STATUS_FILTERS,
         popup=_popup_payload(class_group, semester, view, rows, marks, pending),
         pending_count=len(pending),
+        pacing=pacing.status_for(current_user, current_app.config["APP_TIMEZONE"]),
         marks=marks,
         labels=_labels(view, marks),
         sent_ids={sid for sid, mark in marks.items() if mark.status == "sent"},

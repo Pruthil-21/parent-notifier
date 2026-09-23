@@ -4,7 +4,9 @@
         data-threshold="{{ view.rules.attendance_threshold }}"
         data-pass-mark="{{ view.rules.midsem_pass_mark }}"
         data-midsem-max="{{ view.rules.midsem_max }}"
-        data-default-language="{{ current_user.message_language }}">
+        data-default-language="{{ current_user.message_language }}"
+        data-wait-seconds="{{ pacing.wait_seconds }}" data-wait-reason="{{ pacing.reason or '' }}"
+        data-sent-today="{{ pacing.sent_today }}" data-daily-limit="{{ pacing.daily_limit }}">
   <div class="dialog__header student-popup__header">
     <div>
       <h2 class="dialog__title" id="popup-name" data-slot="name"></h2>
@@ -74,6 +76,7 @@
     <button type="button" class="button button--primary" data-dialog-close>Close</button>
   </div>
   <p class="student-popup__send-note" data-slot="send-note" role="status"></p>
+  <p class="student-popup__pacing" data-slot="pacing" aria-live="polite"></p>
 </dialog>
 {% include "pages/academics/students/_sending_as.html" %}
 <script type="application/json" id="students-data">{{ popup | tojson }}</script>
