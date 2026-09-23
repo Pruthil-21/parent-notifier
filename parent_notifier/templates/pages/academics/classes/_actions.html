@@ -1,6 +1,14 @@
 {# The page-level action bar on a class's pages. #}
 {% from "components/navigation/action_bar.html" import action_bar %}
 {% call action_bar() %}
-{% if upload %}{% include "pages/imports/upload/_upload_button.html" %}{% endif %}
+{% if upload %}
+{% include "pages/imports/upload/_upload_button.html" %}
+{% if last_import %}
+<a class="button" data-dialog-open="undo-import"
+   href="{{ url_for('import_undo.confirm_undo', class_id=class_group.id, number=semester.number) }}">Undo last import</a>
+{% else %}
+<button class="button" type="button" disabled>Undo last import</button>
+{% endif %}
+{% endif %}
 <a class="button" href="{{ url_for('class_settings.index', class_id=class_group.id) }}">Class settings</a>
 {% endcall %}

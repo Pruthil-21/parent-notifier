@@ -1,0 +1,18 @@
+{# What undoing the last import does, shared by the dialog and the page. #}
+<dl class="undo-facts">
+  <div><dt>File</dt><dd>{{ batch.filename }}</dd></div>
+  <div><dt>Imported</dt><dd>{{ batch.created_at | date }}</dd></div>
+  <div><dt>Students</dt><dd>{{ batch.added_count }} added, {{ batch.updated_count }} updated</dd></div>
+</dl>
+<p class="confirm-text">Attendance and marks go back to how they were before this import.
+  Students it added are removed from Sem {{ semester.number }}. This can only be done once.</p>
+<form class="form-panel__actions" method="post"
+      action="{{ url_for('import_undo.undo_last', class_id=class_group.id, number=semester.number) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button class="button button--danger" type="submit">Undo import</button>
+  {% if in_dialog %}
+  <button class="button button--subtle" type="button" data-dialog-close>Cancel</button>
+  {% else %}
+  <a class="button button--subtle" href="{{ url_for('semesters.workspace', class_id=class_group.id, number=semester.number) }}">Cancel</a>
+  {% endif %}
+</form>

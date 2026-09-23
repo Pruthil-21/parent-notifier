@@ -1,0 +1,12 @@
+{% extends "layouts/app.html" %}
+{% from "components/navigation/breadcrumb.html" import breadcrumb %}
+
+{% block title %}Undo last import · Sem {{ semester.number }} · {{ class_group.name }}{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Home", url_for("home.index")), ("Classes", url_for("classes.index")), (class_group.name, url_for("classes.open_class", class_id=class_group.id)), ("Sem " ~ semester.number, url_for("semesters.workspace", class_id=class_group.id, number=semester.number)), ("Undo last import", None)]) }}{% endblock %}
+{% block page_title %}Undo last import?{% endblock %}
+
+{% block content %}
+<div class="form-panel">
+  {% with in_dialog = false %}{% include "pages/imports/undo/_undo_form.html" %}{% endwith %}
+</div>
+{% endblock %}
