@@ -65,8 +65,6 @@ uv run ruff format --check .
 - Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/),
   one logical change per commit, with its tests.
 - The pre-commit hooks must pass: lint, formatting and the commit message format.
-- Keep files short and folders small: split a file past about 200 lines, and group a
-  folder into subfolders before it reaches 9 files.
 - Never commit real student or parent data.
 
 ## License
