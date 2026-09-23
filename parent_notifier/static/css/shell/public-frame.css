@@ -42,6 +42,10 @@
   color: var(--color-text-secondary);
 }
 
+.public-panel__title {
+  margin-bottom: var(--space-5);
+}
+
 .public-frame__footer {
   padding-top: var(--space-6);
   font-size: var(--text-caption);

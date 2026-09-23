@@ -5,8 +5,10 @@ description = "Mentor dashboard that imports semester attendance and mid-sem mar
 requires-python = ">=3.12"
 dependencies = [
     "flask>=3.1",
+    "flask-login>=0.6",
     "flask-migrate>=4.0",
     "flask-sqlalchemy>=3.1",
+    "flask-wtf>=1.2",
     "python-dotenv>=1.0",
 ]
 
@@ -37,3 +39,7 @@ quote-style = "double"
 pythonpath = ["."]
 testpaths = ["tests"]
 addopts = ["-ra", "--strict-markers", "--strict-config", "--import-mode=importlib"]
+filterwarnings = [
+    # Flask-Login 0.6.3 calls datetime.utcnow() when it sets the remember-me cookie.
+    "ignore:datetime.datetime.utcnow:DeprecationWarning:flask_login",
+]

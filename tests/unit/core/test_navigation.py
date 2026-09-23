@@ -2,13 +2,23 @@ import pytest
 from flask import Blueprint
 
 from parent_notifier import create_app
-from parent_notifier.core.navigation import navigation_context
+from parent_notifier.core import navigation
+from parent_notifier.core.navigation import NavItem, navigation_context
 
 
 @pytest.fixture
-def app_with_sections():
+def app_with_sections(monkeypatch):
+    monkeypatch.setattr(
+        navigation,
+        "NAV_ITEMS",
+        (
+            NavItem("home", "Start", "start.index"),
+            NavItem("classes", "Reports", "reports.index"),
+            NavItem("help", "Guide", "guide.index"),
+        ),
+    )
     app = create_app("testing")
-    for name, path in (("home", "/"), ("help", "/help")):
+    for name, path in (("start", "/start"), ("guide", "/guide")):
         blueprint = Blueprint(name, __name__)
         blueprint.add_url_rule(path, "index", lambda: "ok")
         app.register_blueprint(blueprint)
@@ -16,18 +26,19 @@ def app_with_sections():
 
 
 def test_only_registered_sections_are_listed(app_with_sections):
-    with app_with_sections.test_request_context("/help"):
+    with app_with_sections.test_request_context("/guide"):
         context = navigation_context()
-    assert [item["label"] for item in context["nav_items"]] == ["Home", "Help"]
-    assert context["home_url"] == "/"
+    assert [item["label"] for item in context["nav_items"]] == ["Start", "Guide"]
+    assert context["home_url"] == "/start"
 
 
 def test_current_section_is_marked_active(app_with_sections):
-    with app_with_sections.test_request_context("/help"):
+    with app_with_sections.test_request_context("/guide"):
         items = {item["label"]: item["active"] for item in navigation_context()["nav_items"]}
-    assert items == {"Home": False, "Help": True}
+    assert items == {"Start": False, "Guide": True}
 
 
-def test_no_sections_yet_links_home_to_root(app):
+def test_no_registered_sections_links_home_to_root(app, monkeypatch):
+    monkeypatch.setattr(navigation, "NAV_ITEMS", (NavItem("add", "Reports", "reports.index"),))
     with app.test_request_context("/"):
         assert navigation_context() == {"nav_items": [], "home_url": "/"}

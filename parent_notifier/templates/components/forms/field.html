@@ -1,0 +1,46 @@
+{# Form fields in the GOV.UK pattern: label, optional hint, then the error message above
+   the input. Hint and error are tied to the input with aria-describedby. #}
+
+{% macro _described_by(field, hint) -%}
+  {{- ((field.id ~ "-hint") if hint else "") ~ (" " if hint and field.errors else "")
+      ~ ((field.id ~ "-error") if field.errors else "") -}}
+{%- endmacro %}
+
+{% macro _label_hint_error(field, hint) %}
+  {{ field.label(class_="field__label") }}
+  {% if hint %}<p class="field__hint" id="{{ field.id }}-hint">{{ hint }}</p>{% endif %}
+  {% if field.errors %}
+  <p class="field__error" id="{{ field.id }}-error">
+    {{ icon("error", size=16) }}<span>{{ field.errors[0] }}</span>
+  </p>
+  {% endif %}
+{% endmacro %}
+
+{% macro text_field(field, hint=None) %}
+<div class="field{% if field.errors %} field--error{% endif %}">
+  {{ _label_hint_error(field, hint) }}
+  {{ field(class_="input", aria_describedby=_described_by(field, hint) or False,
+           aria_invalid="true" if field.errors else False, **kwargs) }}
+</div>
+{% endmacro %}
+
+{# The Show button stays hidden until JavaScript can make it work. #}
+{% macro password_field(field, hint=None) %}
+<div class="field{% if field.errors %} field--error{% endif %}">
+  {{ _label_hint_error(field, hint) }}
+  <div class="password-input">
+    {{ field(class_="input password-input__input", spellcheck="false", autocapitalize="none",
+             aria_describedby=_described_by(field, hint) or False,
+             aria_invalid="true" if field.errors else False, **kwargs) }}
+    <button type="button" class="button password-input__toggle" data-password-toggle
+            aria-controls="{{ field.id }}" aria-label="Show password" hidden>Show</button>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro checkbox(field) %}
+<div class="checkbox">
+  {{ field(class_="checkbox__input") }}
+  {{ field.label(class_="checkbox__label") }}
+</div>
+{% endmacro %}

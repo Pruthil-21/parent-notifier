@@ -2,6 +2,7 @@
 internals such as stack traces or the requested address."""
 
 from flask import Flask, current_app, render_template
+from flask_wtf.csrf import CSRFError
 from werkzeug.exceptions import HTTPException
 
 ERROR_PAGES = {
@@ -28,6 +29,14 @@ ERROR_PAGES = {
 }
 
 
+# A missing or stale CSRF token nearly always means a page left open across a restart or
+# sign-out, so the 400 page tells the mentor how to recover instead of blaming the request.
+EXPIRED_FORM = (
+    "This form has expired",
+    "Go back, reload the page and fill in the form again.",
+)
+
+
 def _upload_limit_message() -> str:
     limit_mb = current_app.config["MAX_CONTENT_LENGTH"] // (1024 * 1024)
     return f"The file is larger than {limit_mb} MB. Upload a smaller file."
@@ -35,7 +44,7 @@ def _upload_limit_message() -> str:
 
 def render_error(error: HTTPException):
     code = error.code if error.code in ERROR_PAGES else 500
-    title, message = ERROR_PAGES[code]
+    title, message = EXPIRED_FORM if isinstance(error, CSRFError) else ERROR_PAGES[code]
     if code == 413:
         message = _upload_limit_message()
     html = render_template("pages/support/error.html", code=code, title=title, message=message)

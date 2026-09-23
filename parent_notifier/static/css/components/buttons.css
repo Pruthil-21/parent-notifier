@@ -40,6 +40,10 @@
   background: var(--color-accent-hover);
 }
 
+.button--full {
+  width: 100%;
+}
+
 .button--subtle {
   border-color: transparent;
   background: transparent;
