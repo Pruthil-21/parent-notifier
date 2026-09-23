@@ -1,4 +1,4 @@
 {% from "components/overlays/dialog.html" import dialog %}
 {% call dialog("remove-semester", "Remove Sem " ~ semester.number ~ "?") %}
-{% with in_dialog = true %}{% include "pages/academics/semesters/_remove_form.html" %}{% endwith %}
+{% with in_dialog = true %}{% include "pages/academics/semesters/dialogs/_remove_form.html" %}{% endwith %}
 {% endcall %}
