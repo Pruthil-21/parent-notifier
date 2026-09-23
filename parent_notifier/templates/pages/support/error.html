@@ -1,0 +1,16 @@
+{% extends "layouts/public.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/error.css') }}">
+{% endblock %}
+
+{% block panel %}
+<div class="error-page">
+  <p class="error-page__code">Error {{ code }}</p>
+  <h1>{{ title }}</h1>
+  <p class="error-page__message">{{ message }}</p>
+  <a class="button button--primary" href="{{ home_url }}">Go to your home page</a>
+</div>
+{% endblock %}
