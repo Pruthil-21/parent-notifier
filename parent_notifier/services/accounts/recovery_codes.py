@@ -18,3 +18,8 @@ def generate() -> str:
 
 def hash_code(code: str) -> str:
     return hash_password(code)
+
+
+def format_for_display(code: str) -> str:
+    """ABCDEFGHJKMN becomes ABCD-EFGH-JKMN, which is easier to copy by hand."""
+    return "-".join(code[start : start + 4] for start in range(0, len(code), 4))

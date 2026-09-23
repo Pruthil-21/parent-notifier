@@ -20,3 +20,7 @@ def test_only_a_scrypt_hash_is_kept():
     assert hashed.startswith("scrypt:")
     assert code not in hashed
     assert check_password_hash(hashed, code)
+
+
+def test_codes_are_shown_in_groups_of_four():
+    assert recovery_codes.format_for_display("ABCDEFGHJKMN") == "ABCD-EFGH-JKMN"

@@ -1,0 +1,47 @@
+/* The recovery code page: the code itself, set large enough to copy by hand. */
+
+@layer pages {
+  .recovery-code__intro {
+    margin-bottom: var(--space-4);
+    color: var(--color-text-secondary);
+  }
+
+  .recovery-code {
+    display: grid;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-panel);
+    background: var(--color-surface-subtle);
+  }
+
+  .recovery-code__value {
+    font-family: var(--font-mono);
+    font-size: var(--text-title);
+    line-height: var(--leading-title);
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.08em;
+    text-align: center;
+    user-select: all;
+  }
+
+  .recovery-code__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2);
+  }
+
+  .recovery-code__status {
+    min-height: var(--leading-caption);
+    font-size: var(--text-caption);
+    line-height: var(--leading-caption);
+    color: var(--color-text-secondary);
+    text-align: center;
+  }
+
+  .recovery-code__status:empty {
+    display: none;
+  }
+}
