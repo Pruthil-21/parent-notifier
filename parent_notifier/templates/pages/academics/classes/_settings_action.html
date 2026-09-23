@@ -1,0 +1,5 @@
+{# The page-level action bar on a class's pages. #}
+{% from "components/navigation/action_bar.html" import action_bar %}
+{% call action_bar() %}
+<a class="button" href="{{ url_for('class_settings.index', class_id=class_group.id) }}">Class settings</a>
+{% endcall %}

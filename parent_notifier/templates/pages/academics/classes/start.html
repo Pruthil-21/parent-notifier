@@ -8,6 +8,8 @@
 
 {% block page_meta %}{{ class_group.department }} · {{ class_group.admission_year }} batch{% endblock %}
 
+{% block actions %}{% include "pages/academics/classes/_settings_action.html" %}{% endblock %}
+
 {% block content %}
 {% call empty_state("No semesters yet", "Add the semester you are mentoring now, then upload its sheet.") %}
 {% with button_class = "button button--primary" %}{% include "pages/academics/semesters/_add_button.html" %}{% endwith %}

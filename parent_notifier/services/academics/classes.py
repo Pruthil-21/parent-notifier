@@ -30,6 +30,25 @@ def create_class(mentor_id: int, name: str, department: str, admission_year: int
     return class_group
 
 
+def update_details(
+    class_group: ClassGroup, name: str, department: str, admission_year: int
+) -> None:
+    class_group.name = name
+    class_group.department = department
+    class_group.admission_year = admission_year
+    _commit_or_name_taken(name)
+
+
+def update_rules(
+    class_group: ClassGroup, attendance_threshold: int, midsem_pass_mark: int, midsem_max: int
+) -> None:
+    """Values already validated by the form; the database refuses impossible ones too."""
+    class_group.attendance_threshold = attendance_threshold
+    class_group.midsem_pass_mark = midsem_pass_mark
+    class_group.midsem_max = midsem_max
+    db.session.commit()
+
+
 def _commit_or_name_taken(name: str) -> None:
     try:
         db.session.commit()

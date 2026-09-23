@@ -26,6 +26,7 @@
         <th scope="col" class="numeric">Students</th>
         <th scope="col">Last sheet</th>
         <th scope="col">Created</th>
+        <th scope="col"><span class="visually-hidden">Actions</span></th>
       </tr>
     </thead>
     <tbody>
@@ -41,6 +42,7 @@
         <td class="numeric">{{ row.active_students }}</td>
         <td>{% if row.last_imported_at %}{{ row.last_imported_at | date }}{% else %}<span class="text-muted">Not yet</span>{% endif %}</td>
         <td>{{ class_group.created_at | date }}</td>
+        <td><a href="{{ url_for('class_settings.index', class_id=class_group.id) }}" aria-label="Settings for {{ class_group.name }}">Settings</a></td>
       </tr>
       {% endfor %}
     </tbody>

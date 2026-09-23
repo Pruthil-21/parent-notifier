@@ -2,10 +2,18 @@
 
 from flask import Flask
 
-from parent_notifier.routes.academics import classes, home, semesters
+from parent_notifier.routes.academics import class_settings, classes, home, semesters
 from parent_notifier.routes.accounts import auth, profile, registration
 
-BLUEPRINTS = (auth.bp, registration.bp, profile.bp, home.bp, classes.bp, semesters.bp)
+BLUEPRINTS = (
+    auth.bp,
+    registration.bp,
+    profile.bp,
+    home.bp,
+    classes.bp,
+    semesters.bp,
+    class_settings.bp,
+)
 
 
 def register_blueprints(app: Flask) -> None:
