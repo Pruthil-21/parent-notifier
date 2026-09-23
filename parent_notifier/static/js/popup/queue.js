@@ -3,6 +3,7 @@
 // link to the grid filtered to pending parents.
 
 import { postLog, sendToParent } from "./send.js";
+import { confirmThen } from "./sending-as.js";
 
 export function initQueue(popup) {
   const opener = document.querySelector("[data-queue-open]");
@@ -62,7 +63,9 @@ export function initQueue(popup) {
     }
   }
 
-  dialog.querySelector("[data-queue-send]").addEventListener("click", () => advance("send"));
+  dialog.querySelector("[data-queue-send]").addEventListener("click", () => {
+    confirmThen(() => advance("send"));
+  });
   dialog.querySelector("[data-queue-skip]").addEventListener("click", () => advance("skip"));
 
   dialog.addEventListener("close", () => {

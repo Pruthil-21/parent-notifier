@@ -188,3 +188,11 @@ def test_queue_button_goes_once_everyone_is_done(signed_in_client, setup):
 def _data(html):
     block = re.search(r'id="students-data">(.*?)</script>', html, re.S)
     return json.loads(block.group(1))
+
+
+def test_page_asks_which_number_whatsapp_web_is_signed_in_to(signed_in_client, setup):
+    base, _ = setup
+    html = signed_in_client.get(base).get_data(as_text=True)
+    assert '<dialog id="sending-as"' in html
+    assert '<strong class="numeric">+91 90000 00001</strong>' in html
+    assert 'href="https://web.whatsapp.com/" target="parent-notifier-whatsapp"' in html
