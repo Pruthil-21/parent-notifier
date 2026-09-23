@@ -12,6 +12,12 @@
 {% block actions %}{% with upload = true %}{% include "pages/academics/classes/_actions.html" %}{% endwith %}{% endblock %}
 
 {% block content %}
+{% set current = summaries | selectattr("number", "equalto", semester.number) | first %}
+{% if current.students %}
+{% call empty_state("Sem " ~ semester.number ~ " sheet imported", current.students ~ " students and " ~ (semester.subjects | length) ~ " subjects, last updated " ~ (semester.last_imported_at | date) ~ ". Upload the sheet again whenever attendance or marks change.") %}
+{% include "pages/imports/upload/_upload_button.html" %}
+{% endcall %}
+{% else %}
 {% call empty_state("No sheet for Sem " ~ semester.number ~ " yet", "Upload this semester's sheet to see every student's attendance and Mid-Sem marks here.") %}
 {% include "pages/imports/upload/_upload_button.html" %}
 {% if can_remove %}
@@ -21,6 +27,7 @@
 </a>
 {% endif %}
 {% endcall %}
+{% endif %}
 {% include "pages/academics/semesters/dialogs/_add_dialog.html" %}
 {% include "pages/imports/upload/_upload_dialog.html" %}
 {% if can_remove %}{% include "pages/academics/semesters/dialogs/_remove_dialog.html" %}{% endif %}

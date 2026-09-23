@@ -76,10 +76,18 @@
     margin-bottom: var(--space-3);
   }
 
+  .review-identity {
+    margin-bottom: var(--space-6);
+  }
+
   .review-actions {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-3);
+    margin-top: var(--space-5);
+  }
+
+  .review-choice {
     margin-top: var(--space-6);
   }
 

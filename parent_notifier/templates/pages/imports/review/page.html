@@ -19,6 +19,7 @@
   <div><dt>Already in {{ class_group.name }}</dt><dd class="numeric">{{ comparison.existing_students }}</dd></div>
   <div><dt>Subjects</dt><dd>{{ sheet.subjects | join(", ") or "None found" }}</dd></div>
 </dl>
+{% include "pages/imports/review/_identity.html" %}
 {% include "pages/imports/review/_preview.html" %}
 {% endif %}
 {% include "pages/imports/review/_actions.html" %}

@@ -2,7 +2,15 @@
 
 from datetime import datetime
 
-from sqlalchemy import CheckConstraint, Column, ForeignKey, String, Table, UniqueConstraint
+from sqlalchemy import (
+    CheckConstraint,
+    Column,
+    ForeignKey,
+    String,
+    Table,
+    UniqueConstraint,
+    false,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from parent_notifier.core.extensions import db
@@ -82,6 +90,9 @@ class Semester(db.Model):
     students: Mapped[list["Student"]] = relationship(
         secondary=semester_students, back_populates="semesters", passive_deletes=True
     )
+    subjects: Mapped[list["SemesterSubject"]] = relationship(
+        order_by="SemesterSubject.position", cascade="all, delete-orphan", passive_deletes=True
+    )
 
     def __repr__(self) -> str:
         return f"<Semester {self.id} class={self.class_id} number={self.number}>"
@@ -117,3 +128,39 @@ class Student(Timestamps, db.Model):
 
     def __repr__(self) -> str:
         return f"<Student {self.id} {self.enrollment_no}>"
+
+
+class SemesterSubject(db.Model):
+    """A subject column of a semester's sheet, kept in the sheet's order."""
+
+    __tablename__ = "semester_subjects"
+    __table_args__ = (UniqueConstraint("semester_id", "name"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    semester_id: Mapped[int] = mapped_column(ForeignKey("semesters.id", ondelete="CASCADE"))
+    name: Mapped[str] = mapped_column(String(80))
+    position: Mapped[int]
+
+
+class Result(db.Model):
+    """One student's numbers in one subject. None means no data yet."""
+
+    __tablename__ = "results"
+    __table_args__ = (
+        UniqueConstraint("semester_subject_id", "student_id"),
+        CheckConstraint("theory_pct BETWEEN 0 AND 100", name="theory_pct"),
+        CheckConstraint("practical_pct BETWEEN 0 AND 100", name="practical_pct"),
+        CheckConstraint("midsem_marks >= 0", name="midsem_marks"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    semester_subject_id: Mapped[int] = mapped_column(
+        ForeignKey("semester_subjects.id", ondelete="CASCADE")
+    )
+    student_id: Mapped[int] = mapped_column(
+        ForeignKey("students.id", ondelete="CASCADE"), index=True
+    )
+    theory_pct: Mapped[float | None]
+    practical_pct: Mapped[float | None]
+    midsem_marks: Mapped[float | None]
+    midsem_absent: Mapped[bool] = mapped_column(default=False, server_default=false())

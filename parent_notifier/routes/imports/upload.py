@@ -10,6 +10,7 @@ from parent_notifier.forms.imports import ConfirmImportForm, UploadSheetForm
 from parent_notifier.models.academics import ClassGroup, Semester
 from parent_notifier.routes.academics.semesters import load_semester
 from parent_notifier.services.imports import staging
+from parent_notifier.services.imports.apply import apply_import
 from parent_notifier.services.imports.compare import compare
 from parent_notifier.services.imports.sheet_parser import ParsedSheet, parse_sheet
 from parent_notifier.services.imports.sheet_reader import SheetReadError, read_sheet
@@ -72,6 +73,34 @@ def review(class_group, semester, filename: str, sheet: ParsedSheet, form):
         comparison=compare(class_group, sheet),
         form=form,
     )
+
+
+@bp.post("/import/confirm")
+@login_required
+def confirm(class_id: int, number: int):
+    class_group, semester = load_semester(class_id, number)
+    form = ConfirmImportForm()
+    staged = None
+    if form.validate_on_submit():
+        staged = staging.load(staging_dir(), form.token.data, owner(class_group, semester))
+    if staged is None:
+        # Expired, already confirmed in another tab, or not this semester's sheet.
+        flash("This review has expired, so nothing was saved. Upload the sheet again.", "error")
+        return redirect(url_for("semesters.workspace", class_id=class_id, number=number))
+    outcome = apply_import(
+        class_group,
+        semester,
+        current_user.id,
+        staged.filename,
+        staged.sheet,
+        update_identity=form.update_identity.data,
+    )
+    staging.discard(staging_dir(), staged.token)
+    flash(
+        f"Sheet imported: {outcome.added} new and {outcome.updated} existing students.",
+        "success",
+    )
+    return redirect(url_for("semesters.workspace", class_id=class_id, number=number))
 
 
 @bp.post("/import/cancel")
