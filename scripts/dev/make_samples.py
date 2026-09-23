@@ -55,12 +55,20 @@ SUBJECTS = {
 
 
 def _cell(student: int, subject: int, semester: int, practical: bool, midsem: bool) -> str:
-    parts = [f"Theory={66 + (student * 7 + subject * 11 + semester) % 34}"]
+    """Most students do well; about one in five is short in one subject, and a few fail
+    or miss a Mid-Sem, which is roughly what a real class looks like."""
+    theory = 78 + (student * 7 + subject * 11 + semester) % 22
+    if subject == 0 and (student + semester) % 5 == 0:
+        theory = 64 + student % 8
+    parts = [f"Theory={theory}"]
     if practical:
-        parts.append(f"Practical={70 + (student * 5 + subject * 3 + semester) % 30}")
+        parts.append(f"Practical={80 + (student * 5 + subject * 3 + semester) % 20}")
     if midsem:
+        marks = 7 + (student * 3 + subject * 5) % 14
+        if (student + subject + semester) % 13 == 0:
+            marks = 3 + student % 4
         absent = (student + subject * 3 + semester) % 17 == 0
-        parts.append("Marks=AB" if absent else f"Marks={4 + (student * 3 + subject * 5) % 17}")
+        parts.append("Marks=AB" if absent else f"Marks={marks}")
     return ",".join(parts)
 
 
