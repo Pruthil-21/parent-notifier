@@ -32,6 +32,10 @@ CHANGELOG.md
 CONTRIBUTING.md
 docs/
 
+# GitHub: only the Actions workflows are tracked
+.github/*
+!.github/workflows/
+
 # Editors and operating systems
 .vscode/
 .idea/
