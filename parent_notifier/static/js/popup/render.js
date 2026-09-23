@@ -72,6 +72,7 @@ export function renderStudent(dialog, student, rules) {
     ? student.phone
     : `${student.phone || "Missing"} · not a valid mobile number`;
   phone.classList.toggle("figure-fail", !student.phoneValid);
+  slot(dialog, "mark").textContent = student.mark;
   slot(dialog, "subjects").replaceChildren(
     ...student.subjects.map((subject) => subjectRow(subject, rules)),
   );

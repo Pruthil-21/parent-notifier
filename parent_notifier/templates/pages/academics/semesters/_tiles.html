@@ -17,4 +17,13 @@
     </a>
   </li>
   {% endfor %}
+  {% set reachable = view.active_rows | selectattr("phone_e164") | list %}
+  {% set messaged = reachable | selectattr("id", "in", sent_ids) | list %}
+  <li class="tile tile--messaged">
+    <span class="tile__link">
+      <span class="tile__label">Parents messaged</span>
+      <span class="tile__value numeric">{{ messaged | length }} <span class="tile__of">of {{ reachable | length }}</span></span>
+      <span class="tile__share">for the latest sheet</span>
+    </span>
+  </li>
 </ul>

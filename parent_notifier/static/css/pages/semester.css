@@ -56,6 +56,11 @@
     white-space: normal;
   }
 
+  .message-done {
+    font-weight: var(--weight-semibold);
+    color: var(--color-success);
+  }
+
   .figure-short,
   .figure-fail {
     font-weight: var(--weight-semibold);

@@ -21,6 +21,7 @@
         {{ sort_header("Lowest attendance", "attendance") }}
         <th scope="col" class="col-optional">Mid-Sem</th>
         <th scope="col">Status</th>
+        <th scope="col">Message</th>
       </tr>
     </thead>
     <tbody>
@@ -29,6 +30,7 @@
         <td class="col-optional">{{ row.enrollment_no }}</td>
         <th scope="row"><a class="student-link" data-student-link="{{ row.id }}"
             data-edit-url="{{ url_for('students.edit', class_id=class_group.id, number=semester.number, student_id=row.id) }}"
+            data-log-url="{{ url_for('messaging.log', class_id=class_group.id, number=semester.number, student_id=row.id) }}"
             href="{{ url_for('students.detail', class_id=class_group.id, number=semester.number, student_id=row.id) }}">{{ row.full_name }}</a></th>
         <td class="col-optional">{{ row.parent_name or "–" }}</td>
         <td>
@@ -48,9 +50,11 @@
           {% else %}<span class="text-muted">Not held</span>{% endif %}
         </td>
         <td>{{ student_badge(row) }}</td>
+        {% set mark = marks.get(row.id) %}
+        <td data-message-cell="{{ row.id }}" class="{{ 'message-done' if mark else 'text-secondary' }}">{{ labels[row.id] }}</td>
       </tr>
       {% else %}
-      <tr><td colspan="6" class="grid-empty">No students match. <a href="{{ url_for('semesters.workspace', class_id=class_group.id, number=semester.number) }}">Clear the search and filter</a></td></tr>
+      <tr><td colspan="7" class="grid-empty">No students match. <a href="{{ url_for('semesters.workspace', class_id=class_group.id, number=semester.number) }}">Clear the search and filter</a></td></tr>
       {% endfor %}
     </tbody>
   </table>

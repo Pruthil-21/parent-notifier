@@ -4,4 +4,4 @@ Importing any model runs this file first, so every table is registered with SQLA
 whichever model a caller needs; migrations and create_all() then always see all tables.
 """
 
-from parent_notifier.models import academics, accounts, imports  # noqa: F401
+from parent_notifier.models import academics, accounts, imports, messaging  # noqa: F401

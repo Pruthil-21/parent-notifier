@@ -16,6 +16,7 @@
     <dl class="student-facts">
       <div><dt>Parent</dt><dd data-slot="parent"></dd></div>
       <div><dt>Parent phone</dt><dd data-slot="phone"></dd></div>
+      <div><dt>Message</dt><dd data-slot="mark"></dd></div>
     </dl>
     <div class="data-grid">
       <table class="subjects-table">
@@ -53,6 +54,8 @@
     <button type="button" class="button" data-popup-move="1">Next{{ icon("chevron-right", size=16) }}</button>
     <span class="student-popup__position text-secondary" data-slot="position" aria-live="polite"></span>
     <a class="button" data-popup-edit href="#">Edit student</a>
+    <button type="button" class="button button--primary" data-popup-send>Send on WhatsApp</button>
   </div>
+  <p class="student-popup__send-note" data-slot="send-note" role="status"></p>
 </dialog>
 <script type="application/json" id="students-data">{{ popup | tojson }}</script>

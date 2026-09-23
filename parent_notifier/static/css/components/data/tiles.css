@@ -68,3 +68,13 @@
   line-height: var(--leading-caption);
   color: var(--color-text-muted);
 }
+
+.tile--messaged {
+  border-left-color: var(--color-accent);
+}
+
+.tile__of {
+  font-size: var(--text-subtitle);
+  font-weight: var(--weight-regular);
+  color: var(--color-text-secondary);
+}
