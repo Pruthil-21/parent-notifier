@@ -1,0 +1,7 @@
+/* The only stylesheet the layouts link. Layer order decides precedence, so later
+   layers win without specificity fights. */
+@layer foundation, shell, components, pages;
+
+@import url("foundation/tokens.css") layer(foundation);
+@import url("foundation/reset.css") layer(foundation);
+@import url("foundation/typography.css") layer(foundation);
