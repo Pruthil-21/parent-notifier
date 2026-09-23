@@ -1,0 +1,18 @@
+<nav id="nav-pane" class="nav-pane" aria-label="Main">
+  <ul role="list" class="nav-pane__list">
+    {% for item in nav_items %}
+    <li>
+      <a class="nav-pane__link" href="{{ item.url }}" title="{{ item.label }}"
+         {% if item.active %}aria-current="page"{% endif %}>
+        {{ icon(item.icon) }}
+        <span class="nav-pane__label">{{ item.label }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  <button type="button" class="nav-pane__collapse" data-nav-collapse
+          aria-controls="nav-pane" aria-expanded="true" title="Collapse menu">
+    {{ icon("chevron-left") }}
+    <span class="nav-pane__label" data-nav-collapse-label>Collapse menu</span>
+  </button>
+</nav>

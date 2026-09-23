@@ -5,3 +5,7 @@
 @import url("foundation/tokens.css") layer(foundation);
 @import url("foundation/reset.css") layer(foundation);
 @import url("foundation/typography.css") layer(foundation);
+
+@import url("shell/app-frame.css") layer(shell);
+@import url("shell/top-bar.css") layer(shell);
+@import url("shell/nav-pane.css") layer(shell);
