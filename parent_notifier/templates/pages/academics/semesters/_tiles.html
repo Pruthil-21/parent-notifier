@@ -1,0 +1,15 @@
+{# Summary tiles for active students; left and detained students are not counted. #}
+{% set total = view.active_rows | length %}
+<ul class="tiles" role="list" aria-label="Sem {{ semester.number }} summary">
+  <li class="tile">
+    <span class="tile__label">Students</span>
+    <span class="tile__value numeric">{{ total }}</span>
+  </li>
+  {% for band, label in [("at_risk", "At risk"), ("needs_attention", "Needs attention"), ("doing_well", "Doing well")] %}
+  <li class="tile tile--{{ band | replace('_', '-') }}">
+    <span class="tile__label">{{ label }}</span>
+    <span class="tile__value numeric">{{ view.tiles[band] }}</span>
+    <span class="tile__share">{{ ((100 * view.tiles[band] / total) | round | int) if total else 0 }}% of students</span>
+  </li>
+  {% endfor %}
+</ul>

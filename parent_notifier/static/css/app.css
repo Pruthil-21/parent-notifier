@@ -21,6 +21,8 @@
 @import url("components/menus.css") layer(components);
 @import url("components/dialogs.css") layer(components);
 @import url("components/settings.css") layer(components);
+@import url("components/badges.css") layer(components);
+@import url("components/tiles.css") layer(components);
 
 /* Page stylesheets are linked by the pages that need them and wrap themselves in
    @layer pages, so they keep their place in the order above. */

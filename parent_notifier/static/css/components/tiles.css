@@ -1,0 +1,53 @@
+/* Summary tiles: a label, one large figure and its share. The band colour sits on the
+   left edge only; the figure itself stays in the text colour for easy reading. */
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-3);
+  margin: 0 0 var(--space-5);
+  padding: 0;
+  list-style: none;
+}
+
+.tile {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-border-strong);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+}
+
+.tile--at-risk {
+  border-left-color: var(--color-danger);
+}
+
+.tile--needs-attention {
+  border-left-color: var(--color-warning);
+}
+
+.tile--doing-well {
+  border-left-color: var(--color-success);
+}
+
+.tile__label {
+  font-size: var(--text-caption);
+  line-height: var(--leading-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+.tile__value {
+  font-size: var(--text-page-title);
+  line-height: var(--leading-page-title);
+  font-weight: var(--weight-semibold);
+}
+
+.tile__share {
+  font-size: var(--text-caption);
+  line-height: var(--leading-caption);
+  color: var(--color-text-muted);
+}

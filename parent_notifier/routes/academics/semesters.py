@@ -7,7 +7,7 @@ from parent_notifier.forms.academics import AddSemesterForm, add_semester_form
 from parent_notifier.forms.imports import UploadSheetForm
 from parent_notifier.models.academics import ClassGroup, Semester
 from parent_notifier.routes.academics.classes import load_class
-from parent_notifier.services.academics import semesters
+from parent_notifier.services.academics import semester_view, semesters
 from parent_notifier.services.imports import undo
 
 bp = Blueprint("semesters", __name__, url_prefix="/classes/<int:class_id>")
@@ -35,6 +35,7 @@ def workspace(class_id: int, number: int):
         can_remove=semesters.is_empty(semester),
         upload_form=UploadSheetForm(formdata=None),
         last_import=undo.latest_undoable(semester),
+        view=semester_view.build(class_group, semester),
     )
 
 
