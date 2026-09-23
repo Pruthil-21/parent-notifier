@@ -1,0 +1,46 @@
+{% extends "layouts/public.html" %}
+{% from "components/forms/error_summary.html" import error_summary %}
+{% from "components/forms/field.html" import checkbox %}
+
+{% block title %}Save your recovery code{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/auth.css') }}">
+{% endblock %}
+
+{% block panel %}
+<h1 class="public-panel__title">Save your recovery code</h1>
+{{ error_summary(form, first_field=form.saved) }}
+<p class="recovery-code__intro">
+  If you forget your password, this code is the only way to reset it. It works once and
+  is shown only on this page.
+</p>
+
+<div class="recovery-code">
+  <p class="recovery-code__value" id="recovery-code" data-recovery-code>{{ code }}</p>
+  <div class="recovery-code__actions">
+    <button type="button" class="button" data-copy-target="recovery-code" hidden>
+      Copy code
+    </button>
+    <a class="button" href="{{ url_for('registration.download_recovery_code') }}" download>
+      Download as a text file
+    </a>
+  </div>
+  <p class="recovery-code__status" data-copy-status="recovery-code" role="status"></p>
+</div>
+
+<form class="form-stack" method="post" novalidate>
+  {{ form.hidden_tag() }}
+  {% if form.saved.errors %}
+  <p class="field__error" id="saved-error">
+    {{ icon("error", size=16) }}<span>{{ form.saved.errors[0] }}</span>
+  </p>
+  {% endif %}
+  {{ checkbox(form.saved) }}
+  <button class="button button--primary button--full" type="submit" data-continue>Continue</button>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{{ url_for('static', filename='js/pages/recovery-code.js') }}"></script>
+{% endblock %}

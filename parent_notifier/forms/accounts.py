@@ -4,7 +4,7 @@ import re
 
 from flask_wtf import FlaskForm
 from wtforms import BooleanField, HiddenField, PasswordField, StringField
-from wtforms.validators import InputRequired, Length, Regexp, ValidationError
+from wtforms.validators import DataRequired, InputRequired, Length, Regexp, ValidationError
 
 from parent_notifier.services.accounts import registration
 from parent_notifier.services.accounts.credentials import MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH
@@ -113,3 +113,10 @@ class CreateAccountForm(FlaskForm):
     def validate_username(self, field) -> None:
         if registration.username_taken(field.data):
             raise ValidationError(USERNAME_TAKEN)
+
+
+class RecoveryCodeSavedForm(FlaskForm):
+    saved = BooleanField(
+        "I have saved this code",
+        validators=[DataRequired("Tick the box to confirm you have saved the code")],
+    )
