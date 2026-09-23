@@ -17,3 +17,4 @@ def test_migrations_match_the_models_and_downgrade_cleanly(tmp_path, monkeypatch
             assert compare_metadata(context, db.metadata) == []
         downgrade(revision="base")
         assert inspect(db.engine).get_table_names() == ["alembic_version"]
+        db.engine.dispose()

@@ -10,7 +10,9 @@ def app():
     app = create_app("testing")
     with app.app_context():
         db.create_all()
-    return app
+    yield app
+    with app.app_context():
+        db.engine.dispose()
 
 
 @pytest.fixture

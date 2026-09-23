@@ -29,10 +29,8 @@ def test_database_url_overrides_default(tmp_path, monkeypatch):
     assert url == "postgresql://college-server/notifier"
 
 
-def test_sqlite_connections_enforce_foreign_keys():
-    app = create_app("testing")
-    with app.app_context():
-        assert db.session.execute(text("PRAGMA foreign_keys")).scalar() == 1
+def test_sqlite_connections_enforce_foreign_keys(app_context):
+    assert db.session.execute(text("PRAGMA foreign_keys")).scalar() == 1
 
 
 def test_constraints_get_predictable_names():
