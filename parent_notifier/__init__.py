@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from flask import Flask
 
 from parent_notifier.core.config import load_config
+from parent_notifier.core.extensions import init_extensions
 
 
 def create_app(env: str | None = None) -> Flask:
@@ -19,4 +20,5 @@ def create_app(env: str | None = None) -> Flask:
     env = env or os.environ.get("FLASK_CONFIG", "development")
     app = Flask(__name__)
     app.config.update(load_config(env, Path(app.instance_path)))
+    init_extensions(app)
     return app
