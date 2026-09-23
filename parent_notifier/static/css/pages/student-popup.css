@@ -107,4 +107,8 @@
     color: var(--color-danger);
     font-weight: var(--weight-semibold);
   }
+
+  .popup-note textarea {
+    resize: vertical;
+  }
 }

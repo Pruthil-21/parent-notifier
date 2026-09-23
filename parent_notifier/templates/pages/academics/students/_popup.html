@@ -43,6 +43,12 @@
           {% endfor %}
         </div>
       </fieldset>
+      <div class="field popup-note">
+        <label class="field__label" for="popup-note">Note to parent <span class="text-secondary">(optional)</span></label>
+        <textarea class="input" id="popup-note" rows="2" maxlength="500" data-note
+                  aria-describedby="popup-note-count"></textarea>
+        <p class="field__hint" id="popup-note-count" data-slot="note-count"></p>
+      </div>
       <details class="popup-preview">
         <summary>Preview message</summary>
         <pre class="popup-preview__text" data-slot="message"></pre>
