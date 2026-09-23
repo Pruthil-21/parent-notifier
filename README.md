@@ -8,8 +8,8 @@ presses Enter and moves on to the next parent.
 ## Status
 
 Early development. This repository currently contains the project tooling; the
-application arrives milestone by milestone. See [CHANGELOG.md](CHANGELOG.md) for
-what has landed so far.
+application arrives milestone by milestone. Each release is described on the
+[Releases](https://github.com/Pruthil-21/parent-notifier/releases) page.
 
 ## What it will do
 
@@ -63,8 +63,12 @@ uv run pytest
 
 ## Contributing
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) for the branch, commit and pull request
-conventions.
+- Work on a short-lived branch and open a pull request against `main`.
+- Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/),
+  one logical change per commit, with its tests.
+- The pre-commit hooks must pass: lint, formatting, the file length and folder size
+  checks, and the commit message format.
+- Never commit real student or parent data.
 
 ## License
 
