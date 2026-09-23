@@ -24,7 +24,12 @@ class NavItem:
 
 NAV_ITEMS = (
     NavItem("home", "Home", "home.index"),
-    NavItem("classes", "Classes", "classes.index", also_covers=("semesters", "class_settings")),
+    NavItem(
+        "classes",
+        "Classes",
+        "classes.index",
+        also_covers=("semesters", "class_settings", "imports"),
+    ),
     NavItem("person", "Profile", "profile.index"),
     NavItem("help", "Help", "help.index"),
 )

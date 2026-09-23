@@ -1,5 +1,6 @@
 {# The page-level action bar on a class's pages. #}
 {% from "components/navigation/action_bar.html" import action_bar %}
 {% call action_bar() %}
+{% if upload %}{% include "pages/imports/upload/_upload_button.html" %}{% endif %}
 <a class="button" href="{{ url_for('class_settings.index', class_id=class_group.id) }}">Class settings</a>
 {% endcall %}

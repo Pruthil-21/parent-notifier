@@ -1,0 +1,12 @@
+{# Cancel discards the staged sheet. Confirm is added with the apply step. #}
+<div class="review-actions">
+  <form method="post" action="{{ url_for('imports.cancel', class_id=class_group.id, number=semester.number) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="token" value="{{ form.token.data or '' }}">
+    <button class="button" type="submit">{{ "Cancel import" if form.token.data else "Back to Sem " ~ semester.number }}</button>
+  </form>
+  {% if sheet.errors %}
+  <a class="button button--primary"
+     href="{{ url_for('imports.upload_page', class_id=class_group.id, number=semester.number) }}">Upload the fixed sheet</a>
+  {% endif %}
+</div>

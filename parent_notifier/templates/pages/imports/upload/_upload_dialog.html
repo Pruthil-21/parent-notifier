@@ -1,0 +1,4 @@
+{% from "components/overlays/dialog.html" import dialog %}
+{% call dialog("upload-sheet", "Upload Sem " ~ semester.number ~ " sheet") %}
+{% with in_dialog = true %}{% include "pages/imports/upload/_upload_form.html" %}{% endwith %}
+{% endcall %}

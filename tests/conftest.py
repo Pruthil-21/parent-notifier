@@ -6,8 +6,10 @@ from tests.factories.accounts import PASSWORD, make_mentor, sign_in
 
 
 @pytest.fixture
-def app():
+def app(tmp_path):
     app = create_app("testing")
+    # Staged imports and other runtime files go to a throwaway folder, never instance/.
+    app.instance_path = str(tmp_path / "instance")
     with app.app_context():
         db.create_all()
     yield app

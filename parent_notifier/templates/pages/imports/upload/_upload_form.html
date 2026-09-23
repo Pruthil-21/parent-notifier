@@ -1,0 +1,16 @@
+{# The upload form, shared by the dialog on the semester page and the upload page. #}
+{% from "components/forms/field.html" import file_field %}
+<form class="form-stack" method="post" enctype="multipart/form-data" novalidate
+      action="{{ url_for('imports.upload', class_id=class_group.id, number=semester.number) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {{ file_field(upload_form.sheet, hint="Excel (.xlsx) or CSV, up to " ~ (config.MAX_CONTENT_LENGTH // 1048576) ~ " MB. You check everything before it is saved.",
+                accept=".xlsx,.csv") }}
+  <div class="form-panel__actions">
+    <button class="button button--primary" type="submit">Upload and review</button>
+    {% if in_dialog %}
+    <button class="button button--subtle" type="button" data-dialog-close>Cancel</button>
+    {% else %}
+    <a class="button button--subtle" href="{{ url_for('semesters.workspace', class_id=class_group.id, number=semester.number) }}">Cancel</a>
+    {% endif %}
+  </div>
+</form>

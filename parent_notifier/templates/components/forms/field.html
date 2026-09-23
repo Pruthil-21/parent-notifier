@@ -44,3 +44,11 @@
   {{ field.label(class_="checkbox__label") }}
 </div>
 {% endmacro %}
+
+{% macro file_field(field, hint=None) %}
+<div class="field{% if field.errors %} field--error{% endif %}">
+  {{ _label_hint_error(field, hint) }}
+  {{ field(class_="file-input", aria_describedby=_described_by(field, hint) or False,
+           aria_invalid="true" if field.errors else False, **kwargs) }}
+</div>
+{% endmacro %}
