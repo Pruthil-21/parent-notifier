@@ -2,7 +2,11 @@
 {% from "components/navigation/action_bar.html" import action_bar %}
 {% call action_bar() %}
 {% if upload %}
-{% include "pages/imports/upload/_upload_button.html" %}
+{% with upload_button_class = "" if pending_count else "button--primary" %}{% include "pages/imports/upload/_upload_button.html" %}{% endwith %}
+{% if pending_count %}
+<a class="button button--primary" data-queue-open
+   href="{{ url_for('semesters.workspace', class_id=class_group.id, number=semester.number, status='pending') }}">Message pending parents ({{ pending_count }})</a>
+{% endif %}
 <a class="button" href="{{ url_for('downloads.semester_sheet', class_id=class_group.id, number=semester.number) }}" download>Download pre-filled sheet</a>
 <a class="button button--subtle" href="{{ url_for('downloads.sheet_format') }}" download>Sheet format</a>
 {% if last_import %}

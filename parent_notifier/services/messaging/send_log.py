@@ -77,3 +77,8 @@ def log_send(
     )
     link = whatsapp_link(row.phone_e164, message) if status == "sent" else None
     return Logged(Mark(entry.status, entry.created_at), link)
+
+
+def pending_ids(rows: list[StudentRow], marks: dict[int, Mark]) -> set[int]:
+    """Active students with a valid number and no send or skip for the current import."""
+    return {row.id for row in rows if row.active and row.phone_e164 and row.id not in marks}

@@ -12,6 +12,10 @@
     </div>
     <button type="button" class="dialog__close" data-dialog-close>{{ icon("dismiss", label="Close") }}</button>
   </div>
+  <div class="queue-progress" data-queue-progress hidden>
+    <p class="queue-progress__text" data-slot="queue-position" aria-live="polite"></p>
+    <progress class="queue-progress__bar" data-slot="queue-bar" max="1" value="0"></progress>
+  </div>
   <div class="dialog__body">
     <dl class="student-facts">
       <div><dt>Parent</dt><dd data-slot="parent"></dd></div>
@@ -61,6 +65,13 @@
     <span class="student-popup__position text-secondary" data-slot="position" aria-live="polite"></span>
     <a class="button" data-popup-edit href="#">Edit student</a>
     <button type="button" class="button button--primary" data-popup-send>Send on WhatsApp</button>
+    <button type="button" class="button" data-queue-skip>Skip</button>
+    <button type="button" class="button button--primary" data-queue-send>Send and next</button>
+  </div>
+  <div class="queue-done" data-queue-done hidden>
+    <p class="queue-done__title">All pending parents are done.</p>
+    <p class="text-secondary">Every parent in this list has been sent a message or skipped for the latest sheet.</p>
+    <button type="button" class="button button--primary" data-dialog-close>Close</button>
   </div>
   <p class="student-popup__send-note" data-slot="send-note" role="status"></p>
 </dialog>
