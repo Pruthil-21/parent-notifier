@@ -5,6 +5,8 @@
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   {{ file_field(upload_form.sheet, hint="Excel (.xlsx) or CSV, up to " ~ (config.MAX_CONTENT_LENGTH // 1048576) ~ " MB. You check everything before it is saved.",
                 accept=".xlsx,.csv") }}
+  <p class="text-secondary">Not sure how to lay it out? <a href="{{ url_for('downloads.sheet_format') }}" download>Download the sheet format</a>
+    or the <a href="{{ url_for('downloads.semester_sheet', class_id=class_group.id, number=semester.number) }}" download>pre-filled sheet</a>.</p>
   <div class="form-panel__actions">
     <button class="button button--primary" type="submit">Upload and review</button>
     {% if in_dialog %}
