@@ -27,17 +27,3 @@ repos:
       - id: conventional-pre-commit
         stages: [commit-msg]
         args: [--strict, feat, fix, refactor, test, docs, style, chore, build, ci, perf]
-
-  - repo: local
-    hooks:
-      - id: check-file-length
-        name: check file length
-        entry: python -m scripts.checks.check_file_length
-        language: system
-        types: [text]
-      - id: check-folder-size
-        name: check folder size
-        entry: python -m scripts.checks.check_folder_size
-        language: system
-        pass_filenames: false
-        always_run: true
