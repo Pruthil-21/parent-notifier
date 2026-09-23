@@ -28,6 +28,7 @@ def workspace(class_id: int, number: int):
     class_group, semester = load_semester(class_id, number)
     view = semester_view.build(class_group, semester)
     query = grid_filters.GridQuery.from_args(request.args)
+    rows = grid_filters.apply(view.rows, query)
     return render_template(
         "pages/academics/semesters/workspace.html",
         class_group=class_group,
@@ -39,8 +40,9 @@ def workspace(class_id: int, number: int):
         last_import=undo.latest_undoable(semester),
         view=view,
         query=query,
-        rows=grid_filters.apply(view.rows, query),
+        rows=rows,
         status_filters=grid_filters.STATUS_FILTERS,
+        popup=semester_view.popup_payload(rows, view.rules),
     )
 
 

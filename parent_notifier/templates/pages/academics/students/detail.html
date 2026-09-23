@@ -1,0 +1,24 @@
+{% extends "layouts/app.html" %}
+{% from "components/navigation/breadcrumb.html" import breadcrumb %}
+{% from "components/feedback/badge.html" import student_badge %}
+
+{% block title %}{{ row.full_name }} · Sem {{ semester.number }} · {{ class_group.name }}{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/semester.css') }}">
+{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Home", url_for("home.index")), ("Classes", url_for("classes.index")), (class_group.name, url_for("classes.open_class", class_id=class_group.id)), ("Sem " ~ semester.number, url_for("semesters.workspace", class_id=class_group.id, number=semester.number)), (row.full_name, None)]) }}{% endblock %}
+{% block page_title %}{{ row.full_name }}{% endblock %}
+{% block title_extra %}{{ student_badge(row) }}{% endblock %}
+{% block page_meta %}{{ row.enrollment_no }} · Sem {{ semester.number }}{% endblock %}
+
+{% block content %}
+<dl class="student-facts">
+  <div><dt>Parent</dt><dd>{{ row.parent_name or "Not given" }}</dd></div>
+  <div><dt>Parent phone</dt><dd>
+    {% if row.phone_e164 %}{{ row.phone_e164 | phone }}
+    {% else %}<span class="figure-fail">{{ row.phone_raw or "Missing" }}</span> · not a valid mobile number{% endif %}
+  </dd></div>
+</dl>
+{% include "pages/academics/students/_subjects_table.html" %}
+<p class="student-back"><a href="{{ url_for('semesters.workspace', class_id=class_group.id, number=semester.number) }}">Back to Sem {{ semester.number }}</a></p>
+{% endblock %}
