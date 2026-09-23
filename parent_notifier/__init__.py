@@ -8,6 +8,7 @@ from flask import Flask
 
 from parent_notifier.core.config import load_config
 from parent_notifier.core.extensions import init_extensions
+from parent_notifier.core.icons import render_icon
 
 
 def create_app(env: str | None = None) -> Flask:
@@ -21,4 +22,5 @@ def create_app(env: str | None = None) -> Flask:
     app = Flask(__name__)
     app.config.update(load_config(env, Path(app.instance_path)))
     init_extensions(app)
+    app.add_template_global(render_icon, "icon")
     return app

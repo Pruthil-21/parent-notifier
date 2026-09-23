@@ -51,6 +51,12 @@ video {
   max-width: 100%;
 }
 
+svg.icon {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
 button,
 input,
 select,
