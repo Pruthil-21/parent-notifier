@@ -1,0 +1,25 @@
+{% extends "layouts/app.html" %}
+{% from "components/navigation/breadcrumb.html" import breadcrumb %}
+{% from "components/forms/error_summary.html" import error_summary %}
+{% from "components/forms/field.html" import text_field %}
+
+{% block title %}New class{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Home", url_for("home.index")), ("Classes", url_for("classes.index")), ("New class", None)]) }}{% endblock %}
+{% block page_title %}New class{% endblock %}
+
+{% block content %}
+<div class="form-panel">
+  {{ error_summary(form, first_field=form.name) }}
+  <form class="form-stack" method="post" novalidate>
+    {{ form.hidden_tag() }}
+    {{ text_field(form.name, hint="For example CE-A", autocomplete="off") }}
+    {{ text_field(form.department, hint="For example Computer Engineering", autocomplete="off") }}
+    {{ text_field(form.admission_year, hint="The year this batch joined, like 2023",
+                  inputmode="numeric", autocomplete="off") }}
+    <div class="form-panel__actions">
+      <button class="button button--primary" type="submit">Create class</button>
+      <a class="button button--subtle" href="{{ url_for('classes.index') }}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

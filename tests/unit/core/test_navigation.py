@@ -42,3 +42,34 @@ def test_no_registered_sections_links_home_to_root(app, monkeypatch):
     monkeypatch.setattr(navigation, "NAV_ITEMS", (NavItem("add", "Reports", "reports.index"),))
     with app.test_request_context("/"):
         assert navigation_context() == {"nav_items": [], "home_url": "/"}
+
+
+def test_sections_can_list_sub_items_and_mark_the_current_one(app_with_sections):
+    navigation.register_child_links(
+        app_with_sections,
+        "guide.index",
+        lambda: [
+            {"label": "Part 1", "url": "/guide/1", "active": False},
+            {"label": "Part 2", "url": "/guide/2", "active": True},
+        ],
+    )
+    with app_with_sections.test_request_context("/guide"):
+        guide = navigation_context()["nav_items"][1]
+    assert [child["label"] for child in guide["children"]] == ["Part 1", "Part 2"]
+    assert guide["active"] is True
+    assert guide["current"] is False
+
+
+def test_other_blueprints_can_count_as_a_section(monkeypatch):
+    monkeypatch.setattr(
+        navigation, "NAV_ITEMS", (NavItem("classes", "Guide", "guide.index", ("chapter",)),)
+    )
+    app = create_app("testing")
+    for name, path in (("guide", "/guide"), ("chapter", "/chapter")):
+        blueprint = Blueprint(name, __name__)
+        blueprint.add_url_rule(path, "index", lambda: "ok")
+        app.register_blueprint(blueprint)
+    with app.test_request_context("/chapter"):
+        [guide] = navigation_context()["nav_items"]
+    assert guide["active"] is True
+    assert guide["current"] is True

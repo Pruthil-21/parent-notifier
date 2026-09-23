@@ -1,0 +1,12 @@
+{% extends "layouts/app.html" %}
+{% from "components/navigation/breadcrumb.html" import breadcrumb %}
+{% from "components/feedback/empty_state.html" import empty_state %}
+
+{% block title %}{{ class_group.name }}{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Home", url_for("home.index")), ("Classes", url_for("classes.index")), (class_group.name, None)]) }}{% endblock %}
+{% block page_title %}{{ class_group.name }}{% endblock %}
+
+{% block content %}
+<p class="page-meta">{{ class_group.department }} · {{ class_group.admission_year }} batch</p>
+{{ empty_state("No semesters yet", "Add the semester you are mentoring now, then upload its sheet.") }}
+{% endblock %}

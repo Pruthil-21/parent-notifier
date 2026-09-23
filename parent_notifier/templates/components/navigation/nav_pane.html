@@ -2,11 +2,24 @@
   <ul role="list" class="nav-pane__list">
     {% for item in nav_items %}
     <li>
-      <a class="nav-pane__link" href="{{ item.url }}" title="{{ item.label }}"
-         {% if item.active %}aria-current="page"{% endif %}>
+      <a class="nav-pane__link{% if item.active %} nav-pane__link--in-section{% endif %}"
+         href="{{ item.url }}" title="{{ item.label }}"
+         {% if item.current %}aria-current="page"{% endif %}>
         {{ icon(item.icon) }}
         <span class="nav-pane__label">{{ item.label }}</span>
       </a>
+      {% if item.children %}
+      <ul role="list" class="nav-pane__children">
+        {% for child in item.children %}
+        <li>
+          <a class="nav-pane__link nav-pane__link--child" href="{{ child.url }}"
+             {% if child.active %}aria-current="page"{% endif %}>
+            <span class="nav-pane__label">{{ child.label }}</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
     </li>
     {% endfor %}
   </ul>
