@@ -31,3 +31,29 @@ def test_free_username_is_not_taken():
 def test_invalid_number_is_refused():
     with pytest.raises(ValueError, match="not a valid Indian mobile"):
         registration.create_mentor("Asha Patel", "ashapatel", "12345", PASSWORD)
+
+
+def test_reset_with_the_right_code_changes_password_and_code():
+    mentor, code = registration.create_mentor("Asha Patel", "ashapatel", "9876543210", PASSWORD)
+    result = registration.reset_password("AshaPatel", code.lower(), "Brand-new-pass-1")
+    assert result is not None
+    same_mentor, new_code = result
+    assert same_mentor == mentor
+    assert check_password_hash(mentor.password_hash, "Brand-new-pass-1")
+    assert check_password_hash(mentor.recovery_code_hash, new_code)
+    assert not check_password_hash(mentor.recovery_code_hash, code)
+    assert mentor.session_version == 2
+
+
+def test_reset_with_a_wrong_code_or_username_changes_nothing():
+    mentor, code = registration.create_mentor("Asha Patel", "ashapatel", "9876543210", PASSWORD)
+    assert registration.reset_password("ashapatel", "ABCDEFGHJKMN", "Brand-new-pass-1") is None
+    assert registration.reset_password("nobody", code, "Brand-new-pass-1") is None
+    assert check_password_hash(mentor.password_hash, PASSWORD)
+    assert mentor.session_version == 1
+
+
+def test_a_used_code_does_not_work_twice():
+    _mentor, code = registration.create_mentor("Asha Patel", "ashapatel", "9876543210", PASSWORD)
+    assert registration.reset_password("ashapatel", code, "Brand-new-pass-1")
+    assert registration.reset_password("ashapatel", code, "Another-pass-22") is None

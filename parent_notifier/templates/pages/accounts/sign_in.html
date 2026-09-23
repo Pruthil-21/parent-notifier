@@ -14,9 +14,10 @@
   {{ checkbox(form.remember) }}
   <button class="button button--primary button--full" type="submit">Sign in</button>
 </form>
-<p class="public-panel__links">
-  New to Parent Notifier? <a href="{{ url_for('registration.create_account') }}">Create account</a>
-</p>
+<div class="public-panel__links">
+  <p><a href="{{ url_for('auth.reset_password') }}">Forgot your password?</a></p>
+  <p>New to Parent Notifier? <a href="{{ url_for('registration.create_account') }}">Create account</a></p>
+</div>
 {% endblock %}
 
 {% block scripts %}
