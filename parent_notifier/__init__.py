@@ -11,6 +11,7 @@ from parent_notifier.core.errors import init_error_pages
 from parent_notifier.core.extensions import init_extensions
 from parent_notifier.core.icons import render_icon
 from parent_notifier.core.navigation import init_navigation
+from parent_notifier.core.security import init_security
 
 
 def create_app(env: str | None = None) -> Flask:
@@ -27,4 +28,5 @@ def create_app(env: str | None = None) -> Flask:
     app.add_template_global(render_icon, "icon")
     init_navigation(app)
     init_error_pages(app)
+    init_security(app)
     return app
