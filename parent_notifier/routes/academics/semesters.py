@@ -4,6 +4,7 @@ from flask import Blueprint, abort, flash, redirect, render_template, url_for
 from flask_login import login_required
 
 from parent_notifier.forms.academics import AddSemesterForm, add_semester_form
+from parent_notifier.forms.imports import UploadSheetForm
 from parent_notifier.models.academics import ClassGroup, Semester
 from parent_notifier.routes.academics.classes import load_class
 from parent_notifier.services.academics import semesters
@@ -11,7 +12,8 @@ from parent_notifier.services.academics import semesters
 bp = Blueprint("semesters", __name__, url_prefix="/classes/<int:class_id>")
 
 
-def _load(class_id: int, number: int) -> tuple[ClassGroup, Semester]:
+def load_semester(class_id: int, number: int) -> tuple[ClassGroup, Semester]:
+    """The signed-in mentor's class and one of its semesters, or 404."""
     class_group = load_class(class_id)
     semester = semesters.get_semester(class_group, number)
     if semester is None:
@@ -22,7 +24,7 @@ def _load(class_id: int, number: int) -> tuple[ClassGroup, Semester]:
 @bp.get("/sem/<int:number>")
 @login_required
 def workspace(class_id: int, number: int):
-    class_group, semester = _load(class_id, number)
+    class_group, semester = load_semester(class_id, number)
     return render_template(
         "pages/academics/semesters/workspace.html",
         class_group=class_group,
@@ -30,6 +32,7 @@ def workspace(class_id: int, number: int):
         summaries=semesters.summaries(class_group),
         add_form=add_semester_form(class_group),
         can_remove=semesters.is_empty(semester),
+        upload_form=UploadSheetForm(formdata=None),
     )
 
 
@@ -66,7 +69,7 @@ def add_semester(class_id: int):
 @login_required
 def confirm_remove(class_id: int, number: int):
     """The confirmation as a page, for browsers without JavaScript."""
-    class_group, semester = _load(class_id, number)
+    class_group, semester = load_semester(class_id, number)
     return render_template(
         "pages/academics/semesters/remove.html", class_group=class_group, semester=semester
     )
@@ -75,7 +78,7 @@ def confirm_remove(class_id: int, number: int):
 @bp.post("/sem/<int:number>/remove")
 @login_required
 def remove(class_id: int, number: int):
-    _class_group, semester = _load(class_id, number)
+    _class_group, semester = load_semester(class_id, number)
     if semesters.remove_if_empty(semester):
         flash(f"Sem {number} removed.", "success")
         return redirect(url_for("classes.open_class", class_id=class_id))

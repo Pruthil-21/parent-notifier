@@ -1,0 +1,22 @@
+{# Sheet errors block the import; warnings do not. #}
+{% if sheet.errors %}
+<div class="error-summary" tabindex="-1" autofocus aria-labelledby="sheet-errors-title">
+  <h2 class="error-summary__title" id="sheet-errors-title">
+    {{ icon("error") }}<span>Fix {{ sheet.errors | length }} problem{{ "s" if sheet.errors | length != 1 }} in the sheet, then upload it again</span>
+  </h2>
+  <ul class="error-summary__list error-summary__list--plain">
+    {% for error in sheet.errors %}<li>{{ error }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% if sheet.warnings or sheet.ignored_columns %}
+<div class="review-warnings" role="status">
+  <h2 class="review-warnings__title">{{ icon("warning") }}<span>Check before you confirm</span></h2>
+  <ul class="review-warnings__list">
+    {% if sheet.ignored_columns %}
+    <li>These columns are not subjects and will be ignored: {{ sheet.ignored_columns | join(", ") }}</li>
+    {% endif %}
+    {% for warning in sheet.warnings %}<li>{{ warning }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}

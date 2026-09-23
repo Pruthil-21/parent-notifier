@@ -1,0 +1,29 @@
+{# The first rows as they will be saved: Theory / Practical / Mid-Sem per subject. #}
+{% macro value(number, suffix="") %}{% if number is none %}<span class="text-muted">–</span>{% else %}{{ "%g" | format(number) }}{{ suffix }}{% endif %}{% endmacro %}
+<h2 class="review-heading">First {{ [sheet.rows | length, 10] | min }} of {{ sheet.rows | length }} students</h2>
+<p class="text-secondary review-note">Each subject shows Theory % / Practical % / Mid-Sem out of {{ class_group.midsem_max }}.</p>
+<div class="data-grid">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col" class="numeric">Row</th>
+        <th scope="col">Enrollment</th>
+        <th scope="col">Student</th>
+        {% for subject in sheet.subjects %}<th scope="col" class="numeric">{{ subject }}</th>{% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in sheet.rows[:10] %}
+      <tr>
+        <td class="numeric">{{ row.row_number }}</td>
+        <td>{{ row.enrollment_no }}</td>
+        <th scope="row">{{ row.full_name }}</th>
+        {% for subject in sheet.subjects %}
+        {% set cell = row.cells[subject] %}
+        <td class="numeric">{{ value(cell.theory) }} / {{ value(cell.practical) }} / {% if cell.absent %}AB{% else %}{{ value(cell.marks) }}{% endif %}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
