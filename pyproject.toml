@@ -22,9 +22,8 @@ extend-exclude = ["migrations/versions"]
 select = ["E", "W", "F", "I", "B", "UP", "SIM", "N", "S", "RUF"]
 
 [tool.ruff.lint.per-file-ignores]
-# Tests use plain assert; the layout checks call git by name on purpose.
+# Tests use plain assert.
 "tests/**" = ["S101"]
-"scripts/checks/**" = ["S603", "S607"]
 
 [tool.ruff.format]
 quote-style = "double"

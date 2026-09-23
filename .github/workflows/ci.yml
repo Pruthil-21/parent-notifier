@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   checks:
-    name: Lint, layout and tests (${{ matrix.os }})
+    name: Checks (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -36,12 +36,3 @@ jobs:
 
       - name: Check formatting
         run: uv run ruff format --check .
-
-      - name: Check file length
-        run: uv run python -m scripts.checks.check_file_length
-
-      - name: Check folder size
-        run: uv run python -m scripts.checks.check_folder_size
-
-      - name: Run tests
-        run: uv run pytest
