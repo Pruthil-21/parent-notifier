@@ -7,7 +7,9 @@ from parent_notifier.forms.accounts import (
     USERNAME_TAKEN,
     AccountDetailsForm,
     ChangePasswordForm,
+    PreferencesForm,
     RegenerateRecoveryCodeForm,
+    SendingSafetyForm,
 )
 from parent_notifier.routes.accounts import throttling
 from parent_notifier.routes.accounts.sessions import show_recovery_code, start_session
@@ -19,10 +21,9 @@ bp = Blueprint("profile", __name__, url_prefix="/profile")
 INCORRECT_CURRENT = "Your current password is incorrect"
 
 
-def _render(account_form=None, password_form=None, recovery_form=None, status: int = 200):
-    """Render every section; the one that was submitted brings its errors."""
-    if account_form is None:
-        account_form = AccountDetailsForm(
+def _default_forms() -> dict:
+    return {
+        "account_form": AccountDetailsForm(
             formdata=None,
             mentor_id=current_user.id,
             data={
@@ -30,14 +31,18 @@ def _render(account_form=None, password_form=None, recovery_form=None, status: i
                 "username": current_user.username,
                 "whatsapp_number": format_for_display(current_user.whatsapp_number),
             },
-        )
-    page = render_template(
-        "pages/accounts/profile/index.html",
-        account_form=account_form,
-        password_form=password_form or ChangePasswordForm(formdata=None),
-        recovery_form=recovery_form or RegenerateRecoveryCodeForm(formdata=None),
-    )
-    return page, status
+        ),
+        "password_form": ChangePasswordForm(formdata=None),
+        "recovery_form": RegenerateRecoveryCodeForm(formdata=None),
+        "preferences_form": PreferencesForm(formdata=None, obj=current_user),
+        "safety_form": SendingSafetyForm(formdata=None, obj=current_user),
+    }
+
+
+def _render(status: int = 200, **submitted):
+    """Render every section; the one that was submitted brings its errors."""
+    forms = _default_forms() | submitted
+    return render_template("pages/accounts/profile/index.html", **forms), status
 
 
 @bp.get("/")
@@ -108,3 +113,25 @@ def too_many_password_attempts(_error):
     form = ChangePasswordForm(formdata=None)
     form.form_errors.append(message)
     return _render(password_form=form, status=429)
+
+
+@bp.post("/preferences")
+@login_required
+def save_preferences():
+    form = PreferencesForm()
+    if not form.validate_on_submit():
+        return _render(preferences_form=form)
+    profile.update_preferences(current_user, form.message_language.data)
+    flash("Preferences saved.", "success")
+    return redirect(url_for("profile.index"))
+
+
+@bp.post("/sending-safety")
+@login_required
+def save_sending_safety():
+    form = SendingSafetyForm()
+    if not form.validate_on_submit():
+        return _render(safety_form=form)
+    profile.update_sending_safety(current_user, form.settings())
+    flash("Sending safety saved.", "success")
+    return redirect(url_for("profile.index"))

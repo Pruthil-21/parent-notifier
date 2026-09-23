@@ -3,10 +3,25 @@
 import re
 
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, HiddenField, PasswordField, StringField
-from wtforms.validators import DataRequired, InputRequired, Length, Regexp, ValidationError
+from wtforms import BooleanField, HiddenField, PasswordField, SelectField, StringField
+from wtforms.validators import (
+    DataRequired,
+    InputRequired,
+    Length,
+    NumberRange,
+    Regexp,
+    ValidationError,
+)
 
-from parent_notifier.forms.fields import indian_mobile, lowercase, printable, single_spaced, strip
+from parent_notifier.forms.fields import (
+    WholeNumberField,
+    indian_mobile,
+    lowercase,
+    printable,
+    single_spaced,
+    strip,
+)
+from parent_notifier.models.accounts import MESSAGE_LANGUAGES
 from parent_notifier.services.accounts import registration
 from parent_notifier.services.accounts.credentials import MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH
 
@@ -136,3 +151,33 @@ class RegenerateRecoveryCodeForm(FlaskForm):
     password = PasswordField(
         "Current password", validators=[InputRequired("Enter your current password")]
     )
+
+
+_LANGUAGE_LABELS = {"en": "English", "gu": "ગુજરાતી (Gujarati)"}
+# Built from the model's list, so a language added there without a label fails at start-up.
+LANGUAGE_CHOICES = [(code, _LANGUAGE_LABELS[code]) for code in MESSAGE_LANGUAGES]
+
+
+class PreferencesForm(FlaskForm):
+    message_language = SelectField("Default message language", choices=LANGUAGE_CHOICES)
+
+
+def _setting(label: str, unit: str, low: int, high: int) -> WholeNumberField:
+    return WholeNumberField(
+        label,
+        invalid_message=f"Enter {label.lower()} as a whole number of {unit}",
+        validators=[
+            InputRequired(f"Enter {label.lower()}"),
+            NumberRange(min=low, max=high, message=f"{label} must be from {low} to {high} {unit}"),
+        ],
+    )
+
+
+class SendingSafetyForm(FlaskForm):
+    send_gap_seconds = _setting("Gap between sends", "seconds", 5, 600)
+    burst_size = _setting("Messages before a pause", "messages", 1, 100)
+    burst_pause_minutes = _setting("Pause length", "minutes", 1, 120)
+    daily_send_limit = _setting("Daily limit", "messages", 1, 300)
+
+    def settings(self) -> dict[str, int]:
+        return {field.name: field.data for field in self if field.name != "csrf_token"}

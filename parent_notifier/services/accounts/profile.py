@@ -43,3 +43,15 @@ def regenerate_recovery_code(mentor: Mentor, current_password: str) -> str | Non
     code = registration.rotate_recovery_code(mentor)
     db.session.commit()
     return code
+
+
+def update_preferences(mentor: Mentor, message_language: str) -> None:
+    mentor.message_language = message_language
+    db.session.commit()
+
+
+def update_sending_safety(mentor: Mentor, settings: dict[str, int]) -> None:
+    """Gap, burst size, burst pause and daily limit, already range-checked by the form."""
+    for name in ("send_gap_seconds", "burst_size", "burst_pause_minutes", "daily_send_limit"):
+        setattr(mentor, name, settings[name])
+    db.session.commit()
