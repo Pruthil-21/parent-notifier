@@ -1,0 +1,13 @@
+{# Confirmation for removing an empty semester, shared by the dialog and the page. #}
+<p class="confirm-text">Sem {{ semester.number }} has no sheet, so nothing else is lost. You
+  can add it again at any time.</p>
+<form class="form-panel__actions" method="post"
+      action="{{ url_for('semesters.remove', class_id=class_group.id, number=semester.number) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button class="button button--danger" type="submit">Remove Sem {{ semester.number }}</button>
+  {% if in_dialog %}
+  <button class="button button--subtle" type="button" data-dialog-close>Cancel</button>
+  {% else %}
+  <a class="button button--subtle" href="{{ url_for('semesters.workspace', class_id=class_group.id, number=semester.number) }}">Cancel</a>
+  {% endif %}
+</form>

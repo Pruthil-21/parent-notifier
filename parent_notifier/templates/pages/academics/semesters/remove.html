@@ -1,0 +1,12 @@
+{% extends "layouts/app.html" %}
+{% from "components/navigation/breadcrumb.html" import breadcrumb %}
+
+{% block title %}Remove Sem {{ semester.number }} · {{ class_group.name }}{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Home", url_for("home.index")), ("Classes", url_for("classes.index")), (class_group.name, url_for("classes.open_class", class_id=class_group.id)), ("Sem " ~ semester.number, url_for("semesters.workspace", class_id=class_group.id, number=semester.number)), ("Remove", None)]) }}{% endblock %}
+{% block page_title %}Remove Sem {{ semester.number }}?{% endblock %}
+
+{% block content %}
+<div class="form-panel">
+  {% with in_dialog = false %}{% include "pages/academics/semesters/_remove_form.html" %}{% endwith %}
+</div>
+{% endblock %}

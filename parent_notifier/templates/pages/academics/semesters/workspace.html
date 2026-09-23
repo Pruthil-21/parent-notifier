@@ -10,8 +10,16 @@
 {% block page_meta %}{{ class_group.department }} · {{ class_group.admission_year }} batch{% endblock %}
 
 {% block content %}
-{{ empty_state("No sheet for Sem " ~ semester.number ~ " yet", "Once this semester's sheet is uploaded, every student's attendance and Mid-Sem marks show here.") }}
+{% call empty_state("No sheet for Sem " ~ semester.number ~ " yet", "Once this semester's sheet is uploaded, every student's attendance and Mid-Sem marks show here.") %}
+{% if can_remove %}
+<a class="button button--subtle" data-dialog-open="remove-semester"
+   href="{{ url_for('semesters.confirm_remove', class_id=class_group.id, number=semester.number) }}">
+  Remove this empty semester
+</a>
+{% endif %}
+{% endcall %}
 {% include "pages/academics/semesters/_add_dialog.html" %}
+{% if can_remove %}{% include "pages/academics/semesters/_remove_dialog.html" %}{% endif %}
 {% endblock %}
 
 {% block page_scripts %}
