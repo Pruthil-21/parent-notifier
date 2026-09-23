@@ -6,6 +6,7 @@ from flask_wtf import FlaskForm
 from wtforms import BooleanField, HiddenField, PasswordField, StringField
 from wtforms.validators import DataRequired, InputRequired, Length, Regexp, ValidationError
 
+from parent_notifier.forms.fields import lowercase, printable, single_spaced, strip
 from parent_notifier.services.accounts import registration
 from parent_notifier.services.accounts.credentials import MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH
 from parent_notifier.services.shared.phone import normalise_indian_mobile
@@ -15,27 +16,9 @@ USERNAME_TAKEN = "That username is taken. Choose another"
 _TITLE = re.compile(r"^prof(essor)?\b\.?", re.IGNORECASE)
 
 
-def strip(value: str | None) -> str | None:
-    """WTForms runs filters on GET too, when there is no value yet."""
-    return value.strip() if value else value
-
-
-def single_spaced(value: str | None) -> str | None:
-    return " ".join(value.split()) if value else value
-
-
-def lowercase(value: str | None) -> str | None:
-    return value.lower() if value else value
-
-
 def _no_title(_form, field) -> None:
     if _TITLE.match(field.data or ""):
         raise ValidationError("Enter your name without Prof., which messages add for you")
-
-
-def _printable(_form, field) -> None:
-    if any(not char.isprintable() for char in field.data or ""):
-        raise ValidationError("Full name can only use letters, spaces and punctuation")
 
 
 def _indian_mobile(_form, field) -> None:
@@ -49,7 +32,7 @@ def full_name_field() -> StringField:
         validators=[
             InputRequired("Enter your full name"),
             Length(max=80, message="Full name must be 80 characters or fewer"),
-            _printable,
+            printable("Full name"),
             _no_title,
         ],
         filters=[single_spaced],
