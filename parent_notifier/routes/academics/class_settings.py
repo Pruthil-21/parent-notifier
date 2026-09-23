@@ -1,9 +1,15 @@
-"""Class settings: details and status rules. Each section saves on its own."""
+"""Class settings: details, status rules and deleting the class. Each section saves on
+its own."""
 
 from flask import Blueprint, flash, redirect, render_template, url_for
 from flask_login import current_user, login_required
 
-from parent_notifier.forms.academics import CLASS_NAME_TAKEN, ClassDetailsForm, StatusRulesForm
+from parent_notifier.forms.academics import (
+    CLASS_NAME_TAKEN,
+    ClassDetailsForm,
+    DeleteClassForm,
+    StatusRulesForm,
+)
 from parent_notifier.models.academics import ClassGroup
 from parent_notifier.routes.academics.classes import load_class
 from parent_notifier.services.academics import classes
@@ -17,12 +23,13 @@ def _details_form(class_group: ClassGroup, formdata=None) -> ClassDetailsForm:
     )
 
 
-def _render(class_group: ClassGroup, details_form=None, rules_form=None):
+def _render(class_group: ClassGroup, details_form=None, rules_form=None, delete_form=None):
     return render_template(
         "pages/academics/classes/settings/index.html",
         class_group=class_group,
         details_form=details_form or _details_form(class_group),
         rules_form=rules_form or StatusRulesForm(formdata=None, obj=class_group),
+        delete_form=delete_form or DeleteClassForm(formdata=None, class_name=class_group.name),
     )
 
 
@@ -65,3 +72,16 @@ def save_rules(class_id: int):
         flash("Status rules saved.", "success")
         return redirect(url_for("class_settings.index", class_id=class_id))
     return _render(class_group, rules_form=form)
+
+
+@bp.post("/delete")
+@login_required
+def delete(class_id: int):
+    class_group = load_class(class_id)
+    form = DeleteClassForm(class_name=class_group.name)
+    if form.validate_on_submit():
+        name = class_group.name
+        classes.delete_class(class_group)
+        flash(f"Class {name} deleted, with its semesters and students.", "success")
+        return redirect(url_for("classes.index"))
+    return _render(class_group, delete_form=form)

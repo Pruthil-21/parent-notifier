@@ -1,0 +1,17 @@
+{% from "components/forms/error_summary.html" import error_summary %}
+{% from "components/forms/field.html" import text_field %}
+<section class="settings-section settings-section--danger" aria-labelledby="delete-heading">
+  <div class="settings-section__intro">
+    <h2 id="delete-heading">Delete class</h2>
+    <p>Deletes {{ class_group.name }} with every semester, student and sheet in it. This
+      cannot be undone.</p>
+  </div>
+  <form class="settings-section__form form-stack" method="post"
+        action="{{ url_for('class_settings.delete', class_id=class_group.id) }}" novalidate>
+    {{ error_summary(delete_form, first_field=delete_form.confirmation) }}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {{ text_field(delete_form.confirmation, hint="Type " ~ class_group.name ~ " exactly as shown",
+                  autocomplete="off", spellcheck="false") }}
+    <div><button class="button button--danger" type="submit">Delete {{ class_group.name }}</button></div>
+  </form>
+</section>

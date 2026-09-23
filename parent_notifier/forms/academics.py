@@ -110,3 +110,19 @@ class StatusRulesForm(FlaskForm):
         total = self.midsem_max.data
         if field.data is not None and total is not None and field.data > total:
             raise ValidationError(f"Pass mark cannot be more than the Mid-Sem total of {total}")
+
+
+class DeleteClassForm(FlaskForm):
+    confirmation = StringField(
+        "Type the class name to confirm",
+        validators=[InputRequired("Type the class name to confirm")],
+        filters=[single_spaced],
+    )
+
+    def __init__(self, *args, class_name: str, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.class_name = class_name
+
+    def validate_confirmation(self, field) -> None:
+        if field.data != self.class_name:
+            raise ValidationError(f"Type {self.class_name} exactly to delete this class")

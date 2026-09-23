@@ -34,7 +34,7 @@ def test_settings_show_current_details_and_rules(signed_in_client, class_id):
     assert 'value="75"' in html
     assert 'value="7"' in html
     assert 'value="20"' in html
-    assert html.count('name="csrf_token"') == 3
+    assert html.count('name="csrf_token"') == 4
 
 
 def test_class_pages_and_list_link_to_settings(signed_in_client, class_id):

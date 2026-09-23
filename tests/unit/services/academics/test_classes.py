@@ -49,3 +49,9 @@ def test_renaming_onto_an_existing_name_raises(owner):
     class_group = make_class(owner, name="CE-A")
     with pytest.raises(classes.ClassNameTakenError):
         classes.update_details(class_group, "CE-B", "Computer Engineering", 2023)
+
+
+def test_delete_class(owner):
+    class_group = make_class(owner)
+    classes.delete_class(class_group)
+    assert not classes.name_taken(owner.id, "CE-A")
