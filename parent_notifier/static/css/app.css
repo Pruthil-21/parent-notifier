@@ -10,3 +10,7 @@
 @import url("shell/top-bar.css") layer(shell);
 @import url("shell/nav-pane.css") layer(shell);
 @import url("shell/public-frame.css") layer(shell);
+@import url("shell/page-header.css") layer(shell);
+@import url("shell/message-bar.css") layer(shell);
+
+@import url("components/buttons.css") layer(components);

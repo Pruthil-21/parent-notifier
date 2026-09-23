@@ -10,6 +10,7 @@
   gap: var(--space-2);
   height: var(--topbar-height);
   padding-inline: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-topbar-border);
   background: var(--color-topbar);
   color: var(--color-topbar-text);
 }
@@ -52,7 +53,7 @@
 
 .top-bar__org {
   padding-left: var(--space-2);
-  border-left: 1px solid rgb(255 255 255 / 0.35);
+  border-left: 1px solid var(--color-topbar-divider);
   font-size: var(--text-body);
   opacity: 0.85;
 }
