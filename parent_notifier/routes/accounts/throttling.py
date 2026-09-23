@@ -10,6 +10,7 @@ from collections.abc import Callable
 
 from flask import g, request
 from flask_limiter.util import get_remote_address
+from flask_login import current_user
 
 from parent_notifier.core.extensions import limiter
 from parent_notifier.services.accounts.credentials import normalise_username
@@ -43,6 +44,13 @@ _by_address = _limit(FAILURES_PER_ADDRESS, "credentials-address", get_remote_add
 
 def throttle_failed_attempts(view):
     return _by_username(_by_address(view))
+
+
+# Wrong current passwords on the profile page count against the same username counter,
+# so a borrowed session cannot be used to guess the password either.
+throttle_failed_password_checks = _limit(
+    FAILURES_PER_USERNAME, "credentials-username", lambda: current_user.username
+)
 
 
 def record_failed_attempt() -> None:
