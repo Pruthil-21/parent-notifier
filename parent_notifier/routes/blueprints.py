@@ -2,7 +2,7 @@
 
 from flask import Flask
 
-from parent_notifier.routes.academics import class_settings, classes, home, semesters
+from parent_notifier.routes.academics import class_settings, classes, home, semesters, students
 from parent_notifier.routes.accounts import auth, profile, registration
 from parent_notifier.routes.imports import downloads, undo, upload
 
@@ -14,6 +14,7 @@ BLUEPRINTS = (
     classes.bp,
     semesters.bp,
     class_settings.bp,
+    students.bp,
     upload.bp,
     undo.bp,
     downloads.bp,

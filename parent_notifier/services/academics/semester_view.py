@@ -12,6 +12,7 @@ from parent_notifier.core.extensions import db
 from parent_notifier.models.academics import ClassGroup, Result, Semester, SemesterSubject
 from parent_notifier.services.academics import risk
 from parent_notifier.services.academics.risk import Fail, Rules, Shortage, SubjectResult
+from parent_notifier.services.shared.phone import format_for_display
 
 
 @dataclass(frozen=True)
@@ -103,3 +104,42 @@ def build(class_group: ClassGroup, semester: Semester) -> SemesterView:
             )
         )
     return view
+
+
+def find_row(view: SemesterView, student_id: int) -> StudentRow | None:
+    return next((row for row in view.rows if row.id == student_id), None)
+
+
+def _subject_payload(result: SubjectResult, rules: Rules) -> dict:
+    def short(value):
+        return value is not None and value < rules.attendance_threshold
+
+    return {
+        "name": result.subject,
+        "theory": result.theory,
+        "practical": result.practical,
+        "marks": result.marks,
+        "absent": result.absent,
+        "theoryShort": short(result.theory),
+        "practicalShort": short(result.practical),
+        "fail": result.absent
+        or (result.marks is not None and result.marks < rules.midsem_pass_mark),
+    }
+
+
+def popup_payload(rows: list[StudentRow], rules: Rules) -> list[dict]:
+    """Plain data for the popup, for the rows on screen only. The page embeds it with
+    tojson and the script writes it with textContent, so none of it is read as HTML."""
+    return [
+        {
+            "id": row.id,
+            "enrollment": row.enrollment_no,
+            "name": row.full_name,
+            "parent": row.parent_name,
+            "phone": format_for_display(row.phone_e164) if row.phone_e164 else row.phone_raw,
+            "phoneValid": row.phone_e164 is not None,
+            "badge": row.band if row.active else row.status,
+            "subjects": [_subject_payload(result, rules) for result in row.results],
+        }
+        for row in rows
+    ]

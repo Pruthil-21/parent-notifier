@@ -22,6 +22,7 @@
 {% include "pages/academics/semesters/_tiles.html" %}
 {% include "pages/academics/semesters/_filters.html" %}
 {% include "pages/academics/semesters/_grid.html" %}
+{% include "pages/academics/students/_popup.html" %}
 {% else %}
 {% call empty_state("No sheet for Sem " ~ semester.number ~ " yet", "Upload this semester's sheet to see every student's attendance and Mid-Sem marks here.") %}
 {% include "pages/imports/upload/_upload_button.html" %}

@@ -37,7 +37,7 @@ def test_tiles_count_each_band(signed_in_client, base):
 
 def test_grid_shows_figures_and_badges(signed_in_client, base):
     html = signed_in_client.get(base).get_data(as_text=True)
-    assert '<th scope="row">Avi Shah</th>' in html
+    assert ">Avi Shah</a></th>" in html
     assert '<span class="figure-short">70%</span>' in html
     assert '<span class="figure-fail">Fail</span>' in html
     assert "DBMS 5/20" in html

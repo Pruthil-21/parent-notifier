@@ -1,0 +1,33 @@
+{# One student's subjects. Shortages and fails are marked in words for screen readers,
+   not by colour alone. The popup script builds the same table from the page's data. #}
+{% macro figure(value, suffix, flagged, flag_class, flag_text) -%}
+{% if value is none %}<span class="text-muted">–</span>
+{%- else %}<span class="{{ flag_class if flagged else '' }}">{{ "%g" | format(value) }}{{ suffix }}</span>
+{%- if flagged %}<span class="visually-hidden"> ({{ flag_text }})</span>{% endif %}{% endif %}
+{%- endmacro %}
+<div class="data-grid">
+  <table class="subjects-table">
+    <thead>
+      <tr>
+        <th scope="col">Subject</th>
+        <th scope="col" class="numeric">Theory</th>
+        <th scope="col" class="numeric">Practical</th>
+        <th scope="col" class="numeric">Mid-Sem</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for result in row.results %}
+      {% set threshold = view.rules.attendance_threshold %}
+      <tr>
+        <th scope="row">{{ result.subject }}</th>
+        <td class="numeric">{{ figure(result.theory, "%", result.theory is not none and result.theory < threshold, "figure-short", "below " ~ threshold ~ "%") }}</td>
+        <td class="numeric">{{ figure(result.practical, "%", result.practical is not none and result.practical < threshold, "figure-short", "below " ~ threshold ~ "%") }}</td>
+        <td class="numeric">
+          {% if result.absent %}<span class="figure-fail">AB</span><span class="visually-hidden"> (absent)</span>
+          {% else %}{{ figure(result.marks, "/" ~ view.rules.midsem_max, result.marks is not none and result.marks < view.rules.midsem_pass_mark, "figure-fail", "below the pass mark") }}{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

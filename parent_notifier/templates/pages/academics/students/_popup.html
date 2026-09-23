@@ -1,0 +1,39 @@
+{# The student popup. Its slots are empty here; popup/render.js fills them from the
+   students-data block with textContent only. #}
+<dialog id="student-popup" class="dialog student-popup" aria-labelledby="popup-name"
+        data-threshold="{{ view.rules.attendance_threshold }}"
+        data-pass-mark="{{ view.rules.midsem_pass_mark }}"
+        data-midsem-max="{{ view.rules.midsem_max }}">
+  <div class="dialog__header student-popup__header">
+    <div>
+      <h2 class="dialog__title" id="popup-name" data-slot="name"></h2>
+      <p class="student-popup__meta"><span data-slot="enrollment"></span> <span class="badge" data-slot="badge"></span></p>
+    </div>
+    <button type="button" class="dialog__close" data-dialog-close>{{ icon("dismiss", label="Close") }}</button>
+  </div>
+  <div class="dialog__body">
+    <dl class="student-facts">
+      <div><dt>Parent</dt><dd data-slot="parent"></dd></div>
+      <div><dt>Parent phone</dt><dd data-slot="phone"></dd></div>
+    </dl>
+    <div class="data-grid">
+      <table class="subjects-table">
+        <thead>
+          <tr>
+            <th scope="col">Subject</th>
+            <th scope="col" class="numeric">Theory</th>
+            <th scope="col" class="numeric">Practical</th>
+            <th scope="col" class="numeric">Mid-Sem</th>
+          </tr>
+        </thead>
+        <tbody data-slot="subjects"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="student-popup__footer">
+    <button type="button" class="button" data-popup-move="-1">{{ icon("chevron-left", size=16) }}Previous</button>
+    <button type="button" class="button" data-popup-move="1">Next{{ icon("chevron-right", size=16) }}</button>
+    <span class="student-popup__position text-secondary" data-slot="position" aria-live="polite"></span>
+  </div>
+</dialog>
+<script type="application/json" id="students-data">{{ popup | tojson }}</script>

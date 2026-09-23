@@ -27,7 +27,8 @@
       {% for row in rows %}
       <tr>
         <td class="col-optional">{{ row.enrollment_no }}</td>
-        <th scope="row">{{ row.full_name }}</th>
+        <th scope="row"><a class="student-link" data-student-link="{{ row.id }}"
+            href="{{ url_for('students.detail', class_id=class_group.id, number=semester.number, student_id=row.id) }}">{{ row.full_name }}</a></th>
         <td class="col-optional">{{ row.parent_name or "–" }}</td>
         <td>
           {% if row.lowest %}
