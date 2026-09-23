@@ -9,6 +9,6 @@
 {% block content %}
 <div class="form-panel">
   {{ error_summary(form, first_field=form.number) }}
-  {% with add_form = form, in_dialog = false %}{% include "pages/academics/semesters/_add_form.html" %}{% endwith %}
+  {% with add_form = form, in_dialog = false %}{% include "pages/academics/semesters/dialogs/_add_form.html" %}{% endwith %}
 </div>
 {% endblock %}
