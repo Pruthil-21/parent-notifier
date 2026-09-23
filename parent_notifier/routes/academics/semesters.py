@@ -1,7 +1,7 @@
 """A class's semesters: the semester page, adding one and removing an empty one."""
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
-from flask_login import login_required
+from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
 
 from parent_notifier.forms.academics import AddSemesterForm, add_semester_form
 from parent_notifier.forms.imports import UploadSheetForm
@@ -9,6 +9,8 @@ from parent_notifier.models.academics import ClassGroup, Semester
 from parent_notifier.routes.academics.classes import load_class
 from parent_notifier.services.academics import grid_filters, semester_view, semesters
 from parent_notifier.services.imports import undo
+from parent_notifier.services.messaging import previews
+from parent_notifier.services.messaging.message_templates import LANGUAGES
 
 bp = Blueprint("semesters", __name__, url_prefix="/classes/<int:class_id>")
 
@@ -29,6 +31,12 @@ def workspace(class_id: int, number: int):
     view = semester_view.build(class_group, semester)
     query = grid_filters.GridQuery.from_args(request.args)
     rows = grid_filters.apply(view.rows, query)
+    context = previews.context_for(
+        semester.number, class_group.midsem_max, current_user.full_name, current_app.config
+    )
+    popup = semester_view.popup_payload(rows, view.rules)
+    for entry, row in zip(popup, rows, strict=True):
+        entry["messages"] = previews.messages_for(row, context)
     return render_template(
         "pages/academics/semesters/workspace.html",
         class_group=class_group,
@@ -42,7 +50,8 @@ def workspace(class_id: int, number: int):
         query=query,
         rows=rows,
         status_filters=grid_filters.STATUS_FILTERS,
-        popup=semester_view.popup_payload(rows, view.rules),
+        popup=popup,
+        languages=LANGUAGES,
     )
 
 

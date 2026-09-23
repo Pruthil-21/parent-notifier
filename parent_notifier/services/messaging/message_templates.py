@@ -14,10 +14,11 @@ from jinja2.sandbox import SandboxedEnvironment
 from parent_notifier.services.academics.risk import SubjectResult
 
 TEMPLATE_DIR = Path(__file__).resolve().parents[3] / "message_templates"
-LANGUAGES = {"en": "English"}
+LANGUAGES = {"en": "English", "gu": "ગુજરાતી"}
 MAX_NOTE = 500
 _WORDS = {
     "en": {"missing": "N/A", "absent": "AB", "title": "Prof."},
+    "gu": {"missing": "લાગુ નથી", "absent": "ગેરહાજર", "title": "પ્રો."},
 }
 
 _environment = SandboxedEnvironment(

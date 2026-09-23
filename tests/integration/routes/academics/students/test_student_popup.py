@@ -103,3 +103,13 @@ def test_student_page_needs_sign_in(client, setup):
     base, ids, _ = setup
     response = client.get(f"{base}/students/{ids['23CE001']}")
     assert response.headers["Location"].startswith("/sign-in")
+
+
+def test_popup_carries_messages_and_the_profile_language(signed_in_client, setup):
+    base, ids, _ = setup
+    html = signed_in_client.get(base).get_data(as_text=True)
+    assert 'data-default-language="en"' in html
+    assert 'value="gu" lang="gu"' in html
+    avi = next(s for s in _data(html) if s["id"] == ids["23CE001"])
+    assert avi["messages"]["en"]["plain"].startswith("Dear Parent,")
+    assert avi["messages"]["gu"]["plain"].startswith("આદરણીય વાલીશ્રી,")

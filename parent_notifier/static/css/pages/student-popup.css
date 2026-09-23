@@ -1,0 +1,93 @@
+/* The student popup and the student page: facts, subjects, message and actions. */
+
+@layer pages {
+  .student-popup {
+    width: min(720px, calc(100vw - 2 * var(--space-4)));
+  }
+
+  .student-popup__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-1);
+    color: var(--color-text-secondary);
+  }
+
+  .student-popup__footer {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-6) var(--space-5);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .student-popup__position {
+    margin-left: auto;
+    font-size: var(--text-caption);
+  }
+
+  .popup-message {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+
+  .popup-message__language {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .popup-message__label {
+    float: left;
+    padding: 0;
+    font-weight: var(--weight-semibold);
+  }
+
+  .popup-preview summary {
+    cursor: pointer;
+    font-weight: var(--weight-semibold);
+    color: var(--color-accent-text);
+  }
+
+  .popup-preview__text {
+    max-height: 260px;
+    margin: var(--space-2) 0 0;
+    padding: var(--space-3);
+    overflow: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-control);
+    background: var(--color-surface-subtle);
+    font-family: var(--font-ui);
+    white-space: pre-wrap;
+  }
+
+  .student-facts {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0 0 var(--space-4);
+  }
+
+  .student-facts > div {
+    display: flex;
+    gap: var(--space-3);
+  }
+
+  .student-facts dt {
+    min-width: 110px;
+    color: var(--color-text-secondary);
+  }
+
+  .student-facts dd {
+    margin: 0;
+    font-weight: var(--weight-semibold);
+  }
+
+  .student-back {
+    margin-top: var(--space-5);
+  }
+}

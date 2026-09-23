@@ -80,3 +80,22 @@ def test_edited_template_is_picked_up_without_a_restart(tmp_path, monkeypatch):
     (tmp_path / "parent_report.en.txt").write_text("Hi {{ student_name }}", encoding="utf-8")
     environment.cache.clear()
     assert render() == "Hi Avi Shah"
+
+
+def test_gujarati_uses_its_own_words_and_keeps_subject_names():
+    text = render_message(
+        "gu",
+        student_name="Avi Shah",
+        enrollment_no="230120107001",
+        semester=3,
+        results=RESULTS,
+        midsem_max=20,
+        mentor_name="Pruthil Mistry",
+        college_name="જી. એચ. પટેલ કોલેજ",
+        note="સોમવારે મળો",
+    )
+    assert text.startswith("આદરણીય વાલીશ્રી,")
+    assert "2. Probability & Statistics: થિયરી – 71%, પ્રેક્ટિકલ – લાગુ નથી, મિડ-સેમ – ગેરહાજર" in text  # noqa: RUF001
+    assert "3. Digital Electronics: થિયરી – 88%, પ્રેક્ટિકલ – 79%, મિડ-સેમ – --/20" in text  # noqa: RUF001
+    assert "મેન્ટરની નોંધ: સોમવારે મળો" in text
+    assert text.endswith("પ્રો. Pruthil Mistry\nજી. એચ. પટેલ કોલેજ")

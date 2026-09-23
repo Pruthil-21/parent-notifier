@@ -1,0 +1,21 @@
+{#- Parent report, Gujarati. DRAFT: to be checked by a faculty member who writes
+    Gujarati before it is used widely (PROJECT.md 4.4). Same fields as the English
+    template; subject names stay as written in the sheet and digits stay 0 to 9. -#}
+આદરણીય વાલીશ્રી,
+
+આપના પાલ્ય {{ student_name }} (એનરોલમેન્ટ નં. {{ enrollment_no }}) ની સેમ {{ semester }} ની હાજરી અને શૈક્ષણિક પ્રગતિની વિગતો નીચે મુજબ છે:
+{% for subject in subjects %}
+{{ loop.index }}. {{ subject.name }}: થિયરી – {{ subject.theory }}, પ્રેક્ટિકલ – {{ subject.practical }}, મિડ-સેમ – {{ subject.marks }}
+{% endfor %}
+
+ઉપરોક્ત હાજરી અને શૈક્ષણિક પ્રગતિની નોંધ લેશો તથા આપના પાલ્યને નિયમિત રીતે વર્ગો અને પ્રેક્ટિકલ સત્રોમાં હાજર રહેવા અને અભ્યાસ પર ધ્યાન આપવા માર્ગદર્શન આપશો.
+
+કોઈ પણ સ્પષ્ટતા કે ચર્ચા માટે આપ કાર્યકારી દિવસોમાં સવારે 9:00 થી સાંજે 5:00 દરમિયાન મેન્ટરને મળી શકો છો.
+{% if note %}
+
+મેન્ટરની નોંધ: {{ note }}
+{% endif %}
+
+આભાર સહ,
+{{ mentor_name }}
+{{ college_name }}

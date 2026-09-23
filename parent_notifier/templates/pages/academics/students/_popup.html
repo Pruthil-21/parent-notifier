@@ -3,7 +3,8 @@
 <dialog id="student-popup" class="dialog student-popup" aria-labelledby="popup-name"
         data-threshold="{{ view.rules.attendance_threshold }}"
         data-pass-mark="{{ view.rules.midsem_pass_mark }}"
-        data-midsem-max="{{ view.rules.midsem_max }}">
+        data-midsem-max="{{ view.rules.midsem_max }}"
+        data-default-language="{{ current_user.message_language }}">
   <div class="dialog__header student-popup__header">
     <div>
       <h2 class="dialog__title" id="popup-name" data-slot="name"></h2>
@@ -28,6 +29,23 @@
         </thead>
         <tbody data-slot="subjects"></tbody>
       </table>
+    </div>
+    <div class="popup-message">
+      <fieldset class="popup-message__language" data-language-picker>
+        <legend class="popup-message__label">Message language</legend>
+        <div class="segmented">
+          {% for code, label in languages.items() %}
+          <label class="segmented__option">
+            <input type="radio" name="popup-language" value="{{ code }}" lang="{{ code }}">
+            <span>{{ label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      <details class="popup-preview">
+        <summary>Preview message</summary>
+        <pre class="popup-preview__text" data-slot="message"></pre>
+      </details>
     </div>
   </div>
   <div class="student-popup__footer">

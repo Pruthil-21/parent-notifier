@@ -2,7 +2,17 @@
 // Previous and Next follow the grid as it is filtered and sorted. Without JavaScript the
 // names are plain links to each student's page.
 
-import { renderStudent } from "./render.js";
+import { renderMessage, renderStudent } from "./render.js";
+
+const LANGUAGE_KEY = "parent-notifier.language";
+
+function savedLanguage(fallback) {
+  try {
+    return window.sessionStorage.getItem(LANGUAGE_KEY) || fallback;
+  } catch {
+    return fallback; // storage blocked: use the profile default
+  }
+}
 
 export function initPopup() {
   const dialog = document.getElementById("student-popup");
@@ -18,12 +28,31 @@ export function initPopup() {
   const links = () => [...document.querySelectorAll("[data-student-link]")];
   const position = dialog.querySelector('[data-slot="position"]');
   let currentId = null;
+  // The mentor's choice lasts for this browser session; it starts from the profile.
+  let language = savedLanguage(dialog.dataset.defaultLanguage);
+  const languageInputs = [...dialog.querySelectorAll('[name="popup-language"]')];
+  const syncLanguage = () => {
+    for (const input of languageInputs) input.checked = input.value === language;
+  };
+  syncLanguage();
+  for (const input of languageInputs) {
+    input.addEventListener("change", () => {
+      language = input.value;
+      try {
+        window.sessionStorage.setItem(LANGUAGE_KEY, language);
+      } catch {
+        // Not remembering the choice is harmless.
+      }
+      renderMessage(dialog, students.get(currentId), language);
+    });
+  }
 
   function show(id) {
     const student = students.get(id);
     if (!student) return;
     currentId = id;
     renderStudent(dialog, student, rules);
+    renderMessage(dialog, student, language);
     const ids = links().map((link) => link.dataset.studentLink);
     const index = ids.indexOf(id);
     position.textContent = `${index + 1} of ${ids.length}`;
