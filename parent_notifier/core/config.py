@@ -2,6 +2,7 @@
 
 import os
 import secrets
+from datetime import timedelta
 from pathlib import Path
 
 ENVIRONMENTS = ("development", "testing", "production")
@@ -22,6 +23,14 @@ def load_config(env: str, instance_path: Path) -> dict[str, object]:
         "SESSION_COOKIE_HTTPONLY": True,
         "SESSION_COOKIE_SAMESITE": "Lax",
         "SESSION_COOKIE_SECURE": _flag("SESSION_COOKIE_SECURE"),
+        "REMEMBER_COOKIE_DURATION": timedelta(days=30),
+        "REMEMBER_COOKIE_HTTPONLY": True,
+        "REMEMBER_COOKIE_SAMESITE": "Lax",
+        "REMEMBER_COOKIE_SECURE": _flag("SESSION_COOKIE_SECURE"),
+        # Tests post forms without tokens; one test switches CSRF back on to prove it works.
+        "WTF_CSRF_ENABLED": env != "testing",
+        # Tokens last as long as the session, so a sign-in page left open all day still works.
+        "WTF_CSRF_TIME_LIMIT": None,
         "COLLEGE_NAME": os.environ.get(
             "COLLEGE_NAME", "G. H. Patel College of Engineering & Technology"
         ),

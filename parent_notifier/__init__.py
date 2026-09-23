@@ -6,13 +6,14 @@ from pathlib import Path
 from dotenv import load_dotenv
 from flask import Flask
 
-import parent_notifier.models  # noqa: F401  (registers the tables)
 from parent_notifier.core.config import load_config
 from parent_notifier.core.errors import init_error_pages
 from parent_notifier.core.extensions import init_extensions
 from parent_notifier.core.icons import render_icon
+from parent_notifier.core.jinja_filters import init_jinja_filters
 from parent_notifier.core.navigation import init_navigation
 from parent_notifier.core.security import init_security
+from parent_notifier.routes.blueprints import register_blueprints
 
 
 def create_app(env: str | None = None) -> Flask:
@@ -27,6 +28,8 @@ def create_app(env: str | None = None) -> Flask:
     app.config.update(load_config(env, Path(app.instance_path)))
     init_extensions(app)
     app.add_template_global(render_icon, "icon")
+    init_jinja_filters(app)
+    register_blueprints(app)
     init_navigation(app)
     init_error_pages(app)
     init_security(app)

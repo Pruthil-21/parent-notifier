@@ -1,0 +1,21 @@
+{% extends "layouts/public.html" %}
+{% from "components/forms/error_summary.html" import error_summary %}
+{% from "components/forms/field.html" import text_field, password_field, checkbox %}
+
+{% block title %}Sign in{% endblock %}
+
+{% block panel %}
+<h1 class="public-panel__title">Sign in</h1>
+{{ error_summary(form, first_field=form.username) }}
+<form class="form-stack" method="post" novalidate>
+  {{ form.hidden_tag() }}
+  {{ text_field(form.username, autocomplete="username", autocapitalize="none", spellcheck="false") }}
+  {{ password_field(form.password, autocomplete="current-password") }}
+  {{ checkbox(form.remember) }}
+  <button class="button button--primary button--full" type="submit">Sign in</button>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{{ url_for('static', filename='js/pages/auth.js') }}"></script>
+{% endblock %}

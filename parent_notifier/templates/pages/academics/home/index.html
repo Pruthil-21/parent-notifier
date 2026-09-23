@@ -1,0 +1,8 @@
+{% extends "layouts/app.html" %}
+
+{% block title %}Home{% endblock %}
+{% block page_title %}Home{% endblock %}
+
+{% block content %}
+<p class="text-secondary">Signed in as {{ current_user.full_name }}.</p>
+{% endblock %}

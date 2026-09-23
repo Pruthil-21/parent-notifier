@@ -1,0 +1,134 @@
+/* Form fields, the error summary and checkboxes. Errors follow the GOV.UK pattern: a
+   summary at the top, then a message above each field with a bar down its left edge. */
+
+.form-stack {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.field--error {
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--color-danger);
+}
+
+.field__label {
+  font-weight: var(--weight-semibold);
+}
+
+.field__hint {
+  font-size: var(--text-caption);
+  line-height: var(--leading-caption);
+  color: var(--color-text-secondary);
+}
+
+.field__error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-weight: var(--weight-semibold);
+  color: var(--color-danger);
+}
+
+.input {
+  width: 100%;
+  min-height: 32px;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  transition: border-color var(--duration-fast) ease;
+}
+
+.input:hover {
+  border-color: var(--color-text-muted);
+}
+
+.input:focus-visible {
+  border-color: var(--color-accent);
+  outline-offset: 0;
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.password-input {
+  display: flex;
+}
+
+.password-input__input {
+  flex: 1;
+  min-width: 0;
+}
+
+.password-input__toggle:not([hidden]) {
+  min-width: 64px;
+  margin-left: -1px;
+}
+
+.password-input:has(.password-input__toggle:not([hidden])) .password-input__input {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.password-input__toggle {
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
+
+.checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.checkbox__input {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+}
+
+.checkbox__label {
+  cursor: pointer;
+}
+
+.error-summary {
+  display: grid;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-danger);
+  border-left-width: 4px;
+  border-radius: var(--radius-control);
+  background: var(--color-danger-bg);
+}
+
+.error-summary:focus-visible {
+  outline-offset: 2px;
+}
+
+.error-summary__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-subtitle);
+  line-height: var(--leading-subtitle);
+  color: var(--color-danger);
+}
+
+.error-summary__list {
+  display: grid;
+  gap: var(--space-1);
+  padding-left: calc(20px + var(--space-2));
+}
+
+.error-summary__list a {
+  font-weight: var(--weight-semibold);
+  color: var(--color-danger);
+}

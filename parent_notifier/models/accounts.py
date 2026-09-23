@@ -1,9 +1,10 @@
 """Mentor accounts."""
 
+from flask_login import UserMixin
 from sqlalchemy import CheckConstraint, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from parent_notifier.core.extensions import db
+from parent_notifier.core.extensions import db, login_manager
 from parent_notifier.models.columns import Timestamps
 
 THEMES = ("system", "light", "dark")
@@ -14,7 +15,7 @@ def _one_of(column: str, values: tuple[str, ...]) -> str:
     return f"{column} IN ({', '.join(repr(value) for value in values)})"
 
 
-class Mentor(Timestamps, db.Model):
+class Mentor(UserMixin, Timestamps, db.Model):
     """A faculty mentor. Holds only hashes of the password and recovery code."""
 
     __tablename__ = "mentors"
@@ -39,5 +40,26 @@ class Mentor(Timestamps, db.Model):
     # Part of the sign-in cookie; raising it signs the mentor out on every other browser.
     session_version: Mapped[int] = mapped_column(default=1, server_default="1")
 
+    def get_id(self) -> str:
+        """What Flask-Login keeps in the session and the remember-me cookie."""
+        return f"{self.id}:{self.session_version}"
+
+    @property
+    def initials(self) -> str:
+        words = self.full_name.split()
+        return "".join(word[0] for word in words[:1] + words[1:][-1:]).upper()
+
     def __repr__(self) -> str:
         return f"<Mentor {self.id} {self.username}>"
+
+
+@login_manager.user_loader
+def load_mentor(login_id: str) -> Mentor | None:
+    """Cookies issued before a password change carry an old version and stop working."""
+    mentor_id, _, version = login_id.partition(":")
+    if not (mentor_id.isdecimal() and version.isdecimal()):
+        return None
+    mentor = db.session.get(Mentor, int(mentor_id))
+    if mentor is None or mentor.session_version != int(version):
+        return None
+    return mentor

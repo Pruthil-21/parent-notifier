@@ -4,8 +4,10 @@ import sqlite3
 from pathlib import Path
 
 from flask import Flask
+from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from flask_wtf import CSRFProtect
 from sqlalchemy import MetaData, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase
@@ -29,6 +31,13 @@ class Base(DeclarativeBase):
 db = SQLAlchemy(model_class=Base)
 # Batch mode: SQLite cannot ALTER most constraints in place, so Alembic copies the table.
 migrate = Migrate(render_as_batch=True)
+csrf = CSRFProtect()
+login_manager = LoginManager()
+login_manager.login_view = "auth.sign_in"
+# Landing on the sign-in page already says what to do; a flashed line would only repeat it.
+login_manager.login_message = None
+# "strong" would sign mentors out whenever the college Wi-Fi hands them a new IP address.
+login_manager.session_protection = "basic"
 
 
 @event.listens_for(Engine, "connect")
@@ -43,3 +52,5 @@ def _enable_sqlite_foreign_keys(dbapi_connection, _connection_record) -> None:
 def init_extensions(app: Flask) -> None:
     db.init_app(app)
     migrate.init_app(app, db, directory=str(MIGRATIONS_DIR))
+    csrf.init_app(app)
+    login_manager.init_app(app)
