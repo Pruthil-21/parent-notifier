@@ -1,5 +1,4 @@
 import io
-import json
 import re
 from urllib.parse import parse_qs, urlsplit
 
@@ -8,38 +7,12 @@ from sqlalchemy import select
 
 from parent_notifier.core.extensions import db
 from parent_notifier.models.academics import Semester, Student
-from parent_notifier.models.messaging import SendLog
-from parent_notifier.services.imports.apply import apply_import
-from parent_notifier.services.imports.sheet_parser import parse_sheet
 from tests.factories.academics import make_class, make_semester
 from tests.factories.accounts import make_mentor
 from tests.factories.workbooks import make_xlsx
-
-HEADER = ["Enrollment No", "Student Name", "Parent Name", "Parent Phone", "DBMS"]
-ROWS = [
-    ["23CE001", "Avi Shah", "Mehul Shah", "9000000101", "Theory=86,Marks=16"],
-    ["23CE002", "Riya Patel", "Kiran Patel", "123", "Theory=70"],
-]
-
-
-@pytest.fixture
-def setup(app, mentor):
-    with app.app_context():
-        class_group = make_class(mentor)
-        semester = make_semester(class_group, 4)
-        apply_import(class_group, semester, mentor.id, "s", parse_sheet([HEADER, *ROWS], 20), False)
-        ids = {s.enrollment_no: s.id for s in semester.students}
-        return f"/classes/{class_group.id}/sem/4", ids
-
-
-def _log(client, base, student_id, **body):
-    payload = {"status": "sent", "language": "en", "note": ""} | body
-    return client.post(f"{base}/students/{student_id}/log", json=payload)
-
-
-def _entries(app):
-    with app.app_context():
-        return db.session.scalars(select(SendLog)).all()
+from tests.integration.routes.messaging.send_requests import HEADER, ROWS
+from tests.integration.routes.messaging.send_requests import entries as _entries
+from tests.integration.routes.messaging.send_requests import log as _log
 
 
 def test_send_is_stored_and_returns_the_whatsapp_link(app, signed_in_client, setup):
@@ -162,70 +135,3 @@ def test_popup_has_a_note_box_limited_to_500_characters(signed_in_client, setup)
     base, _ = setup
     html = signed_in_client.get(base).get_data(as_text=True)
     assert 'maxlength="500" data-note' in html
-
-
-def test_queue_button_counts_pending_parents_and_falls_back_to_a_filter(signed_in_client, setup):
-    base, ids = setup
-    html = signed_in_client.get(base).get_data(as_text=True)
-    assert "Message pending parents (1)" in html
-    assert f'href="{base}?status=pending">Message pending parents' in html
-    pending_page = signed_in_client.get(f"{base}?status=pending").get_data(as_text=True)
-    assert "Showing 1 of 2 students" in pending_page
-    avi = next(s for s in _data(html) if s["id"] == ids["23CE001"])
-    assert avi["pending"] is True
-
-
-def test_queue_button_goes_once_everyone_is_done(signed_in_client, setup):
-    base, ids = setup
-    _log(signed_in_client, base, ids["23CE001"], status="skipped")
-    html = signed_in_client.get(base).get_data(as_text=True)
-    assert "Message pending parents" not in html
-    assert "Showing 0 of 2 students" in signed_in_client.get(f"{base}?status=pending").get_data(
-        as_text=True
-    )
-
-
-def _data(html):
-    block = re.search(r'id="students-data">(.*?)</script>', html, re.S)
-    return json.loads(block.group(1))
-
-
-def test_page_asks_which_number_whatsapp_web_is_signed_in_to(signed_in_client, setup):
-    base, _ = setup
-    html = signed_in_client.get(base).get_data(as_text=True)
-    assert '<dialog id="sending-as"' in html
-    assert '<strong class="numeric">+91 90000 00001</strong>' in html
-    assert 'href="https://web.whatsapp.com/" target="parent-notifier-whatsapp"' in html
-
-
-def test_page_starts_with_the_pacing_state(signed_in_client, setup):
-    base, _ = setup
-    html = signed_in_client.get(base).get_data(as_text=True)
-    assert 'data-wait-seconds="0" data-wait-reason=""' in html
-    assert 'data-sent-today="0" data-daily-limit="60"' in html
-
-
-def test_send_reports_the_gap_and_the_daily_limit_is_enforced(app, signed_in_client, setup, mentor):
-    base, ids = setup
-    data = _log(signed_in_client, base, ids["23CE001"]).get_json()
-    assert data["pacing"]["reason"] == "gap"
-    assert 0 < data["pacing"]["waitSeconds"] <= 20
-    assert data["pacing"]["sentToday"] == 1
-    with app.app_context():
-        db.session.get(type(mentor), mentor.id).daily_send_limit = 1
-        db.session.commit()
-    response = _log(signed_in_client, base, ids["23CE001"])
-    assert response.status_code == 409
-    body = response.get_json()
-    assert "today's limit of 1 messages" in body["error"]
-    assert body["pacing"]["reason"] == "daily"
-    assert len(_entries(app)) == 1
-    assert _log(signed_in_client, base, ids["23CE001"], status="skipped").status_code == 200
-
-
-def test_a_send_inside_the_gap_is_logged_as_a_warning(app, signed_in_client, setup, caplog):
-    base, ids = setup
-    _log(signed_in_client, base, ids["23CE001"])
-    with caplog.at_level("WARNING"):
-        assert _log(signed_in_client, base, ids["23CE001"]).status_code == 200
-    assert "inside the gap wait" in caplog.text
