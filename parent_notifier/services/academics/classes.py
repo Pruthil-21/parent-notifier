@@ -49,6 +49,12 @@ def update_rules(
     db.session.commit()
 
 
+def delete_class(class_group: ClassGroup) -> None:
+    """Delete the class; the database removes its semesters and students with it."""
+    db.session.delete(class_group)
+    db.session.commit()
+
+
 def _commit_or_name_taken(name: str) -> None:
     try:
         db.session.commit()
