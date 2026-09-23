@@ -4,6 +4,8 @@ import sqlite3
 from pathlib import Path
 
 from flask import Flask
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -32,6 +34,8 @@ db = SQLAlchemy(model_class=Base)
 # Batch mode: SQLite cannot ALTER most constraints in place, so Alembic copies the table.
 migrate = Migrate(render_as_batch=True)
 csrf = CSRFProtect()
+# No default limits: only the routes that check secrets or can be hammered opt in.
+limiter = Limiter(key_func=get_remote_address)
 login_manager = LoginManager()
 login_manager.login_view = "auth.sign_in"
 # Landing on the sign-in page already says what to do; a flashed line would only repeat it.
@@ -53,4 +57,5 @@ def init_extensions(app: Flask) -> None:
     db.init_app(app)
     migrate.init_app(app, db, directory=str(MIGRATIONS_DIR))
     csrf.init_app(app)
+    limiter.init_app(app)
     login_manager.init_app(app)
