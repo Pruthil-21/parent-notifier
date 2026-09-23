@@ -16,6 +16,8 @@ def load_config(env: str, instance_path: Path) -> dict[str, object]:
     return {
         "ENV_NAME": env,
         "TESTING": env == "testing",
+        # Edited templates show on the next request in development, without a restart.
+        "TEMPLATES_AUTO_RELOAD": env == "development",
         "SECRET_KEY": _secret_key(env, instance_path),
         "SQLALCHEMY_DATABASE_URI": _database_url(env, instance_path),
         "APP_TIMEZONE": os.environ.get("APP_TIMEZONE", "Asia/Kolkata"),

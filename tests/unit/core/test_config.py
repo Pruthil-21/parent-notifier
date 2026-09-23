@@ -57,3 +57,8 @@ def test_invalid_number_names_the_variable(tmp_path, monkeypatch):
     monkeypatch.setenv("MAX_UPLOAD_MB", "five")
     with pytest.raises(ValueError, match="MAX_UPLOAD_MB must be a whole number"):
         load_config("testing", tmp_path)
+
+
+def test_only_development_reloads_templates(tmp_path):
+    assert load_config("development", tmp_path / "instance")["TEMPLATES_AUTO_RELOAD"] is True
+    assert load_config("testing", tmp_path)["TEMPLATES_AUTO_RELOAD"] is False
