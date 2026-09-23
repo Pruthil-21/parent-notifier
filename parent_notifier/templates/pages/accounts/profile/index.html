@@ -1,0 +1,22 @@
+{% extends "layouts/app.html" %}
+{% from "components/navigation/breadcrumb.html" import breadcrumb %}
+
+{% block title %}Profile{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/profile.css') }}">
+{% endblock %}
+
+{% block breadcrumb %}{{ breadcrumb([("Home", url_for("home.index")), ("Profile", None)]) }}{% endblock %}
+{% block page_title %}Profile{% endblock %}
+
+{% block content %}
+<div class="settings">
+  {% include "pages/accounts/profile/_account.html" %}
+  {% include "pages/accounts/profile/_password.html" %}
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+<script type="module" src="{{ url_for('static', filename='js/pages/profile.js') }}"></script>
+{% endblock %}

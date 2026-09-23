@@ -14,10 +14,12 @@ class UsernameTakenError(Exception):
     """Another mentor already has this username."""
 
 
-def username_taken(username: str) -> bool:
-    return db.session.scalar(
-        select(exists().where(Mentor.username == normalise_username(username)))
+def username_taken(username: str, except_mentor_id: int | None = None) -> bool:
+    """Whether another mentor has this username; a mentor's own username never counts."""
+    query = exists().where(
+        Mentor.username == normalise_username(username), Mentor.id != (except_mentor_id or 0)
     )
+    return db.session.scalar(select(query))
 
 
 def create_mentor(

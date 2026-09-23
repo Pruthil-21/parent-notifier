@@ -130,3 +130,24 @@ class ResetPasswordForm(FlaskForm):
         "Recovery code", validators=[InputRequired("Enter your recovery code")], filters=[strip]
     )
     new_password = new_password_field("New password")
+
+
+class AccountDetailsForm(FlaskForm):
+    full_name = full_name_field()
+    username = username_field()
+    whatsapp_number = whatsapp_number_field()
+
+    def __init__(self, *args, mentor_id: int, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.mentor_id = mentor_id
+
+    def validate_username(self, field) -> None:
+        if registration.username_taken(field.data, except_mentor_id=self.mentor_id):
+            raise ValidationError(USERNAME_TAKEN)
+
+
+class ChangePasswordForm(FlaskForm):
+    current_password = PasswordField(
+        "Current password", validators=[InputRequired("Enter your current password")]
+    )
+    new_password = new_password_field("New password")

@@ -1,0 +1,46 @@
+/* Profile: one panel per section, with its explanation beside the form on wide screens
+   and above it on narrow ones. */
+
+@layer pages {
+  .settings {
+    display: grid;
+    gap: var(--space-5);
+    max-width: 960px;
+  }
+
+  .settings-section {
+    display: grid;
+    grid-template-columns: minmax(200px, 280px) minmax(0, 440px);
+    gap: var(--space-4) var(--space-8);
+    padding: var(--space-6);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-panel);
+    background: var(--color-surface);
+  }
+
+  .settings-section__intro {
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+  }
+
+  .settings-section__intro h2 {
+    font-size: var(--text-subtitle);
+    line-height: var(--leading-subtitle);
+  }
+
+  .settings-section__intro p {
+    color: var(--color-text-secondary);
+  }
+
+  .settings-section .error-summary {
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 767px) {
+    .settings-section {
+      grid-template-columns: minmax(0, 1fr);
+      padding: var(--space-5) var(--space-4);
+    }
+  }
+}
