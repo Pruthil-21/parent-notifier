@@ -6,6 +6,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from flask import Flask
 
+import parent_notifier.models  # noqa: F401  (registers the tables)
 from parent_notifier.core.config import load_config
 from parent_notifier.core.errors import init_error_pages
 from parent_notifier.core.extensions import init_extensions
