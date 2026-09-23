@@ -3,9 +3,14 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from parent_notifier.forms.accounts import USERNAME_TAKEN, AccountDetailsForm, ChangePasswordForm
+from parent_notifier.forms.accounts import (
+    USERNAME_TAKEN,
+    AccountDetailsForm,
+    ChangePasswordForm,
+    RegenerateRecoveryCodeForm,
+)
 from parent_notifier.routes.accounts import throttling
-from parent_notifier.routes.accounts.sessions import start_session
+from parent_notifier.routes.accounts.sessions import show_recovery_code, start_session
 from parent_notifier.services.accounts import profile, registration
 from parent_notifier.services.shared.phone import format_for_display
 
@@ -14,7 +19,7 @@ bp = Blueprint("profile", __name__, url_prefix="/profile")
 INCORRECT_CURRENT = "Your current password is incorrect"
 
 
-def _render(account_form=None, password_form=None, status: int = 200):
+def _render(account_form=None, password_form=None, recovery_form=None, status: int = 200):
     """Render every section; the one that was submitted brings its errors."""
     if account_form is None:
         account_form = AccountDetailsForm(
@@ -30,6 +35,7 @@ def _render(account_form=None, password_form=None, status: int = 200):
         "pages/accounts/profile/index.html",
         account_form=account_form,
         password_form=password_form or ChangePasswordForm(formdata=None),
+        recovery_form=recovery_form or RegenerateRecoveryCodeForm(formdata=None),
     )
     return page, status
 
@@ -76,8 +82,29 @@ def change_password():
     return _render(password_form=form)
 
 
+@bp.post("/recovery-code")
+@login_required
+@throttling.throttle_failed_password_checks
+def regenerate_recovery_code():
+    form = RegenerateRecoveryCodeForm()
+    if form.validate_on_submit():
+        code = profile.regenerate_recovery_code(current_user, form.password.data)
+        if code:
+            flash("New recovery code created. Your old one no longer works.", "success")
+            return show_recovery_code(code, then="profile")
+        throttling.record_failed_attempt()
+        form.password.errors.append(INCORRECT_CURRENT)
+    return _render(recovery_form=form)
+
+
 @bp.errorhandler(429)
 def too_many_password_attempts(_error):
+    """Show the lockout in the section whose form was sent."""
+    message = throttling.lockout_message("password")
+    if request.endpoint == "profile.regenerate_recovery_code":
+        form = RegenerateRecoveryCodeForm(formdata=None)
+        form.form_errors.append(message)
+        return _render(recovery_form=form, status=429)
     form = ChangePasswordForm(formdata=None)
-    form.form_errors.append(throttling.lockout_message("password"))
+    form.form_errors.append(message)
     return _render(password_form=form, status=429)

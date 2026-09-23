@@ -34,3 +34,13 @@ def test_password_changes_only_with_the_current_one():
     assert profile.change_password(mentor, PASSWORD, "Brand-new-pass-1")
     assert check_password_hash(mentor.password_hash, "Brand-new-pass-1")
     assert mentor.session_version == 2
+
+
+def test_recovery_code_is_replaced_only_with_the_current_password():
+    mentor = make_mentor(password=PASSWORD)
+    before = mentor.recovery_code_hash
+    assert profile.regenerate_recovery_code(mentor, "not-it") is None
+    assert mentor.recovery_code_hash == before
+    code = profile.regenerate_recovery_code(mentor, PASSWORD)
+    assert check_password_hash(mentor.recovery_code_hash, code)
+    assert mentor.session_version == 1

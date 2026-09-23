@@ -30,7 +30,7 @@ def test_page_shows_current_details_and_is_in_the_navigation(signed_in_client):
     assert 'value="+91 90000 00001"' in html
     assert '<a class="account-menu__item" href="/profile/">' in html
     assert 'aria-current="page"' in html
-    assert html.count('name="csrf_token"') == 3
+    assert html.count('name="csrf_token"') == 4
     assert 'id="csrf_token"' not in html
 
 

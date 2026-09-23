@@ -151,3 +151,11 @@ class ChangePasswordForm(FlaskForm):
         "Current password", validators=[InputRequired("Enter your current password")]
     )
     new_password = new_password_field("New password")
+
+
+class RegenerateRecoveryCodeForm(FlaskForm):
+    # Named `password`, not `current_password`, so its id differs from the password
+    # section's field on the same page.
+    password = PasswordField(
+        "Current password", validators=[InputRequired("Enter your current password")]
+    )
