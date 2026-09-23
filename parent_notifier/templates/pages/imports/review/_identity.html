@@ -1,0 +1,17 @@
+{# Details in the sheet that differ from the class. They are kept unless the box is ticked. #}
+{% if comparison.changes %}
+<h2 class="review-heading">{{ comparison.changes | length }} {{ "detail differs" if comparison.changes | length == 1 else "details differ" }} from what {{ class_group.name }} holds</h2>
+<p class="text-secondary review-note">Saved details stay as they are unless you tick the box below.</p>
+<div class="data-grid review-identity">
+  <table>
+    <thead>
+      <tr><th scope="col">Enrollment</th><th scope="col">Detail</th><th scope="col">Saved</th><th scope="col">In the sheet</th></tr>
+    </thead>
+    <tbody>
+      {% for change in comparison.changes %}
+      <tr><td>{{ change.enrollment_no }}</td><td>{{ change.label }}</td><td>{{ change.stored or "–" }}</td><td>{{ change.in_sheet }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}

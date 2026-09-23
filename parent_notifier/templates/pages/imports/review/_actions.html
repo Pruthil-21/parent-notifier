@@ -1,5 +1,20 @@
-{# Cancel discards the staged sheet. Confirm is added with the apply step. #}
+{# Confirm saves the staged sheet; Cancel discards it. With errors only Cancel is offered.
+   The checkbox sits above the buttons and joins the confirm form through form="...". #}
+{% if not sheet.errors and comparison.changes %}
+<div class="checkbox review-choice">
+  {{ form.update_identity(class_="checkbox__input", form="confirm-import") }}
+  {{ form.update_identity.label(class_="checkbox__label") }}
+</div>
+{% endif %}
 <div class="review-actions">
+  {% if not sheet.errors %}
+  <form id="confirm-import" method="post"
+        action="{{ url_for('imports.confirm', class_id=class_group.id, number=semester.number) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="token" value="{{ form.token.data }}">
+    <button class="button button--primary" type="submit">Confirm import</button>
+  </form>
+  {% endif %}
   <form method="post" action="{{ url_for('imports.cancel', class_id=class_group.id, number=semester.number) }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="token" value="{{ form.token.data or '' }}">
