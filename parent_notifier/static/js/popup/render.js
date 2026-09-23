@@ -76,3 +76,19 @@ export function renderStudent(dialog, student, rules) {
     ...student.subjects.map((subject) => subjectRow(subject, rules)),
   );
 }
+
+// The note marker the server put in each "withNote" message; see services/messaging/previews.py.
+export const NOTE_MARKER = "⁣NOTE⁣";
+
+// The message exactly as it will open in WhatsApp, for the preview and the link.
+export function messageText(student, language, note = "") {
+  const messages = student.messages[language];
+  const trimmed = note.trim();
+  return trimmed ? messages.withNote.replace(NOTE_MARKER, trimmed) : messages.plain;
+}
+
+export function renderMessage(dialog, student, language, note = "") {
+  const text = messageText(student, language, note);
+  slot(dialog, "message").textContent = text;
+  return text;
+}

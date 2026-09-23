@@ -40,6 +40,10 @@ def load_config(env: str, instance_path: Path) -> dict[str, object]:
             "COLLEGE_NAME", "G. H. Patel College of Engineering & Technology"
         ),
         "COLLEGE_SHORT_NAME": os.environ.get("COLLEGE_SHORT_NAME", "GCET"),
+        # The name as the Gujarati message signs it.
+        "COLLEGE_NAME_GU": os.environ.get(
+            "COLLEGE_NAME_GU", "જી. એચ. પટેલ કોલેજ ઓફ એન્જિનિયરિંગ એન્ડ ટેકનોલોજી"
+        ),
     }
 
 

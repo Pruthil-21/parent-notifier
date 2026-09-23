@@ -79,56 +79,6 @@
     text-decoration: underline;
   }
 
-  .student-popup {
-    width: min(720px, calc(100vw - 2 * var(--space-4)));
-  }
-
-  .student-popup__meta {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    margin-top: var(--space-1);
-    color: var(--color-text-secondary);
-  }
-
-  .student-popup__footer {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-3) var(--space-6) var(--space-5);
-    border-top: 1px solid var(--color-border);
-  }
-
-  .student-popup__position {
-    margin-left: auto;
-    font-size: var(--text-caption);
-  }
-
-  .student-facts {
-    display: grid;
-    gap: var(--space-1);
-    margin: 0 0 var(--space-4);
-  }
-
-  .student-facts > div {
-    display: flex;
-    gap: var(--space-3);
-  }
-
-  .student-facts dt {
-    min-width: 110px;
-    color: var(--color-text-secondary);
-  }
-
-  .student-facts dd {
-    margin: 0;
-    font-weight: var(--weight-semibold);
-  }
-
-  .student-back {
-    margin-top: var(--space-5);
-  }
-
   @media (max-width: 699px) {
     .student-grid .col-optional {
       display: none;
