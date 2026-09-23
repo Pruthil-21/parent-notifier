@@ -1,0 +1,14 @@
+{# A native modal <dialog>: the browser traps focus, closes it on Escape and hands focus
+   back when it closes. It opens from an element with data-dialog-open="<id>", which
+   should be a link to a page with the same form, so it also works without JavaScript. #}
+{% macro dialog(id, title) %}
+<dialog id="{{ id }}" class="dialog" aria-labelledby="{{ id }}-title">
+  <div class="dialog__header">
+    <h2 class="dialog__title" id="{{ id }}-title">{{ title }}</h2>
+    <button type="button" class="dialog__close" data-dialog-close>
+      {{ icon("dismiss", label="Close") }}
+    </button>
+  </div>
+  <div class="dialog__body">{{ caller() }}</div>
+</dialog>
+{% endmacro %}

@@ -16,6 +16,7 @@
           {% block title_extra %}{% endblock %}
         </div>
         {% endif %}
+        {% if self.page_meta() %}<p class="page-meta">{% block page_meta %}{% endblock %}</p>{% endif %}
         {% block actions %}{% endblock %}
       </header>
       {% include "components/feedback/message_bar.html" %}

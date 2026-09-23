@@ -1,0 +1,19 @@
+{% extends "layouts/app.html" %}
+{% from "components/navigation/breadcrumb.html" import breadcrumb %}
+{% from "components/feedback/empty_state.html" import empty_state %}
+
+{% block title %}Sem {{ semester.number }} · {{ class_group.name }}{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Home", url_for("home.index")), ("Classes", url_for("classes.index")), (class_group.name, url_for("classes.open_class", class_id=class_group.id)), ("Sem " ~ semester.number, None)]) }}{% endblock %}
+{% block page_title %}{{ class_group.name }}{% endblock %}
+{% block title_extra %}{% include "pages/academics/semesters/_switcher.html" %}{% endblock %}
+
+{% block page_meta %}{{ class_group.department }} · {{ class_group.admission_year }} batch{% endblock %}
+
+{% block content %}
+{{ empty_state("No sheet for Sem " ~ semester.number ~ " yet", "Once this semester's sheet is uploaded, every student's attendance and Mid-Sem marks show here.") }}
+{% include "pages/academics/semesters/_add_dialog.html" %}
+{% endblock %}
+
+{% block page_scripts %}
+<script type="module" src="{{ url_for('static', filename='js/pages/semester.js') }}"></script>
+{% endblock %}

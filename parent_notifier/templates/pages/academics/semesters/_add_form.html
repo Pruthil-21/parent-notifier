@@ -1,0 +1,16 @@
+{# The add-semester form, shared by the dialog and the page used without JavaScript. #}
+{% from "components/forms/field.html" import text_field %}
+<form class="form-stack" method="post" novalidate
+      action="{{ url_for('semesters.add_semester', class_id=class_group.id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {{ text_field(add_form.number, hint="From 1 to 12. Adding one that exists opens it.",
+                inputmode="numeric", autocomplete="off") }}
+  <div class="form-panel__actions">
+    <button class="button button--primary" type="submit">Add semester</button>
+    {% if in_dialog %}
+    <button class="button button--subtle" type="button" data-dialog-close>Cancel</button>
+    {% else %}
+    <a class="button button--subtle" href="{{ url_for('classes.open_class', class_id=class_group.id) }}">Cancel</a>
+    {% endif %}
+  </div>
+</form>

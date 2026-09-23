@@ -1,0 +1,25 @@
+{# Semester switcher: lists every semester added, with how many students its sheet had. #}
+<details class="menu semester-switcher" data-menu>
+  <summary class="menu__button" aria-label="Semester: Sem {{ semester.number }}. Change semester">
+    <span>Sem {{ semester.number }}</span>{{ icon("chevron-down", size=16) }}
+  </summary>
+  <div class="menu__panel">
+    <ul class="menu__items" role="list">
+      {% for summary in summaries %}
+      <li>
+        <a class="menu__item" href="{{ url_for('semesters.workspace', class_id=class_group.id, number=summary.number) }}"
+           {% if summary.number == semester.number %}aria-current="page"{% endif %}>
+          <span>Sem {{ summary.number }}</span>
+          <span class="menu__item-note">
+            {%- if summary.students %}{{ summary.students }} student{{ "s" if summary.students != 1 }}
+            {%- else %}No sheet yet{% endif -%}
+          </span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    <div class="menu__footer">
+      {% with button_class = "menu__item" %}{% include "pages/academics/semesters/_add_button.html" %}{% endwith %}
+    </div>
+  </div>
+</details>
