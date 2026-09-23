@@ -18,5 +18,4 @@
 
 - [ ] Commits follow Conventional Commits, one logical change each
 - [ ] Lint and tests pass locally
-- [ ] New code sits in the right domain folder; no file over 200 lines or folder over 8 files without a reason
 - [ ] No real student or parent data added
