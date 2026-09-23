@@ -1,0 +1,28 @@
+{% extends "layouts/public.html" %}
+{% from "components/forms/error_summary.html" import error_summary %}
+{% from "components/forms/field.html" import text_field, password_field %}
+
+{% block title %}Create account{% endblock %}
+
+{% block panel %}
+<h1 class="public-panel__title">Create account</h1>
+{{ error_summary(form, first_field=form.full_name) }}
+<form class="form-stack" method="post" novalidate>
+  {{ form.hidden_tag() }}
+  {{ text_field(form.full_name, hint="As it should appear in messages, without Prof.",
+                autocomplete="name") }}
+  {{ text_field(form.username, hint="You will use it to sign in", autocomplete="username",
+                autocapitalize="none", spellcheck="false") }}
+  {{ text_field(form.whatsapp_number, hint="10-digit mobile number, like 98765 43210",
+                type="tel", inputmode="tel", autocomplete="tel-national") }}
+  {{ password_field(form.password, hint="8 to 128 characters", autocomplete="new-password") }}
+  <button class="button button--primary button--full" type="submit">Create account</button>
+</form>
+<p class="public-panel__links">
+  Already have an account? <a href="{{ url_for('auth.sign_in') }}">Sign in</a>
+</p>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{{ url_for('static', filename='js/pages/auth.js') }}"></script>
+{% endblock %}
