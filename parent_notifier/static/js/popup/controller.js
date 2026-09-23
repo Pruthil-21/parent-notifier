@@ -3,6 +3,7 @@
 // names are plain links to each student's page.
 
 import { renderMessage, renderStudent } from "./render.js";
+import { sendToParent } from "./send.js";
 
 const LANGUAGE_KEY = "parent-notifier.language";
 
@@ -57,10 +58,49 @@ export function initPopup() {
     const index = ids.indexOf(id);
     position.textContent = `${index + 1} of ${ids.length}`;
     dialog.querySelector("[data-popup-edit]").href = links()[index]?.dataset.editUrl ?? "#";
+    showSendState(student);
     dialog.querySelector('[data-popup-move="-1"]').disabled = index <= 0;
     dialog.querySelector('[data-popup-move="1"]').disabled = index >= ids.length - 1;
     if (!dialog.open) dialog.showModal();
   }
+
+  const sendButton = dialog.querySelector("[data-popup-send]");
+  const sendNote = dialog.querySelector('[data-slot="send-note"]');
+
+  function showSendState(student) {
+    sendButton.disabled = !student.phoneValid;
+    sendNote.textContent = student.phoneValid
+      ? ""
+      : "This parent has no valid mobile number. Edit the student to fix it, then send.";
+    sendNote.classList.remove("is-error");
+  }
+
+  function markSent(id, label) {
+    const student = students.get(id);
+    student.mark = label;
+    dialog.querySelector('[data-slot="mark"]').textContent = label;
+    const cell = document.querySelector(`[data-message-cell="${id}"]`);
+    if (cell) {
+      cell.textContent = label;
+      cell.className = "message-done";
+    }
+  }
+
+  sendButton.addEventListener("click", async () => {
+    const id = currentId;
+    const link = links().find((item) => item.dataset.studentLink === id);
+    sendButton.setAttribute("aria-busy", "true");
+    try {
+      const data = await sendToParent(link.dataset.logUrl, language, "");
+      markSent(id, data.label);
+      sendNote.textContent = "Opened in WhatsApp Web. Press send there to deliver it.";
+    } catch (error) {
+      sendNote.textContent = error.message;
+      sendNote.classList.add("is-error");
+    } finally {
+      sendButton.removeAttribute("aria-busy");
+    }
+  });
 
   function move(step) {
     const ids = links().map((link) => link.dataset.studentLink);

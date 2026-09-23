@@ -10,3 +10,9 @@ def format_date(moment: datetime | None, timezone: str) -> str:
         return ""
     local = moment.astimezone(ZoneInfo(timezone))
     return f"{local.day} {local:%b %Y}"
+
+
+def format_day_month(moment: datetime, timezone: str) -> str:
+    """ "24 Sep", for recent events such as when a parent was messaged."""
+    local = moment.astimezone(ZoneInfo(timezone))
+    return f"{local.day} {local:%b}"

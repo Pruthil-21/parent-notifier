@@ -9,7 +9,7 @@ from parent_notifier.models.academics import ClassGroup, Semester
 from parent_notifier.routes.academics.classes import load_class
 from parent_notifier.services.academics import grid_filters, semester_view, semesters
 from parent_notifier.services.imports import undo
-from parent_notifier.services.messaging import previews
+from parent_notifier.services.messaging import previews, send_log
 from parent_notifier.services.messaging.message_templates import LANGUAGES
 
 bp = Blueprint("semesters", __name__, url_prefix="/classes/<int:class_id>")
@@ -24,6 +24,28 @@ def load_semester(class_id: int, number: int) -> tuple[ClassGroup, Semester]:
     return class_group, semester
 
 
+def _popup_payload(class_group, semester, view, rows, marks) -> list[dict]:
+    """The popup's data for the rows on screen: figures, both messages and send status."""
+    config = current_app.config
+    context = previews.context_for(
+        semester.number, class_group.midsem_max, current_user.full_name, config
+    )
+    payload = semester_view.popup_payload(rows, view.rules)
+    labels = _labels(view, marks)
+    for entry, row in zip(payload, rows, strict=True):
+        entry["messages"] = previews.messages_for(row, context)
+        entry["mark"] = labels[row.id]
+    return payload
+
+
+def _labels(view, marks) -> dict[int, str]:
+    timezone = current_app.config["APP_TIMEZONE"]
+    return {
+        row.id: send_log.label(marks.get(row.id), row.phone_e164 is not None, timezone)
+        for row in view.rows
+    }
+
+
 @bp.get("/sem/<int:number>")
 @login_required
 def workspace(class_id: int, number: int):
@@ -31,12 +53,7 @@ def workspace(class_id: int, number: int):
     view = semester_view.build(class_group, semester)
     query = grid_filters.GridQuery.from_args(request.args)
     rows = grid_filters.apply(view.rows, query)
-    context = previews.context_for(
-        semester.number, class_group.midsem_max, current_user.full_name, current_app.config
-    )
-    popup = semester_view.popup_payload(rows, view.rules)
-    for entry, row in zip(popup, rows, strict=True):
-        entry["messages"] = previews.messages_for(row, context)
+    marks = send_log.marks_for(semester)
     return render_template(
         "pages/academics/semesters/workspace.html",
         class_group=class_group,
@@ -50,7 +67,10 @@ def workspace(class_id: int, number: int):
         query=query,
         rows=rows,
         status_filters=grid_filters.STATUS_FILTERS,
-        popup=popup,
+        popup=_popup_payload(class_group, semester, view, rows, marks),
+        marks=marks,
+        labels=_labels(view, marks),
+        sent_ids={sid for sid, mark in marks.items() if mark.status == "sent"},
         languages=LANGUAGES,
     )
 
