@@ -1,13 +1,13 @@
 """A class's semesters: the semester page, adding one and removing an empty one."""
 
-from flask import Blueprint, abort, flash, redirect, render_template, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import login_required
 
 from parent_notifier.forms.academics import AddSemesterForm, add_semester_form
 from parent_notifier.forms.imports import UploadSheetForm
 from parent_notifier.models.academics import ClassGroup, Semester
 from parent_notifier.routes.academics.classes import load_class
-from parent_notifier.services.academics import semester_view, semesters
+from parent_notifier.services.academics import grid_filters, semester_view, semesters
 from parent_notifier.services.imports import undo
 
 bp = Blueprint("semesters", __name__, url_prefix="/classes/<int:class_id>")
@@ -26,6 +26,8 @@ def load_semester(class_id: int, number: int) -> tuple[ClassGroup, Semester]:
 @login_required
 def workspace(class_id: int, number: int):
     class_group, semester = load_semester(class_id, number)
+    view = semester_view.build(class_group, semester)
+    query = grid_filters.GridQuery.from_args(request.args)
     return render_template(
         "pages/academics/semesters/workspace.html",
         class_group=class_group,
@@ -35,7 +37,10 @@ def workspace(class_id: int, number: int):
         can_remove=semesters.is_empty(semester),
         upload_form=UploadSheetForm(formdata=None),
         last_import=undo.latest_undoable(semester),
-        view=semester_view.build(class_group, semester),
+        view=view,
+        query=query,
+        rows=grid_filters.apply(view.rows, query),
+        status_filters=grid_filters.STATUS_FILTERS,
     )
 
 
