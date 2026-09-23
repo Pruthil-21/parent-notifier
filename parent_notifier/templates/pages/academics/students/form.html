@@ -1,0 +1,33 @@
+{% extends "layouts/app.html" %}
+{% from "components/navigation/breadcrumb.html" import breadcrumb %}
+{% from "components/forms/error_summary.html" import error_summary %}
+{% from "components/forms/field.html" import text_field %}
+
+{% set heading = "Edit " ~ student.full_name if student else "Add student to Sem " ~ semester.number %}
+{% set back = url_for("semesters.workspace", class_id=class_group.id, number=semester.number) %}
+{% block title %}{{ heading }} · {{ class_group.name }}{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Home", url_for("home.index")), ("Classes", url_for("classes.index")), (class_group.name, url_for("classes.open_class", class_id=class_group.id)), ("Sem " ~ semester.number, back), ("Edit student" if student else "Add student", None)]) }}{% endblock %}
+{% block page_title %}{{ heading }}{% endblock %}
+{% block page_meta %}{% if student %}Enrollment no. {{ student.enrollment_no }}, which cannot be changed{% else %}The student joins {{ class_group.name }} and Sem {{ semester.number }}, with no marks until a sheet has them{% endif %}{% endblock %}
+
+{% block content %}
+<div class="form-panel">
+  {{ error_summary(form, first_field=form.enrollment_no if not student else form.full_name) }}
+  <form class="form-stack" method="post" novalidate>
+    {{ form.hidden_tag() }}
+    {% if not student %}{{ text_field(form.enrollment_no, autocomplete="off", spellcheck="false") }}{% endif %}
+    {{ text_field(form.full_name, autocomplete="off") }}
+    {{ text_field(form.parent_name, hint="Optional", autocomplete="off") }}
+    {{ text_field(form.phone, hint="10-digit mobile number, like 98765 43210", type="tel", inputmode="tel", autocomplete="off") }}
+    <div class="field">
+      {{ form.status.label(class_="field__label") }}
+      <p class="field__hint" id="status-hint">Left and detained students stay on record but are not counted or messaged</p>
+      {{ form.status(class_="input", aria_describedby="status-hint") }}
+    </div>
+    <div class="form-panel__actions">
+      <button class="button button--primary" type="submit">{{ "Save student" if student else "Add student" }}</button>
+      <a class="button button--subtle" href="{{ back }}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

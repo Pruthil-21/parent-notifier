@@ -2,12 +2,18 @@
 
 from flask import current_app
 from flask_wtf import FlaskForm
-from wtforms import StringField
+from wtforms import SelectField, StringField
 from wtforms.validators import InputRequired, Length, NumberRange, ValidationError
 
-from parent_notifier.forms.fields import WholeNumberField, printable, single_spaced
+from parent_notifier.forms.fields import (
+    WholeNumberField,
+    indian_mobile,
+    printable,
+    single_spaced,
+    strip,
+)
 from parent_notifier.models.academics import MAX_SEMESTER, MIN_SEMESTER, ClassGroup
-from parent_notifier.services.academics import classes, semester_numbers
+from parent_notifier.services.academics import classes, semester_numbers, students
 from parent_notifier.services.shared import clock
 
 CLASS_NAME_TAKEN = "You already have a class with this name. Choose another"
@@ -126,3 +132,55 @@ class DeleteClassForm(FlaskForm):
     def validate_confirmation(self, field) -> None:
         if field.data != self.class_name:
             raise ValidationError(f"Type {self.class_name} exactly to delete this class")
+
+
+STUDENT_STATUSES = [("active", "Active"), ("left", "Left the class"), ("detained", "Detained")]
+ENROLLMENT_TAKEN = "Another student in this class has this enrollment number"
+
+
+def _text(label: str, required: str | None, limit: int):
+    checks = [Length(max=limit, message=f"{label} must be {limit} characters or fewer")]
+    if required:
+        checks.insert(0, InputRequired(required))
+    return StringField(label, validators=[*checks, printable(label)], filters=[single_spaced])
+
+
+# Created before the shared fields so that, in AddStudentForm, it comes first on the page
+# and in the error summary: WTForms orders fields by when they were created.
+_ENROLLMENT_FIELD = StringField(
+    "Enrollment no.",
+    validators=[
+        InputRequired("Enter the enrollment number"),
+        Length(max=30, message="Enrollment no. must be 30 characters or fewer"),
+        printable("Enrollment no."),
+    ],
+    filters=[strip],
+)
+
+
+class EditStudentForm(FlaskForm):
+    """Details only: the enrollment number never changes once the student exists."""
+
+    full_name = _text("Student name", "Enter the student's name", 120)
+    parent_name = _text("Parent name", None, 120)
+    phone = StringField(
+        "Parent phone",
+        validators=[InputRequired("Enter the parent's mobile number"), indian_mobile],
+        filters=[strip],
+    )
+    status = SelectField("Status", choices=STUDENT_STATUSES)
+
+    def details(self) -> dict:
+        return {name: self[name].data for name in ("full_name", "parent_name", "phone", "status")}
+
+
+class AddStudentForm(EditStudentForm):
+    enrollment_no = _ENROLLMENT_FIELD
+
+    def __init__(self, *args, class_group: ClassGroup, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.class_group = class_group
+
+    def validate_enrollment_no(self, field) -> None:
+        if students.enrollment_taken(self.class_group, field.data):
+            raise ValidationError(ENROLLMENT_TAKEN)

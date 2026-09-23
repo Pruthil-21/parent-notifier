@@ -12,5 +12,6 @@
 <button class="button" type="button" disabled>Undo last import</button>
 {% endif %}
 {% endif %}
+{% if upload %}<a class="button" href="{{ url_for('students.add', class_id=class_group.id, number=semester.number) }}">{{ icon("add", size=16) }}Add student</a>{% endif %}
 <a class="button" href="{{ url_for('class_settings.index', class_id=class_group.id) }}">Class settings</a>
 {% endcall %}

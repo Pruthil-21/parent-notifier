@@ -28,6 +28,7 @@
       <tr>
         <td class="col-optional">{{ row.enrollment_no }}</td>
         <th scope="row"><a class="student-link" data-student-link="{{ row.id }}"
+            data-edit-url="{{ url_for('students.edit', class_id=class_group.id, number=semester.number, student_id=row.id) }}"
             href="{{ url_for('students.detail', class_id=class_group.id, number=semester.number, student_id=row.id) }}">{{ row.full_name }}</a></th>
         <td class="col-optional">{{ row.parent_name or "–" }}</td>
         <td>

@@ -27,6 +27,7 @@ export function initPopup() {
     const ids = links().map((link) => link.dataset.studentLink);
     const index = ids.indexOf(id);
     position.textContent = `${index + 1} of ${ids.length}`;
+    dialog.querySelector("[data-popup-edit]").href = links()[index]?.dataset.editUrl ?? "#";
     dialog.querySelector('[data-popup-move="-1"]').disabled = index <= 0;
     dialog.querySelector('[data-popup-move="1"]').disabled = index >= ids.length - 1;
     if (!dialog.open) dialog.showModal();

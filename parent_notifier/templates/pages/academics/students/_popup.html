@@ -34,6 +34,7 @@
     <button type="button" class="button" data-popup-move="-1">{{ icon("chevron-left", size=16) }}Previous</button>
     <button type="button" class="button" data-popup-move="1">Next{{ icon("chevron-right", size=16) }}</button>
     <span class="student-popup__position text-secondary" data-slot="position" aria-live="polite"></span>
+    <a class="button" data-popup-edit href="#">Edit student</a>
   </div>
 </dialog>
 <script type="application/json" id="students-data">{{ popup | tojson }}</script>
