@@ -4,6 +4,7 @@
 // the language, send and queue modules hook into.
 
 import { initLanguage } from "./language.js";
+import { initPacing } from "./pacing.js";
 import { renderMessage, renderStudent } from "./render.js";
 import { initSendButton } from "./send.js";
 
@@ -100,5 +101,6 @@ export function initPopup() {
   const popup = createPopup(dialog, students);
   initBrowsing(popup);
   initSendButton(popup);
+  popup.pacing = initPacing(popup); // after the send button, so its checks run last
   return popup;
 }

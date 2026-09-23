@@ -52,14 +52,17 @@ export function initQueue(popup) {
           ? await sendToParent(link.dataset.logUrl, popup.language(), popup.note())
           : await postLog(link.dataset.logUrl, { status: "skipped", language: popup.language(), note: "" });
       popup.markDone(id, data.label);
+      popup.pacing.update(data.pacing);
       student.pending = false;
       index += 1;
       showCurrent();
     } catch (error) {
+      if (error.pacing) popup.pacing.update(error.pacing);
       status.textContent = error.message;
       status.classList.add("is-error");
     } finally {
-      for (const button of buttons) button.disabled = false;
+      dialog.querySelector("[data-queue-skip]").disabled = false;
+      popup.pacing.update(popup.pacing.current()); // Send and next follows the countdown
     }
   }
 

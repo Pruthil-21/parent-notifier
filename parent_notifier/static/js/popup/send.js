@@ -25,7 +25,9 @@ export async function postLog(url, body) {
   }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(data.error ?? "The send could not be saved. Reload the page and try again.");
+    const error = new Error(data.error ?? "The send could not be saved. Reload the page and try again.");
+    error.pacing = data.pacing; // a refused send still says how long to wait
+    throw error;
   }
   return data;
 }
@@ -71,7 +73,8 @@ export function initSendButton(popup) {
   };
 
   popup.onShow((student) => {
-    button.disabled = !student.phoneValid;
+    // Pacing decides the final disabled state from this and its own countdown.
+    button.dataset.noPhone = String(!student.phoneValid);
     say(student.phoneValid ? "" : "This parent has no valid mobile number. Edit the student to fix it.");
   });
 
@@ -83,8 +86,10 @@ export function initSendButton(popup) {
     try {
       const data = await sendToParent(link.dataset.logUrl, popup.language(), popup.note());
       popup.markDone(id, data.label);
+      popup.pacing.update(data.pacing);
       say("Opened in WhatsApp Web. Press send there to deliver it.");
     } catch (error) {
+      if (error.pacing) popup.pacing.update(error.pacing);
       say(error.message, true);
     } finally {
       button.removeAttribute("aria-busy");
