@@ -7,8 +7,10 @@ presses Enter and moves on to the next parent.
 
 ## Status
 
-Early development. This repository currently contains the project tooling; the
-application arrives milestone by milestone. Each release is described on the
+Version 0.1.0 works end to end on one computer: mentor accounts, classes and
+semesters, sheet import with review and undo, the semester workspace, and sending each
+parent their message through WhatsApp Web with pacing and a daily limit. A home
+workspace, dark mode switching and help come next. Each release is described on the
 [Releases](https://github.com/Pruthil-21/parent-notifier/releases) page.
 
 ## What it will do
