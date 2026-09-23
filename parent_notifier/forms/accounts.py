@@ -6,10 +6,9 @@ from flask_wtf import FlaskForm
 from wtforms import BooleanField, HiddenField, PasswordField, StringField
 from wtforms.validators import DataRequired, InputRequired, Length, Regexp, ValidationError
 
-from parent_notifier.forms.fields import lowercase, printable, single_spaced, strip
+from parent_notifier.forms.fields import indian_mobile, lowercase, printable, single_spaced, strip
 from parent_notifier.services.accounts import registration
 from parent_notifier.services.accounts.credentials import MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH
-from parent_notifier.services.shared.phone import normalise_indian_mobile
 
 USERNAME_PATTERN = r"^[a-z0-9][a-z0-9._-]*$"
 USERNAME_TAKEN = "That username is taken. Choose another"
@@ -19,11 +18,6 @@ _TITLE = re.compile(r"^prof(essor)?\b\.?", re.IGNORECASE)
 def _no_title(_form, field) -> None:
     if _TITLE.match(field.data or ""):
         raise ValidationError("Enter your name without Prof., which messages add for you")
-
-
-def _indian_mobile(_form, field) -> None:
-    if normalise_indian_mobile(field.data) is None:
-        raise ValidationError("Enter a 10-digit mobile number, like 98765 43210")
 
 
 def full_name_field() -> StringField:
@@ -58,7 +52,7 @@ def username_field() -> StringField:
 def whatsapp_number_field() -> StringField:
     return StringField(
         "WhatsApp number",
-        validators=[InputRequired("Enter your WhatsApp number"), _indian_mobile],
+        validators=[InputRequired("Enter your WhatsApp number"), indian_mobile],
         filters=[strip],
     )
 

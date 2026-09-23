@@ -5,6 +5,8 @@ from collections.abc import Callable
 from wtforms import IntegerField
 from wtforms.validators import ValidationError
 
+from parent_notifier.services.shared.phone import normalise_indian_mobile
+
 
 def strip(value: str | None) -> str | None:
     """WTForms runs filters on GET too, when there is no value yet."""
@@ -27,6 +29,11 @@ def printable(label: str) -> Callable:
             raise ValidationError(f"{label} can only use letters, spaces and punctuation")
 
     return check
+
+
+def indian_mobile(_form, field) -> None:
+    if normalise_indian_mobile(field.data) is None:
+        raise ValidationError("Enter a 10-digit mobile number, like 98765 43210")
 
 
 class WholeNumberField(IntegerField):

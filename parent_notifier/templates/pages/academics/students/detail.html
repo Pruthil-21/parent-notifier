@@ -20,5 +20,8 @@
   </dd></div>
 </dl>
 {% include "pages/academics/students/_subjects_table.html" %}
-<p class="student-back"><a href="{{ url_for('semesters.workspace', class_id=class_group.id, number=semester.number) }}">Back to Sem {{ semester.number }}</a></p>
+<p class="student-back">
+  <a class="button" href="{{ url_for('students.edit', class_id=class_group.id, number=semester.number, student_id=row.id) }}">Edit student</a>
+  <a href="{{ url_for('semesters.workspace', class_id=class_group.id, number=semester.number) }}">Back to Sem {{ semester.number }}</a>
+</p>
 {% endblock %}
