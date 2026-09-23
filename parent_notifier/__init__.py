@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from flask import Flask
 
 from parent_notifier.core.config import load_config
+from parent_notifier.core.errors import init_error_pages
 from parent_notifier.core.extensions import init_extensions
 from parent_notifier.core.icons import render_icon
 from parent_notifier.core.navigation import init_navigation
@@ -25,4 +26,5 @@ def create_app(env: str | None = None) -> Flask:
     init_extensions(app)
     app.add_template_global(render_icon, "icon")
     init_navigation(app)
+    init_error_pages(app)
     return app
