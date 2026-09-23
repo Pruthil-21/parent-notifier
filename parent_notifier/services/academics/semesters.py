@@ -1,8 +1,8 @@
-"""Adding semesters to a class and summarising them for the switcher."""
+"""Adding and removing a class's semesters, and summarising them for the switcher."""
 
 from dataclasses import dataclass
 
-from sqlalchemy import func, select
+from sqlalchemy import exists, func, select
 from sqlalchemy.exc import IntegrityError
 
 from parent_notifier.core.extensions import db
@@ -47,3 +47,20 @@ def add_semester(class_group: ClassGroup, number: int) -> tuple[Semester, bool]:
         db.session.rollback()
         return get_semester(class_group, number), False
     return semester, True
+
+
+def is_empty(semester: Semester) -> bool:
+    """Never imported and nobody listed in it, so removing it loses nothing."""
+    has_students = db.session.scalar(
+        select(exists().where(semester_students.c.semester_id == semester.id))
+    )
+    return semester.round_counter == 0 and not has_students
+
+
+def remove_if_empty(semester: Semester) -> bool:
+    """Delete the semester only when it is empty; the flag says whether it was."""
+    if not is_empty(semester):
+        return False
+    db.session.delete(semester)
+    db.session.commit()
+    return True

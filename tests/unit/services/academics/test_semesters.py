@@ -42,3 +42,25 @@ def test_get_semester_only_looks_inside_the_class(class_group):
     other_class = make_class(make_mentor(username="niravshah", whatsapp_number="+919000000002"))
     assert semesters.get_semester(class_group, 2) is not None
     assert semesters.get_semester(other_class, 2) is None
+
+
+def test_a_new_semester_is_empty_and_can_be_removed(class_group):
+    semester = make_semester(class_group, 3)
+    assert semesters.is_empty(semester)
+    assert semesters.remove_if_empty(semester)
+    assert semesters.get_semester(class_group, 3) is None
+
+
+def test_a_semester_with_students_is_kept(class_group):
+    semester = make_semester(class_group, 3)
+    student = make_student(class_group)
+    semester.students.append(student)
+    db.session.commit()
+    assert not semesters.remove_if_empty(semester)
+    assert semesters.get_semester(class_group, 3) is not None
+
+
+def test_a_semester_that_was_ever_imported_is_kept(class_group):
+    semester = make_semester(class_group, 3, round_counter=1)
+    assert not semesters.is_empty(semester)
+    assert not semesters.remove_if_empty(semester)

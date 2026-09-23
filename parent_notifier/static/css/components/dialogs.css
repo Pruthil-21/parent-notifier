@@ -49,6 +49,11 @@
   padding: var(--space-4) var(--space-6) var(--space-6);
 }
 
+.confirm-text {
+  margin-bottom: var(--space-5);
+  color: var(--color-text-secondary);
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .dialog[open] {
     animation: dialog-in var(--duration-normal) var(--ease-out);
