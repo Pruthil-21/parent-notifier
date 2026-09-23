@@ -1,0 +1,4 @@
+{% from "components/overlays/dialog.html" import dialog %}
+{% call dialog("undo-import", "Undo last import?") %}
+{% with in_dialog = true %}{% include "pages/imports/undo/_undo_form.html" %}{% endwith %}
+{% endcall %}

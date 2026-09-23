@@ -31,6 +31,7 @@
 {% include "pages/academics/semesters/dialogs/_add_dialog.html" %}
 {% include "pages/imports/upload/_upload_dialog.html" %}
 {% if can_remove %}{% include "pages/academics/semesters/dialogs/_remove_dialog.html" %}{% endif %}
+{% if last_import %}{% with batch = last_import %}{% include "pages/imports/undo/_undo_dialog.html" %}{% endwith %}{% endif %}
 {% endblock %}
 
 {% block page_scripts %}

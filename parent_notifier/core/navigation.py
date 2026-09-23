@@ -28,7 +28,7 @@ NAV_ITEMS = (
         "classes",
         "Classes",
         "classes.index",
-        also_covers=("semesters", "class_settings", "imports"),
+        also_covers=("semesters", "class_settings", "imports", "import_undo"),
     ),
     NavItem("person", "Profile", "profile.index"),
     NavItem("help", "Help", "help.index"),

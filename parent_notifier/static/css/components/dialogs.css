@@ -49,6 +49,28 @@
   padding: var(--space-4) var(--space-6) var(--space-6);
 }
 
+.undo-facts {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-4);
+}
+
+.undo-facts > div {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.undo-facts dt {
+  min-width: 80px;
+  color: var(--color-text-secondary);
+}
+
+.undo-facts dd {
+  margin: 0;
+  font-weight: var(--weight-semibold);
+  overflow-wrap: anywhere;
+}
+
 .confirm-text {
   margin-bottom: var(--space-5);
   color: var(--color-text-secondary);
