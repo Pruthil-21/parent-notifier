@@ -52,11 +52,12 @@ uv sync
 uv run pre-commit install
 ```
 
-Run the linter and formatter check:
+Run the linter, the formatter check and the tests:
 
 ```
 uv run ruff check .
 uv run ruff format --check .
+uv run pytest
 ```
 
 ## Contributing
