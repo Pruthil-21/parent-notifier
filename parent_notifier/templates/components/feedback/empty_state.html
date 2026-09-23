@@ -1,0 +1,9 @@
+{# A panel for a list or page with nothing in it yet: what is missing and the next
+   step. Actions go in the call block: {% call empty_state(...) %}<a ...>{% endcall %} #}
+{% macro empty_state(title, text, heading_level=2) %}
+<div class="empty-state">
+  <h{{ heading_level }} class="empty-state__title">{{ title }}</h{{ heading_level }}>
+  <p class="empty-state__text">{{ text }}</p>
+  {% if caller %}<div class="empty-state__actions">{{ caller() }}</div>{% endif %}
+</div>
+{% endmacro %}

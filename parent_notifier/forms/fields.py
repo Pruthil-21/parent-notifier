@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 
+from wtforms import IntegerField
 from wtforms.validators import ValidationError
 
 
@@ -26,3 +27,17 @@ def printable(label: str) -> Callable:
             raise ValidationError(f"{label} can only use letters, spaces and punctuation")
 
     return check
+
+
+class WholeNumberField(IntegerField):
+    """An IntegerField whose "not a number" error says what to enter instead."""
+
+    def __init__(self, label: str, invalid_message: str, **kwargs) -> None:
+        super().__init__(label, **kwargs)
+        self.invalid_message = invalid_message
+
+    def process_formdata(self, valuelist) -> None:
+        try:
+            super().process_formdata(valuelist)
+        except ValueError:
+            raise ValueError(self.invalid_message) from None

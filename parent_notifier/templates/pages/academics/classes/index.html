@@ -1,0 +1,54 @@
+{% extends "layouts/app.html" %}
+{% from "components/navigation/breadcrumb.html" import breadcrumb %}
+{% from "components/navigation/action_bar.html" import action_bar %}
+{% from "components/feedback/empty_state.html" import empty_state %}
+
+{% block title %}Classes{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Home", url_for("home.index")), ("Classes", None)]) }}{% endblock %}
+{% block page_title %}Classes{% endblock %}
+
+{% block actions %}
+{% call action_bar() %}
+<a class="button button--primary" href="{{ url_for('classes.new_class') }}">{{ icon("add") }}New class</a>
+{% endcall %}
+{% endblock %}
+
+{% block content %}
+{% if rows %}
+<div class="data-grid">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Class</th>
+        <th scope="col">Department</th>
+        <th scope="col" class="numeric">Batch</th>
+        <th scope="col">Latest semester</th>
+        <th scope="col" class="numeric">Students</th>
+        <th scope="col">Last sheet</th>
+        <th scope="col">Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      {% set class_group = row.class_group %}
+      <tr>
+        <th scope="row">
+          <a href="{{ url_for('classes.open_class', class_id=class_group.id) }}">{{ class_group.name }}</a>
+        </th>
+        <td>{{ class_group.department }}</td>
+        <td class="numeric">{{ class_group.admission_year }}</td>
+        <td>{% if row.latest_semester %}Sem {{ row.latest_semester }}{% else %}<span class="text-muted">None yet</span>{% endif %}</td>
+        <td class="numeric">{{ row.active_students }}</td>
+        <td>{% if row.last_imported_at %}{{ row.last_imported_at | date }}{% else %}<span class="text-muted">Not yet</span>{% endif %}</td>
+        <td>{{ class_group.created_at | date }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+{% call empty_state("No classes yet", "Create a class for each batch you mentor. You then add its semesters and upload each semester's sheet.") %}
+<a class="button button--primary" href="{{ url_for('classes.new_class') }}">{{ icon("add") }}New class</a>
+{% endcall %}
+{% endif %}
+{% endblock %}

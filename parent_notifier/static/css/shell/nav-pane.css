@@ -61,6 +61,30 @@
   background: var(--color-accent);
 }
 
+/* The section of the current page stays bold when one of its sub-items is current. */
+.nav-pane__link--in-section {
+  font-weight: var(--weight-semibold);
+}
+
+.nav-pane__children {
+  display: grid;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.nav-pane__link--child {
+  min-height: 32px;
+  /* Lines the text up with the parent's label: icon width plus the gap. */
+  padding-left: calc(var(--space-3) + 20px + var(--space-3));
+  font-weight: var(--weight-regular);
+}
+
+.nav-pane__link--child .nav-pane__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .nav-pane__collapse {
   margin-top: auto;
   color: var(--color-text-secondary);
@@ -88,6 +112,11 @@
 
 [data-nav-collapsed] .nav-pane__collapse .icon {
   transform: rotate(180deg);
+}
+
+/* The icon rail has no room for sub-items; the section icon still leads to them. */
+[data-nav-collapsed] .nav-pane__children {
+  display: none;
 }
 
 @media (max-width: 899px) {
@@ -125,5 +154,13 @@
   [data-nav-collapsed] .nav-pane__link {
     justify-content: flex-start;
     padding-inline: var(--space-3);
+  }
+
+  [data-nav-collapsed] .nav-pane__link--child {
+    padding-left: calc(var(--space-3) + 20px + var(--space-3));
+  }
+
+  [data-nav-collapsed] .nav-pane__children {
+    display: grid;
   }
 }

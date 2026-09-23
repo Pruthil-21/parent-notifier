@@ -132,3 +132,18 @@
   font-weight: var(--weight-semibold);
   color: var(--color-danger);
 }
+
+/* A form that is the whole page, such as New class. */
+.form-panel {
+  max-width: 520px;
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+}
+
+.form-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
