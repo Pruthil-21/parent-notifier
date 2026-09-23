@@ -31,6 +31,9 @@ def load_config(env: str, instance_path: Path) -> dict[str, object]:
         "WTF_CSRF_ENABLED": env != "testing",
         # Tokens last as long as the session, so a sign-in page left open all day still works.
         "WTF_CSRF_TIME_LIMIT": None,
+        # One Waitress process serves the college, so counters can live in its memory.
+        "RATELIMIT_STORAGE_URI": os.environ.get("RATELIMIT_STORAGE_URI", "memory://"),
+        "RATELIMIT_STRATEGY": "moving-window",
         "COLLEGE_NAME": os.environ.get(
             "COLLEGE_NAME", "G. H. Patel College of Engineering & Technology"
         ),
