@@ -4,12 +4,14 @@ version = "0.0.0"
 description = "Mentor dashboard that imports semester attendance and mid-sem marks from Excel, flags students at risk, and sends each parent a personalised WhatsApp update."
 requires-python = ">=3.12"
 dependencies = [
+    "defusedxml>=0.7",
     "flask>=3.1",
     "flask-limiter>=3.8",
     "flask-login>=0.6",
     "flask-migrate>=4.0",
     "flask-sqlalchemy>=3.1",
     "flask-wtf>=1.2",
+    "openpyxl>=3.1",
     "python-dotenv>=1.0",
     "tzdata>=2025.1",
 ]
