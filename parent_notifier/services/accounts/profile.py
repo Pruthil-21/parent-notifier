@@ -32,3 +32,14 @@ def change_password(mentor: Mentor, current_password: str, new_password: str) ->
     registration.set_password(mentor, new_password)
     db.session.commit()
     return True
+
+
+def regenerate_recovery_code(mentor: Mentor, current_password: str) -> str | None:
+    """Replace the recovery code when the password is right; the old code stops working.
+    Asking for the password stops someone at an unlocked computer from making a code
+    they could later use to take over the account."""
+    if authenticate(mentor.username, current_password) != mentor:
+        return None
+    code = registration.rotate_recovery_code(mentor)
+    db.session.commit()
+    return code

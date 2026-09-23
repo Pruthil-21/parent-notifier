@@ -1,0 +1,16 @@
+{% from "components/forms/error_summary.html" import error_summary %}
+{% from "components/forms/field.html" import password_field %}
+<section class="settings-section" aria-labelledby="recovery-heading">
+  <div class="settings-section__intro">
+    <h2 id="recovery-heading">Recovery code</h2>
+    <p>Create a new code if you lost yours or think someone else has seen it. Your old
+      code stops working as soon as the new one is made.</p>
+  </div>
+  <form class="settings-section__form form-stack" method="post"
+        action="{{ url_for('profile.regenerate_recovery_code') }}" novalidate>
+    {{ error_summary(recovery_form, first_field=recovery_form.password) }}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {{ password_field(recovery_form.password, autocomplete="current-password") }}
+    <div><button class="button" type="submit">Create new recovery code</button></div>
+  </form>
+</section>
