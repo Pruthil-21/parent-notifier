@@ -120,3 +120,13 @@ class RecoveryCodeSavedForm(FlaskForm):
         "I have saved this code",
         validators=[DataRequired("Tick the box to confirm you have saved the code")],
     )
+
+
+class ResetPasswordForm(FlaskForm):
+    username = StringField(
+        "Username", validators=[InputRequired("Enter your username")], filters=[strip]
+    )
+    recovery_code = StringField(
+        "Recovery code", validators=[InputRequired("Enter your recovery code")], filters=[strip]
+    )
+    new_password = new_password_field("New password")

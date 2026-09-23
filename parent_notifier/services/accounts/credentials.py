@@ -21,7 +21,7 @@ def normalise_username(username: str) -> str:
 
 
 @cache
-def _unknown_user_hash() -> str:
+def unknown_user_hash() -> str:
     """Checked when no mentor has the username, so a miss takes as long as a wrong
     password and response times do not reveal which usernames exist."""
     return hash_password("no mentor has this username")
@@ -32,7 +32,7 @@ def authenticate(username: str, password: str) -> Mentor | None:
     mentor = db.session.scalar(
         select(Mentor).where(Mentor.username == normalise_username(username))
     )
-    stored_hash = mentor.password_hash if mentor else _unknown_user_hash()
+    stored_hash = mentor.password_hash if mentor else unknown_user_hash()
     # Longer passwords can never have been set, but they still pay for a hash check.
     matches = check_password_hash(stored_hash, password[:MAX_PASSWORD_LENGTH])
     if mentor and matches and len(password) <= MAX_PASSWORD_LENGTH:

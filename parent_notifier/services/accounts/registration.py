@@ -1,4 +1,4 @@
-"""Creating mentor accounts."""
+"""Creating mentor accounts, replacing recovery codes and resetting passwords."""
 
 from sqlalchemy import exists, select
 from sqlalchemy.exc import IntegrityError
@@ -44,3 +44,31 @@ def create_mentor(
         db.session.rollback()
         raise UsernameTakenError(username) from None
     return mentor, code
+
+
+def rotate_recovery_code(mentor: Mentor) -> str:
+    """Give the mentor a new code; the old one stops working. The caller commits."""
+    code = recovery_codes.generate()
+    mentor.recovery_code_hash = recovery_codes.hash_code(code)
+    return code
+
+
+def set_password(mentor: Mentor, password: str) -> None:
+    """Store a new password and sign the mentor out of every other browser. The caller
+    commits and starts a fresh session for the browser that made the change."""
+    mentor.password_hash = hash_password(password)
+    mentor.session_version += 1
+
+
+def reset_password(username: str, code: str, new_password: str) -> tuple[Mentor, str] | None:
+    """Reset with a recovery code. Returns the mentor and their new code, or None when
+    the username and code do not match (callers show one generic error)."""
+    mentor = db.session.scalar(
+        select(Mentor).where(Mentor.username == normalise_username(username))
+    )
+    if not recovery_codes.verify(mentor.recovery_code_hash if mentor else None, code):
+        return None
+    set_password(mentor, new_password)
+    new_code = rotate_recovery_code(mentor)
+    db.session.commit()
+    return mentor, new_code
