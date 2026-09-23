@@ -145,3 +145,19 @@ def test_new_import_makes_parents_pending_and_undo_brings_marks_back(app, signed
     )
     with app.app_context():
         assert db.session.scalar(select(Semester)).current_round == 1
+
+
+def test_note_is_stored_and_added_to_the_message(app, signed_in_client, setup):
+    base, ids = setup
+    note = "Please meet me on Monday.\nBring the lab journal."
+    data = _log(signed_in_client, base, ids["23CE001"], note=f"  {note}  ").get_json()
+    [entry] = _entries(app)
+    assert entry.note == note
+    assert f"Note from the mentor: {note}" in entry.message
+    assert parse_qs(urlsplit(data["whatsappUrl"]).query)["text"] == [entry.message]
+
+
+def test_popup_has_a_note_box_limited_to_500_characters(signed_in_client, setup):
+    base, _ = setup
+    html = signed_in_client.get(base).get_data(as_text=True)
+    assert 'maxlength="500" data-note' in html

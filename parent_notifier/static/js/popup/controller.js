@@ -1,135 +1,103 @@
 // Opening the student popup from the grid and moving through the students shown.
 // Previous and Next follow the grid as it is filtered and sorted. Without JavaScript the
-// names are plain links to each student's page.
+// names are plain links to each student's page. The popup object returned here is what
+// the language, send and queue modules hook into.
 
+import { initLanguage } from "./language.js";
 import { renderMessage, renderStudent } from "./render.js";
-import { sendToParent } from "./send.js";
+import { initSendButton } from "./send.js";
 
-const LANGUAGE_KEY = "parent-notifier.language";
-
-function savedLanguage(fallback) {
-  try {
-    return window.sessionStorage.getItem(LANGUAGE_KEY) || fallback;
-  } catch {
-    return fallback; // storage blocked: use the profile default
-  }
-}
-
-export function initPopup() {
-  const dialog = document.getElementById("student-popup");
-  const dataBlock = document.getElementById("students-data");
-  if (!(dialog instanceof HTMLDialogElement) || !dataBlock) return;
-
-  const students = new Map(JSON.parse(dataBlock.textContent).map((s) => [String(s.id), s]));
+function createPopup(dialog, students) {
   const rules = {
     threshold: Number(dialog.dataset.threshold),
-    passMark: Number(dialog.dataset.passMark),
     midsemMax: Number(dialog.dataset.midsemMax),
   };
+  const note = dialog.querySelector("[data-note]");
+  const noteCount = dialog.querySelector('[data-slot="note-count"]');
+  const showListeners = [];
   const links = () => [...document.querySelectorAll("[data-student-link]")];
-  const position = dialog.querySelector('[data-slot="position"]');
   let currentId = null;
-  // The mentor's choice lasts for this browser session; it starts from the profile.
-  let language = savedLanguage(dialog.dataset.defaultLanguage);
-  const languageInputs = [...dialog.querySelectorAll('[name="popup-language"]')];
-  const syncLanguage = () => {
-    for (const input of languageInputs) input.checked = input.value === language;
-  };
-  syncLanguage();
-  for (const input of languageInputs) {
-    input.addEventListener("change", () => {
-      language = input.value;
-      try {
-        window.sessionStorage.setItem(LANGUAGE_KEY, language);
-      } catch {
-        // Not remembering the choice is harmless.
-      }
-      renderMessage(dialog, students.get(currentId), language);
-    });
-  }
 
-  function show(id) {
-    const student = students.get(id);
-    if (!student) return;
-    currentId = id;
-    renderStudent(dialog, student, rules);
-    renderMessage(dialog, student, language);
+  const popup = {
+    dialog,
+    links,
+    current: () => ({
+      id: currentId,
+      student: students.get(currentId),
+      link: links().find((link) => link.dataset.studentLink === currentId),
+    }),
+    note: () => note.value,
+    onShow: (listener) => showListeners.push(listener),
+    refreshMessage: () => {
+      noteCount.textContent = `${note.value.length} of ${note.maxLength}`;
+      renderMessage(dialog, students.get(currentId), popup.language(), note.value);
+    },
+    show(id) {
+      const student = students.get(id);
+      if (!student) return;
+      currentId = id;
+      note.value = ""; // notes are written for one parent at a time
+      renderStudent(dialog, student, rules);
+      popup.refreshMessage();
+      for (const listener of showListeners) listener(student);
+      if (!dialog.open) dialog.showModal();
+    },
+    move(step) {
+      const ids = links().map((link) => link.dataset.studentLink);
+      const next = ids[ids.indexOf(currentId) + step];
+      if (next) popup.show(next);
+    },
+    markDone(id, label) {
+      students.get(id).mark = label;
+      dialog.querySelector('[data-slot="mark"]').textContent = label;
+      const cell = document.querySelector(`[data-message-cell="${id}"]`);
+      if (cell) {
+        cell.textContent = label;
+        cell.className = "message-done";
+      }
+    },
+  };
+  popup.language = initLanguage(dialog, popup.refreshMessage);
+  note.addEventListener("input", popup.refreshMessage);
+  return popup;
+}
+
+function initBrowsing(popup) {
+  const { dialog, links } = popup;
+  popup.onShow(() => {
     const ids = links().map((link) => link.dataset.studentLink);
-    const index = ids.indexOf(id);
-    position.textContent = `${index + 1} of ${ids.length}`;
-    dialog.querySelector("[data-popup-edit]").href = links()[index]?.dataset.editUrl ?? "#";
-    showSendState(student);
+    const index = ids.indexOf(popup.current().id);
+    dialog.querySelector('[data-slot="position"]').textContent = `${index + 1} of ${ids.length}`;
+    dialog.querySelector("[data-popup-edit]").href = popup.current().link?.dataset.editUrl ?? "#";
     dialog.querySelector('[data-popup-move="-1"]').disabled = index <= 0;
     dialog.querySelector('[data-popup-move="1"]').disabled = index >= ids.length - 1;
-    if (!dialog.open) dialog.showModal();
-  }
-
-  const sendButton = dialog.querySelector("[data-popup-send]");
-  const sendNote = dialog.querySelector('[data-slot="send-note"]');
-
-  function showSendState(student) {
-    sendButton.disabled = !student.phoneValid;
-    sendNote.textContent = student.phoneValid
-      ? ""
-      : "This parent has no valid mobile number. Edit the student to fix it, then send.";
-    sendNote.classList.remove("is-error");
-  }
-
-  function markSent(id, label) {
-    const student = students.get(id);
-    student.mark = label;
-    dialog.querySelector('[data-slot="mark"]').textContent = label;
-    const cell = document.querySelector(`[data-message-cell="${id}"]`);
-    if (cell) {
-      cell.textContent = label;
-      cell.className = "message-done";
-    }
-  }
-
-  sendButton.addEventListener("click", async () => {
-    const id = currentId;
-    const link = links().find((item) => item.dataset.studentLink === id);
-    sendButton.setAttribute("aria-busy", "true");
-    try {
-      const data = await sendToParent(link.dataset.logUrl, language, "");
-      markSent(id, data.label);
-      sendNote.textContent = "Opened in WhatsApp Web. Press send there to deliver it.";
-    } catch (error) {
-      sendNote.textContent = error.message;
-      sendNote.classList.add("is-error");
-    } finally {
-      sendButton.removeAttribute("aria-busy");
-    }
   });
-
-  function move(step) {
-    const ids = links().map((link) => link.dataset.studentLink);
-    const next = ids[ids.indexOf(currentId) + step];
-    if (next) show(next);
-  }
-
   document.addEventListener("click", (event) => {
     const link = event.target.closest("[data-student-link]");
     // Keep new-tab and new-window clicks working as ordinary links.
     if (!link || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey) return;
     event.preventDefault();
-    show(link.dataset.studentLink);
+    popup.show(link.dataset.studentLink);
   });
-
   for (const button of dialog.querySelectorAll("[data-popup-move]")) {
-    button.addEventListener("click", () => move(Number(button.dataset.popupMove)));
+    button.addEventListener("click", () => popup.move(Number(button.dataset.popupMove)));
   }
-
   dialog.addEventListener("keydown", (event) => {
     if (event.target.closest("input, textarea, select")) return;
-    if (event.key === "ArrowLeft") move(-1);
-    if (event.key === "ArrowRight") move(1);
+    if (event.key === "ArrowLeft") popup.move(-1);
+    if (event.key === "ArrowRight") popup.move(1);
   });
-
   // Focus returns to the student the mentor ended on, not the one they first opened.
-  dialog.addEventListener("close", () => {
-    links()
-      .find((link) => link.dataset.studentLink === currentId)
-      ?.focus();
-  });
+  dialog.addEventListener("close", () => popup.current().link?.focus());
+}
+
+export function initPopup() {
+  const dialog = document.getElementById("student-popup");
+  const dataBlock = document.getElementById("students-data");
+  if (!(dialog instanceof HTMLDialogElement) || !dataBlock) return null;
+  const students = new Map(JSON.parse(dataBlock.textContent).map((s) => [String(s.id), s]));
+  const popup = createPopup(dialog, students);
+  initBrowsing(popup);
+  initSendButton(popup);
+  return popup;
 }

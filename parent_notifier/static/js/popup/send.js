@@ -53,3 +53,32 @@ export async function sendToParent(logUrl, language, note) {
   }
   return data;
 }
+
+// The popup's Send button: disabled with the reason when there is no valid number.
+export function initSendButton(popup) {
+  const button = popup.dialog.querySelector("[data-popup-send]");
+  const status = popup.dialog.querySelector('[data-slot="send-note"]');
+  const say = (text, isError = false) => {
+    status.textContent = text;
+    status.classList.toggle("is-error", isError);
+  };
+
+  popup.onShow((student) => {
+    button.disabled = !student.phoneValid;
+    say(student.phoneValid ? "" : "This parent has no valid mobile number. Edit the student to fix it.");
+  });
+
+  button.addEventListener("click", async () => {
+    const { id, link } = popup.current();
+    button.setAttribute("aria-busy", "true");
+    try {
+      const data = await sendToParent(link.dataset.logUrl, popup.language(), popup.note());
+      popup.markDone(id, data.label);
+      say("Opened in WhatsApp Web. Press send there to deliver it.");
+    } catch (error) {
+      say(error.message, true);
+    } finally {
+      button.removeAttribute("aria-busy");
+    }
+  });
+}
