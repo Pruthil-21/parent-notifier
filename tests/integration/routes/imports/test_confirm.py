@@ -1,12 +1,12 @@
 import io
 import re
-from pathlib import Path
 
 import pytest
 from sqlalchemy import func, select
 
 from parent_notifier.core.extensions import db
 from parent_notifier.models.academics import Student
+from parent_notifier.models.imports import StagedSheet
 from tests.factories.academics import make_class, make_semester, make_student
 from tests.factories.accounts import make_mentor
 from tests.factories.workbooks import make_xlsx
@@ -44,7 +44,8 @@ def test_confirm_saves_the_sheet_and_reports(app, signed_in_client, base):
     assert "2 students · 2 subjects" in html
     assert "Avi Shah" in html
     assert _students(app) == 2
-    assert list((Path(app.instance_path) / "imports").glob("*.json")) == []
+    with app.app_context():
+        assert db.session.scalar(select(func.count()).select_from(StagedSheet)) == 0
 
 
 def test_confirming_twice_saves_once(app, signed_in_client, base):
