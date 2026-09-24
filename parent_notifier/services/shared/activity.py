@@ -1,9 +1,14 @@
 """Adding entries to the activity log, and the plain-English name of each event."""
 
+from datetime import datetime, timedelta
+
+from sqlalchemy import select
+
 from parent_notifier.core.extensions import db
 from parent_notifier.models.academics import ClassGroup, Semester, Student
 from parent_notifier.models.accounts import Mentor
 from parent_notifier.models.activity import ActivityEntry
+from parent_notifier.services.shared import clock
 
 # Every event the app logs, by category, with how the logs page names it.
 EVENTS = {
@@ -115,3 +120,29 @@ def record(
         )
     )
     db.session.commit()
+
+
+# Wrong passwords for one username, wherever they were typed.
+FAILED_PASSWORD_EVENTS = ("sign_in_failed", "password_reset", "password_changed")
+
+
+def locked_until(username: str, failures: int, window: timedelta) -> datetime | None:
+    """When a username that failed `failures` times within `window` may try again, or
+    None. Read from the log, so every server sees the same count."""
+    recent = list(
+        db.session.scalars(
+            select(ActivityEntry.created_at)
+            .where(
+                ActivityEntry.category == "security",
+                ActivityEntry.event.in_(FAILED_PASSWORD_EVENTS),
+                ActivityEntry.succeeded.is_(False),
+                ActivityEntry.username == username,
+                ActivityEntry.created_at >= clock.now() - window,
+            )
+            .order_by(ActivityEntry.created_at.desc())
+            .limit(failures)
+        )
+    )
+    if len(recent) < failures:
+        return None
+    return recent[-1] + window
