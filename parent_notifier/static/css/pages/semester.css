@@ -89,4 +89,17 @@
       display: none;
     }
   }
+
+  /* The admin's read-only view of another mentor's class, in place of the action bar. */
+  .read-only-note {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    max-width: none;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-panel);
+    background: var(--color-surface-subtle);
+    color: var(--color-text-secondary);
+  }
 }

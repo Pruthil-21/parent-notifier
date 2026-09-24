@@ -7,7 +7,7 @@
     <ul class="menu__items" role="list">
       {% for summary in summaries %}
       <li>
-        <a class="menu__item" href="{{ url_for('semesters.workspace', class_id=class_group.id, number=summary.number) }}"
+        <a class="menu__item" href="{{ url_for(workspace_endpoint | default('semesters.workspace'), class_id=class_group.id, number=summary.number) }}"
            {% if summary.number == semester.number %}aria-current="page"{% endif %}>
           <span>Sem {{ summary.number }}</span>
           <span class="menu__item-note">
@@ -18,8 +18,10 @@
       </li>
       {% endfor %}
     </ul>
+    {% if not read_only %}
     <div class="menu__footer">
       {% with button_class = "menu__item" %}{% include "pages/academics/semesters/_add_button.html" %}{% endwith %}
     </div>
+    {% endif %}
   </div>
 </details>

@@ -1,7 +1,7 @@
 {# Search and status filter: a plain GET form, so it works without JavaScript and the
    filtered view has its own address. #}
 <form class="grid-filters" method="get" role="search" aria-label="Find students"
-      action="{{ url_for('semesters.workspace', class_id=class_group.id, number=semester.number) }}">
+      action="{{ url_for(workspace_endpoint | default('semesters.workspace'), class_id=class_group.id, number=semester.number) }}">
   <div class="grid-filters__field">
     <label for="grid-search">Search</label>
     <input class="input" id="grid-search" type="search" name="q" value="{{ query.search }}"
@@ -19,7 +19,7 @@
   {% if query.descending %}<input type="hidden" name="dir" value="desc">{% endif %}
   <button class="button" type="submit">Apply</button>
   {% if query.filtered %}
-  <a class="button button--subtle" href="{{ url_for('semesters.workspace', class_id=class_group.id, number=semester.number) }}">Clear</a>
+  <a class="button button--subtle" href="{{ url_for(workspace_endpoint | default('semesters.workspace'), class_id=class_group.id, number=semester.number) }}">Clear</a>
   {% endif %}
 </form>
 <p class="grid-count text-secondary" role="status">
