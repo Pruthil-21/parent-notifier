@@ -3,7 +3,7 @@
 from flask import current_app
 from flask_wtf import FlaskForm
 from wtforms import SelectField, StringField
-from wtforms.validators import InputRequired, Length, NumberRange, ValidationError
+from wtforms.validators import DataRequired, InputRequired, Length, NumberRange, ValidationError
 
 from parent_notifier.forms.fields import (
     WholeNumberField,
@@ -150,7 +150,8 @@ ENROLLMENT_TAKEN = "Another student in this class has this enrollment number"
 def _text(label: str, required: str | None, limit: int):
     checks = [Length(max=limit, message=f"{label} must be {limit} characters or fewer")]
     if required:
-        checks.insert(0, InputRequired(required))
+        # Checked after the spaces are trimmed, so a name of only spaces is refused.
+        checks.insert(0, DataRequired(required))
     return StringField(label, validators=[*checks, printable(label)], filters=[single_spaced])
 
 

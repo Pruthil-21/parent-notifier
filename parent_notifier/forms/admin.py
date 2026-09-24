@@ -47,7 +47,7 @@ class DepartmentForm(FlaskForm):
     name = StringField(
         "Department name",
         validators=[
-            InputRequired("Enter the department's name"),
+            DataRequired("Enter the department's name"),
             Length(max=60, message="Department name must be 60 characters or fewer"),
             printable("Department name"),
         ],
