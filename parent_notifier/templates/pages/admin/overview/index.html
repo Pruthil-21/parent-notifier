@@ -1,0 +1,55 @@
+{% extends "layouts/app.html" %}
+{% from "components/data/pagination.html" import pagination %}
+{% from "components/feedback/empty_state.html" import empty_state %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/admin.css') }}">
+{% endblock %}
+
+{% block title %}Overview{% endblock %}
+{% block page_title %}Overview{% endblock %}
+{% block page_meta %}Every mentor and class in the college{% endblock %}
+
+{% block content %}
+<ul class="tiles" role="list" aria-label="College summary">
+  {% for label, value in [("Mentors", totals.mentors), ("Classes", totals.classes), ("Students", totals.students)] %}
+  <li class="tile"><span class="tile__link">
+    <span class="tile__label">{{ label }}</span>
+    <span class="tile__value numeric">{{ value }}</span>
+  </span></li>
+  {% endfor %}
+</ul>
+
+{% set mentors_view = filters.view == "mentors" %}
+<nav class="view-tabs" aria-label="Show">
+  <a class="view-tabs__tab" href="{{ url_with(view=None, q=None, department=filters.department) }}" {% if mentors_view %}aria-current="page"{% endif %}>By mentor</a>
+  <a class="view-tabs__tab" href="{{ url_with(view='classes', q=None, department=filters.department) }}" {% if not mentors_view %}aria-current="page"{% endif %}>By class</a>
+</nav>
+
+<form class="admin-filters" method="get" role="search">
+  {% if not mentors_view %}<input type="hidden" name="view" value="classes">{% endif %}
+  <div class="admin-filters__field">
+    <label for="overview-search">{{ "Search mentors" if mentors_view else "Search classes" }}</label>
+    <input class="input" id="overview-search" name="q" type="search" value="{{ filters.search }}" maxlength="100"
+           placeholder="{{ 'Name, username or phone' if mentors_view else 'Class or mentor name' }}" autocomplete="off">
+  </div>
+  <div class="admin-filters__field">
+    <label for="overview-department">Department</label>
+    <select class="input" id="overview-department" name="department">
+      <option value="">All departments</option>
+      {% for name in department_list %}<option value="{{ name }}" {% if name == filters.department %}selected{% endif %}>{{ name }}</option>{% endfor %}
+    </select>
+  </div>
+  <button class="button" type="submit">Apply</button>
+  {% if filters.filtered %}<a class="button button--subtle" href="{{ url_with(q=None, department=None) }}">Clear</a>{% endif %}
+</form>
+
+{% if page.items %}
+{% include "pages/admin/overview/_mentors.html" if mentors_view else "pages/admin/overview/_classes.html" %}
+{{ pagination(page, "mentors" if mentors_view else "classes") }}
+{% elif filters.filtered %}
+{% call empty_state("Nothing matches", "Try another search or department, or clear the filters.") %}{% endcall %}
+{% else %}
+{% call empty_state("No " ~ ("mentors" if mentors_view else "classes") ~ " yet", "They appear here as accounts and classes are created.") %}{% endcall %}
+{% endif %}
+{% endblock %}

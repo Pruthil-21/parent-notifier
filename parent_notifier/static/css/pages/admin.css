@@ -1,0 +1,77 @@
+/* Admin pages: view tabs, the filter row, two-line cells and page links. */
+
+@layer pages {
+  .view-tabs {
+    display: flex;
+    gap: var(--space-1);
+    margin-bottom: var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .view-tabs__tab {
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    color: var(--color-text-secondary);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+  }
+
+  .view-tabs__tab:hover {
+    color: var(--color-text);
+  }
+
+  .view-tabs__tab[aria-current="page"] {
+    border-bottom-color: var(--color-accent);
+    color: var(--color-accent-text);
+  }
+
+  .admin-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  .admin-filters__field {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .admin-filters__field label {
+    font-size: var(--text-caption);
+    font-weight: var(--weight-semibold);
+  }
+
+  #overview-search {
+    width: min(320px, 80vw);
+  }
+
+  .cell-title {
+    display: block;
+    font-weight: var(--weight-semibold);
+  }
+
+  .cell-note {
+    display: block;
+    font-size: var(--text-caption);
+    font-weight: var(--weight-regular);
+    color: var(--color-text-secondary);
+  }
+
+  .pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+  }
+
+  .pagination__links {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+}

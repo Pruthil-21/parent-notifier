@@ -1,0 +1,15 @@
+{# "Showing 26-50 of 120" with Previous and Next, keeping the page's filters. #}
+{% macro pagination(page, noun) %}
+{% if page.total %}
+<nav class="pagination" aria-label="{{ noun | capitalize }} pages">
+  <p class="pagination__status text-secondary">Showing {{ page.first }}&ndash;{{ page.last }} of {{ page.total }} {{ noun }}</p>
+  {% if page.pages > 1 %}
+  <div class="pagination__links">
+    {% if page.number > 1 %}<a class="button" href="{{ url_with(page=page.number - 1) }}">{{ icon("chevron-left", size=16) }}Previous</a>{% endif %}
+    <span class="text-secondary">Page {{ page.number }} of {{ page.pages }}</span>
+    {% if page.number < page.pages %}<a class="button" href="{{ url_with(page=page.number + 1) }}">Next{{ icon("chevron-right", size=16) }}</a>{% endif %}
+  </div>
+  {% endif %}
+</nav>
+{% endif %}
+{% endmacro %}

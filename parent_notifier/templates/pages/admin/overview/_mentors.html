@@ -1,0 +1,37 @@
+{# One row per mentor, with the counts of their classes' latest semesters. #}
+<div class="data-grid">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Mentor</th>
+        <th scope="col">Department</th>
+        <th scope="col">WhatsApp</th>
+        <th scope="col" class="numeric">Classes</th>
+        <th scope="col" class="numeric">Students</th>
+        <th scope="col" class="numeric">At risk</th>
+        <th scope="col" class="numeric">Pending</th>
+        <th scope="col" class="numeric">Sent, last 7 days</th>
+        <th scope="col">Last sign-in</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in page.items %}
+      {% set mentor = row.mentor %}
+      <tr>
+        <th scope="row">
+          <span class="cell-title">{{ mentor.full_name }}</span>
+          <span class="cell-note">{{ mentor.username }}{% if mentor.is_admin %} &middot; Admin{% endif %}</span>
+        </th>
+        <td>{{ mentor.department or "Not set" }}</td>
+        <td class="numeric">{{ mentor.whatsapp_number | phone }}</td>
+        <td class="numeric">{{ row.classes }}</td>
+        <td class="numeric">{{ row.counts.students }}</td>
+        <td class="numeric">{{ row.counts.at_risk }}</td>
+        <td class="numeric">{{ row.counts.pending }}</td>
+        <td class="numeric">{{ row.sent }}</td>
+        <td>{% if mentor.last_sign_in_at %}{{ mentor.last_sign_in_at | date }}{% else %}<span class="text-muted">Never</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
