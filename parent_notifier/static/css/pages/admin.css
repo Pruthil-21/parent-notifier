@@ -179,4 +179,29 @@
   .log-when {
     white-space: nowrap;
   }
+
+  .account-requests {
+    margin-bottom: var(--space-5);
+    border-color: var(--color-warning);
+  }
+
+  .account-request {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .account-request__actions {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .choice {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding: var(--space-1) 0;
+  }
 }

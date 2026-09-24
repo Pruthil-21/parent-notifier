@@ -1,0 +1,26 @@
+{# Account requests, shown only while there are some. #}
+{% if requests %}
+<section class="account-panel account-requests" aria-labelledby="requests-heading">
+  <h2 id="requests-heading">Account requests <span class="text-secondary">({{ requests | length }})</span></h2>
+  <ul class="account-list" role="list">
+    {% for account in requests %}
+    <li class="account-request">
+      <span>
+        <span class="cell-title">{{ account.full_name }}</span>
+        <span class="cell-note">{{ account.username }} · {{ account.whatsapp_number | phone }} · {{ account.department or "No department" }} · asked {{ account.created_at | date }}</span>
+      </span>
+      <span class="account-request__actions">
+        <form method="post" action="{{ url_for('admin_users.approve', account_id=account.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="button button--primary" type="submit">Approve</button>
+        </form>
+        <form method="post" action="{{ url_for('admin_users.reject', account_id=account.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="button" type="submit">Reject</button>
+        </form>
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}

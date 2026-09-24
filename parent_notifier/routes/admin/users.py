@@ -70,6 +70,7 @@ def index():
         filters=filters,
         page=users.account_page(filters),
         department_list=departments.names(),
+        requests=accounts.requests(),
     )
 
 
@@ -258,4 +259,32 @@ def delete(account_id: int):
         return _detail_page(account, delete_form=form, status=400)
     log("admin", "account_deleted", target=target)
     flash(f"The account {target[2]} was deleted.", "success")
+    return redirect(url_for("admin_users.index"))
+
+
+def _request(account_id: int):
+    account = load_account(account_id)
+    if account.approved:
+        abort(404)
+    return account
+
+
+@bp.post("/<int:account_id>/approve")
+@confirmed_password_required
+def approve(account_id: int):
+    account = _request(account_id)
+    accounts.approve(account)
+    log("admin", "account_approved", target=account)
+    flash(f"{account.full_name} can now sign in.", "success")
+    return redirect(url_for("admin_users.index"))
+
+
+@bp.post("/<int:account_id>/reject")
+@confirmed_password_required
+def reject(account_id: int):
+    account = _request(account_id)
+    target = ("account", account.id, f"{account.full_name} ({account.username})")
+    accounts.reject(account)
+    log("admin", "request_rejected", target=target)
+    flash(f"The request from {target[2]} was rejected.", "success")
     return redirect(url_for("admin_users.index"))

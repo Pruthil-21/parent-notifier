@@ -1,7 +1,7 @@
 """Forms on the admin pages. None of them can set an account's role."""
 
 from flask_wtf import FlaskForm
-from wtforms import PasswordField
+from wtforms import PasswordField, RadioField
 from wtforms.validators import InputRequired, ValidationError
 
 from parent_notifier.forms.accounts import (
@@ -27,3 +27,14 @@ class NewAccountForm(FlaskForm):
 
 class ConfirmPasswordForm(FlaskForm):
     password = PasswordField("Your password", validators=[InputRequired("Enter your password")])
+
+
+SIGNUP_CHOICES = [
+    (registration.SIGNUP_OFF, "Only the admin creates accounts"),
+    (registration.SIGNUP_APPROVAL, "Anyone can request an account; the admin approves it"),
+    (registration.SIGNUP_OPEN, "Anyone can create an account"),
+]
+
+
+class SignupModeForm(FlaskForm):
+    mode = RadioField("New accounts", choices=SIGNUP_CHOICES)
