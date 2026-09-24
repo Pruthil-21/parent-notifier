@@ -1,0 +1,97 @@
+/* The add and edit student page: the details, then the semester's figures as a compact
+   table that becomes one small block per subject on a phone. */
+
+@layer pages {
+  /* Wide enough for the figures; the detail boxes keep their usual width. */
+  .student-form {
+    max-width: 760px;
+  }
+
+  .student-form .field > .input {
+    max-width: 472px;
+  }
+
+  .student-figures {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .student-figures .student-figures__input {
+    width: 5rem;
+  }
+
+  .student-figures__marks {
+    white-space: nowrap;
+  }
+
+  .student-figures__errors {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .student-figures__errors ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .student-figures__row--error th {
+    color: var(--color-danger);
+  }
+
+  @media (width < 640px) {
+    .student-figures__table thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+
+    .student-figures__table tr {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-2) var(--space-3);
+      padding: var(--space-3);
+    }
+
+    .student-figures__table tr + tr {
+      border-top: 1px solid var(--color-border);
+    }
+
+    .student-figures__table th[scope="row"] {
+      grid-column: 1 / -1;
+      padding: 0;
+      border: 0;
+    }
+
+    .student-figures__table td {
+      display: grid;
+      gap: 2px;
+      padding: 0;
+      border: 0;
+    }
+
+    .student-figures__table td::before {
+      content: attr(data-label);
+      color: var(--color-text-secondary);
+      font-size: var(--text-caption);
+    }
+
+    .student-figures .student-figures__input {
+      width: 100%;
+    }
+
+    .student-figures__marks {
+      grid-template-columns: 1fr auto;
+      align-items: center;
+    }
+
+    .student-figures__marks::before {
+      grid-column: 1 / -1;
+    }
+  }
+}

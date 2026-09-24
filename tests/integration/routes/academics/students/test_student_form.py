@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import select
 
 from parent_notifier.core.extensions import db
-from parent_notifier.models.academics import Semester, Student
+from parent_notifier.models.academics import Result, Semester, SemesterSubject, Student
 from tests.factories.academics import make_class, make_semester, make_student
 from tests.factories.accounts import make_mentor
 
@@ -125,3 +125,42 @@ def test_son_or_daughter_changes_the_message_wording(app, signed_in_client, setu
     assert _student(app, "23CE001").gender is None
     bad = signed_in_client.post(edit, data=details | {"status": "active", "gender": "other"})
     assert "Not a valid choice" in bad.get_data(as_text=True)
+
+
+def test_figures_are_entered_with_the_student_and_edited_later(app, signed_in_client, mentor):
+    with app.app_context():
+        class_group = make_class(mentor)
+        semester = make_semester(class_group, 4)
+        for position, (name, total) in enumerate([("DBMS", None), ("UHV", 25)]):
+            db.session.add(
+                SemesterSubject(
+                    semester_id=semester.id, name=name, position=position, midsem_max=total
+                )
+            )
+        db.session.commit()
+        base = f"/classes/{class_group.id}/sem/4"
+    page = signed_in_client.get(f"{base}/students/new").get_data(as_text=True)
+    assert "Sem 4 attendance and marks" in page and "/25" in page
+    figures = {"r0-theory": "68", "r0-practical": "", "r0-marks": "16", "r1-absent": "1"}
+    signed_in_client.post(f"{base}/students/new", data=NEW | figures)
+    with app.app_context():
+        student = db.session.scalar(select(Student).where(Student.enrollment_no == "23CE050"))
+        saved = {r.semester_subject_id: r for r in db.session.scalars(select(Result))}
+        student_id = student.id
+    assert sorted(
+        ((r.theory_pct, r.midsem_marks, r.midsem_absent) for r in saved.values()), key=str
+    ) == [(68.0, 16.0, False), (None, None, True)]
+    workspace = signed_in_client.get(base).get_data(as_text=True)
+    assert ">68%</span>" in workspace and "DBMS Theory</span>" in workspace  # counted as a sheet's
+
+    edit = f"{base}/students/{student_id}/edit"
+    assert 'value="68"' in signed_in_client.get(edit).get_data(as_text=True)
+    details = {"full_name": "Tanvi Shah", "parent_name": "", "phone": "90000 00150"}
+    bad = {"r0-theory": "120", "r1-marks": "26", "r1-absent": "1"}
+    html = signed_in_client.post(edit, data=details | {"status": "active"} | bad)
+    assert "DBMS: Theory must be a percentage from 0 to 100" in html.get_data(as_text=True)
+    assert "UHV: Mid-Sem must be marks from 0 to 25" in html.get_data(as_text=True)
+    signed_in_client.post(edit, data=details | {"status": "active", "r1-marks": "9"})
+    with app.app_context():
+        rows = db.session.scalars(select(Result).where(Result.student_id == student_id)).all()
+    assert [(r.midsem_marks, r.midsem_absent) for r in rows] == [(9.0, False)]  # DBMS emptied
