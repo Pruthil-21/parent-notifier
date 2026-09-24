@@ -57,7 +57,8 @@ def test_bad_cells_are_listed_with_row_and_subject():
     sheet = parse(sheet_rows(rows=rows))
     assert sheet.errors == [
         "Row 2, DBMS: Theory must be a percentage from 0 to 100, like Theory=82",
-        "Row 2, OS: Marks must be from 0 to 20",
+        "Row 2, OS: Marks must be from 0 to 20. For a subject out of another total, write it "
+        "like 18/25",
     ]
     assert sheet.rows == []
 
@@ -118,3 +119,17 @@ def test_error_list_is_capped():
     errors = parse(sheet_rows(rows=rows)).errors
     assert len(errors) == 201
     assert errors[-1] == "And 50 more problems. Fix these first, then upload again"
+
+
+def test_a_subject_takes_one_total_from_its_marks():
+    rows = [[*ID, "Marks=16", "Marks=18/25"], ["23CE002", "Om Desai", "", "", "", "Marks=AB"]]
+    sheet = parse(sheet_rows(rows=rows))
+    assert sheet.errors == [] and sheet.subject_max == {"DBMS": 20, "OS": 25}
+    mixed = parse(
+        sheet_rows(
+            rows=[[*ID, "Marks=16", "Marks=18/25"], ["23CE002", "Om Desai", "", "", "", "Marks=12"]]
+        )
+    )
+    assert any(
+        "OS: Mid-Sem marks are out of 20 and 25 in different rows" in e for e in mixed.errors
+    )

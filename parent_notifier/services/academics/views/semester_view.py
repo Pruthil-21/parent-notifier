@@ -64,18 +64,19 @@ def rules_for(class_group: ClassGroup) -> Rules:
 
 def _results_by_student(semester: Semester) -> dict[int, dict[str, SubjectResult]]:
     query = (
-        select(Result, SemesterSubject.name)
+        select(Result, SemesterSubject.name, SemesterSubject.midsem_max)
         .join(SemesterSubject, Result.semester_subject_id == SemesterSubject.id)
         .where(SemesterSubject.semester_id == semester.id)
     )
     found: dict[int, dict[str, SubjectResult]] = {}
-    for result, subject in db.session.execute(query):
+    for result, subject, out_of in db.session.execute(query):
         found.setdefault(result.student_id, {})[subject] = SubjectResult(
             subject,
             result.theory_pct,
             result.practical_pct,
             result.midsem_marks,
             result.midsem_absent,
+            out_of,
         )
     return found
 
@@ -84,9 +85,12 @@ def build(class_group: ClassGroup, semester: Semester) -> SemesterView:
     rules = rules_for(class_group)
     view = SemesterView(rules=rules, subjects=[subject.name for subject in semester.subjects])
     by_student = _results_by_student(semester)
+    totals = {subject.name: subject.midsem_max for subject in semester.subjects}
     for student in sorted(semester.students, key=lambda s: s.enrollment_no):
         found = by_student.get(student.id, {})
-        results = [found.get(name, SubjectResult(name)) for name in view.subjects]
+        results = [
+            found.get(name, SubjectResult(name, out_of=totals[name])) for name in view.subjects
+        ]
         view.rows.append(
             StudentRow(
                 id=student.id,
@@ -101,7 +105,7 @@ def build(class_group: ClassGroup, semester: Semester) -> SemesterView:
                 shortages=risk.shortages(results, rules),
                 fails=risk.fails(results, rules),
                 lowest=risk.lowest_attendance(results),
-                average=risk.midsem_average(results),
+                average=risk.midsem_average(results, rules),
                 gender=student.gender,
             )
         )
@@ -121,11 +125,11 @@ def _subject_payload(result: SubjectResult, rules: Rules) -> dict:
         "theory": result.theory,
         "practical": result.practical,
         "marks": result.marks,
+        "outOf": risk.marks_max(result, rules),
         "absent": result.absent,
         "theoryShort": short(result.theory),
         "practicalShort": short(result.practical),
-        "fail": result.absent
-        or (result.marks is not None and result.marks < rules.midsem_pass_mark),
+        "fail": result.absent or risk.below_pass(result, rules),
     }
 
 

@@ -143,12 +143,18 @@ class SemesterSubject(db.Model):
     """A subject column of a semester's sheet, kept in the sheet's order."""
 
     __tablename__ = "semester_subjects"
-    __table_args__ = (UniqueConstraint("semester_id", "name"),)
+    __table_args__ = (
+        UniqueConstraint("semester_id", "name"),
+        CheckConstraint("midsem_max BETWEEN 1 AND 100", name="midsem_max"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     semester_id: Mapped[int] = mapped_column(ForeignKey("semesters.id", ondelete="CASCADE"))
     name: Mapped[str] = mapped_column(String(80))
     position: Mapped[int]
+    # What its Mid-Sem is out of when that differs from the class rule, such as 25;
+    # None follows the class.
+    midsem_max: Mapped[int | None]
 
 
 class Result(db.Model):

@@ -18,6 +18,8 @@ class SubjectCell:
     practical: float | None = None
     marks: float | None = None
     absent: bool = False
+    # The total written with the marks, like 25 in "18/25", when not the class's.
+    out_of: int | None = None
 
     @property
     def is_empty(self) -> bool:
@@ -74,19 +76,29 @@ def _percent(raw: str | None, label: str) -> float | None:
     return float(match[1])
 
 
-def _marks(raw: str | None, midsem_max: int) -> tuple[float | None, bool]:
+def _marks(raw: str | None, midsem_max: int) -> tuple[float | None, bool, int | None]:
+    """Marks, absent, and the total when written as another one, like 18/25."""
     if raw is None or raw.lower() in _BLANK:
-        return None, False
+        return None, False, None
     if raw.lower() in _ABSENT:
-        return None, True
+        return None, True, None
     match = _NUMBER.match(raw)
     if match is None or match[2]:
         raise CellError(f"Marks must be a number from 0 to {midsem_max}, or AB if absent")
-    if match[3] is not None and float(match[3]) != midsem_max:
-        raise CellError(f"Marks must be out of {midsem_max} for this class")
-    if float(match[1]) > midsem_max:
-        raise CellError(f"Marks must be from 0 to {midsem_max}")
-    return float(match[1]), False
+    marks = float(match[1])
+    if match[3] is None:
+        if marks > midsem_max:
+            raise CellError(
+                f"Marks must be from 0 to {midsem_max}. For a subject out of another total, "
+                "write it like 18/25"
+            )
+        return marks, False, None
+    total = float(match[3])
+    if not total.is_integer() or not 1 <= total <= 100:
+        raise CellError("Marks must be out of a whole number up to 100, like 18/25")
+    if marks > total:
+        raise CellError(f"Marks must be from 0 to {total:g}")
+    return marks, False, None if total == midsem_max else int(total)
 
 
 def parse_cell(text: object, midsem_max: int) -> SubjectCell:
@@ -94,12 +106,13 @@ def parse_cell(text: object, midsem_max: int) -> SubjectCell:
     if text is None or not str(text).strip():
         return SubjectCell()
     values = _split(str(text))
-    marks, absent = _marks(values.get("marks"), midsem_max)
+    marks, absent, out_of = _marks(values.get("marks"), midsem_max)
     return SubjectCell(
         theory=_percent(values.get("theory"), "Theory"),
         practical=_percent(values.get("practical"), "Practical"),
         marks=marks,
         absent=absent,
+        out_of=out_of,
     )
 
 
@@ -118,5 +131,6 @@ def format_cell(cell: SubjectCell) -> str:
     if cell.absent:
         parts.append("Marks=AB")
     elif cell.marks is not None:
-        parts.append(f"Marks={_number(cell.marks)}")
+        total = f"/{cell.out_of}" if cell.out_of else ""
+        parts.append(f"Marks={_number(cell.marks)}{total}")
     return ",".join(parts)

@@ -45,12 +45,13 @@ def _subject(result: SubjectResult, midsem_max: int) -> dict:
     def percent(value):
         return MISSING if value is None else f"{_number(value)}%"
 
+    total = result.out_of or midsem_max
     if result.absent:
         marks = ABSENT
     elif result.marks is None:
-        marks = f"--/{midsem_max}"
+        marks = f"--/{total}"
     else:
-        marks = f"{_number(result.marks)}/{midsem_max}"
+        marks = f"{_number(result.marks)}/{total}"
     return {
         "name": result.subject,
         "theory": percent(result.theory),

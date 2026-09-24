@@ -5,7 +5,9 @@
 3. Doing well: everything else.
 4. No data: in the semester, but no numbers yet.
 
-Subjects whose Mid-Sem has not been held are judged on attendance alone.
+Subjects whose Mid-Sem has not been held are judged on attendance alone. A subject out
+of another total passes at the same share as the class rule: with 7 of 20 (35%), a
+subject out of 25 passes at 8.75, so 9.
 """
 
 from dataclasses import dataclass
@@ -37,6 +39,8 @@ class SubjectResult:
     practical: float | None = None
     marks: float | None = None
     absent: bool = False
+    # The subject's own Mid-Sem total, when it is not the class's.
+    out_of: int | None = None
 
     @property
     def has_data(self) -> bool:
@@ -54,6 +58,7 @@ class Shortage:
 class Fail:
     subject: str
     marks: float | None  # None when absent
+    out_of: int = 20
 
 
 def shortages(results: list[SubjectResult], rules: Rules) -> list[Shortage]:
@@ -65,11 +70,22 @@ def shortages(results: list[SubjectResult], rules: Rules) -> list[Shortage]:
     return found
 
 
+def marks_max(result: SubjectResult, rules: Rules) -> int:
+    return result.out_of or rules.midsem_max
+
+
+def below_pass(result: SubjectResult, rules: Rules) -> bool:
+    """Below the pass mark's share of the subject's total, compared without rounding."""
+    if result.marks is None:
+        return False
+    return result.marks * rules.midsem_max < rules.midsem_pass_mark * marks_max(result, rules)
+
+
 def fails(results: list[SubjectResult], rules: Rules) -> list[Fail]:
     return [
-        Fail(result.subject, None if result.absent else result.marks)
+        Fail(result.subject, None if result.absent else result.marks, marks_max(result, rules))
         for result in results
-        if result.absent or (result.marks is not None and result.marks < rules.midsem_pass_mark)
+        if result.absent or below_pass(result, rules)
     ]
 
 
@@ -94,7 +110,12 @@ def lowest_attendance(results: list[SubjectResult]) -> Shortage | None:
     return min(figures, key=lambda figure: figure.percent, default=None)
 
 
-def midsem_average(results: list[SubjectResult]) -> float | None:
-    """Average of the Mid-Sem marks written so far; absences are not averaged in."""
-    marks = [result.marks for result in results if result.marks is not None]
+def midsem_average(results: list[SubjectResult], rules: Rules) -> float | None:
+    """Average of the Mid-Sem marks written so far, out of the class's total; a subject
+    out of another total is scaled to it. Absences are not averaged in."""
+    marks = [
+        result.marks * rules.midsem_max / marks_max(result, rules)
+        for result in results
+        if result.marks is not None
+    ]
     return round(sum(marks) / len(marks), 1) if marks else None
