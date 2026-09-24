@@ -11,6 +11,9 @@ from parent_notifier.routes.imports.review import MAX_FILENAME, owner, review
 from parent_notifier.services.academics.records import classes
 from parent_notifier.services.imports import staging
 from parent_notifier.services.imports.apply import apply_class_list, apply_import
+from parent_notifier.services.imports.compare import students_by_enrollment
+from parent_notifier.services.imports.letter_sheet import to_sheet
+from parent_notifier.services.imports.letters import LetterFileError, read_letters
 from parent_notifier.services.imports.sheet_parser import parse_sheet
 from parent_notifier.services.imports.sheet_reader import SheetReadError, read_sheet
 
@@ -40,13 +43,23 @@ def upload(class_id: int, number: int):
     if not form.validate_on_submit():
         return _upload_page(class_group, semester, form)
     filename = (form.sheet.data.filename or "sheet")[:MAX_FILENAME]
+    data = form.sheet.data.read()
     try:
-        grid = read_sheet(filename, form.sheet.data.read())
-    except SheetReadError as error:
+        if filename.lower().endswith(".pdf"):
+            # The letters carry their own attendance dates; the form's are not used.
+            sheet = to_sheet(
+                read_letters(data),
+                semester.number,
+                class_group.midsem_max,
+                students_by_enrollment(class_group),
+                current_user.full_name,
+            )
+        else:
+            sheet = parse_sheet(read_sheet(filename, data), class_group.midsem_max)
+            sheet.attendance_from, sheet.attendance_to = form.period()
+    except (SheetReadError, LetterFileError) as error:
         form.sheet.errors.append(str(error))
         return _upload_page(class_group, semester, form)
-    sheet = parse_sheet(grid, class_group.midsem_max)
-    sheet.attendance_from, sheet.attendance_to = form.period()
     token = None
     if not sheet.errors:
         token = staging.stage(owner(class_group, semester), filename, sheet)

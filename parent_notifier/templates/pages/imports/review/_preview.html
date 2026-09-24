@@ -1,26 +1,28 @@
 {# The first rows as they will be saved: Theory / Practical / Mid-Sem per subject. #}
 {% macro value(number, suffix="") %}{% if number is none %}<span class="text-muted">–</span>{% else %}{{ "%g" | format(number) }}{{ suffix }}{% endif %}{% endmacro %}
-<h2 class="review-heading">First {{ [sheet.rows | length, 10] | min }} of {{ sheet.rows | length }} students</h2>
+{% set from_letters = sheet.source == "pdf" %}
+{% set shown = sheet.rows if from_letters else sheet.rows[:10] %}
+<h2 class="review-heading">{% if from_letters %}All {{ sheet.rows | length }} students, one per page{% else %}First {{ shown | length }} of {{ sheet.rows | length }} students{% endif %}</h2>
 <p class="text-secondary review-note">Each subject shows Theory % / Practical % / Mid-Sem, out of {{ class_group.midsem_max }} unless the subject says otherwise.</p>
 <div class="data-grid">
   <table>
     <thead>
       <tr>
-        <th scope="col" class="numeric">Row</th>
+        <th scope="col" class="numeric">{{ "Page" if from_letters else "Row" }}</th>
         <th scope="col">Enrollment</th>
         <th scope="col">Student</th>
         {% for subject in sheet.subjects %}<th scope="col" class="numeric">{{ subject }}{% if sheet.subject_max.get(subject, class_group.midsem_max) != class_group.midsem_max %} <span class="text-secondary">(out of {{ sheet.subject_max[subject] }})</span>{% endif %}</th>{% endfor %}
       </tr>
     </thead>
     <tbody>
-      {% for row in sheet.rows[:10] %}
+      {% for row in shown %}
       <tr>
         <td class="numeric">{{ row.row_number }}</td>
         <td>{{ row.enrollment_no }}</td>
         <th scope="row">{{ row.full_name }}</th>
         {% for subject in sheet.subjects %}
         {% set cell = row.cells[subject] %}
-        <td class="numeric">{{ value(cell.theory) }} / {{ value(cell.practical) }} / {% if cell.absent %}AB{% else %}{{ value(cell.marks) }}{% endif %}</td>
+        <td class="numeric">{{ value(cell.theory) }} / {{ value(cell.practical) }} / {% if cell.absent %}AB{% else %}{{ value(cell.marks) }}{% if cell.out_of %}/{{ cell.out_of }}{% endif %}{% endif %}</td>
         {% endfor %}
       </tr>
       {% endfor %}

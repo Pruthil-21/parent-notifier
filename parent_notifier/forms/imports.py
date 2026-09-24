@@ -7,7 +7,7 @@ from flask_wtf.file import FileAllowed, FileField, FileRequired
 from wtforms import BooleanField, DateField, HiddenField
 from wtforms.validators import Optional
 
-ALLOWED_EXTENSIONS = ["xlsx", "csv"]
+ALLOWED_EXTENSIONS = ["xlsx", "csv", "pdf"]
 
 
 class UploadSheetForm(FlaskForm):
@@ -17,7 +17,8 @@ class UploadSheetForm(FlaskForm):
             FileRequired("Choose the semester's sheet to upload"),
             FileAllowed(
                 ALLOWED_EXTENSIONS,
-                "Upload an Excel (.xlsx) or CSV (.csv) file. Save old .xls files as .xlsx first",
+                "Upload an Excel (.xlsx) or CSV (.csv) sheet, or the GIS letters PDF. Save old "
+                ".xls files as .xlsx first",
             ),
         ],
     )

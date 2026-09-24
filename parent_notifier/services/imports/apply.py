@@ -140,6 +140,14 @@ def _update_identity(student: Student, row: SheetRow) -> None:
         student.gender = row.gender
 
 
+def _fill_blanks(student: Student, row: SheetRow) -> None:
+    """From letters: a parent's name or son or daughter the class does not have yet."""
+    if not student.parent_name and row.parent_name:
+        student.parent_name = row.parent_name
+    if student.gender is None and row.gender:
+        student.gender = row.gender
+
+
 def _apply_rows(class_group, semester, sheet, stored, update_identity) -> list[Student]:
     """Add or update every student and merge their results; return the students created."""
     subjects = _subjects(semester, sheet, class_group.midsem_max)
@@ -152,6 +160,8 @@ def _apply_rows(class_group, semester, sheet, stored, update_identity) -> list[S
             student = _student(class_group, row)
             created.append(student)
             db.session.flush()  # the new student's id is needed for its results
+        elif sheet.source == "pdf":
+            _fill_blanks(student, row)
         elif update_identity:
             _update_identity(student, row)
         if student not in members:
@@ -200,7 +210,10 @@ def apply_import(
     snapshot, or nothing is."""
     stored = students_by_enrollment(class_group)
     in_sheet = [stored[key] for row in sheet.rows if (key := row.enrollment_no.upper()) in stored]
-    snapshot = take_snapshot(semester, in_sheet if update_identity else [])
+    # Undo restores the details this import may change: all of them when chosen, and the
+    # blanks letters may fill in.
+    changes_details = update_identity or sheet.source == "pdf"
+    snapshot = take_snapshot(semester, in_sheet if changes_details else [])
     created = _apply_rows(class_group, semester, sheet, stored, update_identity)
     outcome = ImportOutcome(added=len(created), updated=len(sheet.rows) - len(created))
     previous_round = semester.current_round

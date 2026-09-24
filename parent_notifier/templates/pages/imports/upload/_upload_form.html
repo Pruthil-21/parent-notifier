@@ -3,11 +3,11 @@
 <form class="form-stack" method="post" enctype="multipart/form-data" novalidate
       action="{{ url_for('imports.upload', class_id=class_group.id, number=semester.number) }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  {{ file_field(upload_form.sheet, hint="Excel (.xlsx) or CSV, up to " ~ (config.MAX_CONTENT_LENGTH // 1048576) ~ " MB. You check everything before it is saved.",
-                accept=".xlsx,.csv") }}
+  {{ file_field(upload_form.sheet, hint="Excel (.xlsx) or CSV, or the GIS attendance letters PDF, up to " ~ (config.MAX_CONTENT_LENGTH // 1048576) ~ " MB. You check everything before it is saved.",
+                accept=".xlsx,.csv,.pdf") }}
   <fieldset class="field upload-period">
     <legend class="field__label">Attendance period <span class="text-secondary">(optional)</span></legend>
-    <p class="field__hint">The days this sheet's attendance covers, as in the college letter. The message shows them.</p>
+    <p class="field__hint">The days this sheet's attendance covers, as in the college letter. The message shows them. A GIS PDF brings its own dates.</p>
     {% if upload_form.attendance_to.errors %}
     <p class="field__error">{{ icon("error", size=16) }}<span>{{ upload_form.attendance_to.errors[0] }}</span></p>
     {% endif %}
