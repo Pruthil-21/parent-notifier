@@ -40,7 +40,7 @@ def full_name_field() -> StringField:
     return StringField(
         "Full name",
         validators=[
-            InputRequired("Enter your full name"),
+            DataRequired("Enter your full name"),
             Length(max=80, message="Full name must be 80 characters or fewer"),
             printable("Full name"),
             _no_title,
