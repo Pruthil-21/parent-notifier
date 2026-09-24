@@ -1,6 +1,6 @@
 [project]
 name = "parent-notifier"
-version = "0.1.0"
+version = "0.2.0"
 description = "Mentor dashboard that imports semester attendance and mid-sem marks from Excel, flags students at risk, and sends each parent a personalised WhatsApp update."
 requires-python = ">=3.12"
 dependencies = [
