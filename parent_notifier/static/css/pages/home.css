@@ -20,6 +20,47 @@
     list-style: none;
   }
 
+  /* First run: the three set-up steps, numbered in the accent colour. */
+  .first-run {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-panel);
+    background: var(--color-surface);
+  }
+
+  .first-run__steps {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .first-run__steps li {
+    display: flex;
+    align-items: start;
+    gap: var(--space-3);
+  }
+
+  .first-run__steps p {
+    margin: 0;
+  }
+
+  .first-run__number {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    background: var(--color-accent-subtle);
+    color: var(--color-accent-text);
+    font-weight: var(--weight-semibold);
+  }
+
   @media (max-width: 899px) {
     .home-layout {
       grid-template-columns: minmax(0, 1fr);
