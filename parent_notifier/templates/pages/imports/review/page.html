@@ -1,26 +1,31 @@
 {% extends "layouts/app.html" %}
 {% from "components/navigation/breadcrumb.html" import breadcrumb %}
 
-{% block title %}Review sheet · Sem {{ semester.number }} · {{ class_group.name }}{% endblock %}
+{% block title %}{{ "Review class list" if sheet.is_class_list else "Review sheet · Sem " ~ semester.number }} · {{ class_group.name }}{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/import-review.css') }}">
 {% endblock %}
-{% block breadcrumb %}{{ breadcrumb([("Home", url_for("home.index")), ("Classes", url_for("classes.index")), (class_group.name, url_for("classes.open_class", class_id=class_group.id)), ("Sem " ~ semester.number, url_for("semesters.workspace", class_id=class_group.id, number=semester.number)), ("Review sheet", None)]) }}{% endblock %}
-{% block page_title %}Review Sem {{ semester.number }} sheet{% endblock %}
-{% block page_meta %}Nothing is saved until you confirm.{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Home", url_for("home.index")), ("Classes", url_for("classes.index")), (class_group.name, url_for("classes.open_class", class_id=class_group.id)), ("Sem " ~ semester.number, url_for("semesters.workspace", class_id=class_group.id, number=semester.number)), ("Review class list" if sheet.is_class_list else "Review sheet", None)]) }}{% endblock %}
+{% block page_title %}{{ "Review " ~ class_group.name ~ " class list" if sheet.is_class_list else "Review Sem " ~ semester.number ~ " sheet" }}{% endblock %}
+{% block page_meta %}Nothing is saved until you confirm.{% if sheet.new_class %} Cancelling removes the new class {{ class_group.name }}.{% endif %}{% endblock %}
 
 {% block content %}
 {% include "pages/imports/review/_problems.html" %}
 {% if not sheet.errors %}
 <dl class="summary-list">
   <div><dt>File</dt><dd>{{ filename }}</dd></div>
-  <div><dt>Students in the sheet</dt><dd class="numeric">{{ sheet.rows | length }}</dd></div>
+  <div><dt>Students in the {{ "list" if sheet.is_class_list else "sheet" }}</dt><dd class="numeric">{{ sheet.rows | length }}</dd></div>
   <div><dt>New to {{ class_group.name }}</dt><dd class="numeric">{{ comparison.new_students }}</dd></div>
   <div><dt>Already in {{ class_group.name }}</dt><dd class="numeric">{{ comparison.existing_students }}</dd></div>
+  {% if sheet.is_class_list %}
+  <div><dt>With a valid parent phone</dt><dd class="numeric">{{ sheet.rows | selectattr("phone_e164") | list | length }}</dd></div>
+  <div><dt>Son or daughter given</dt><dd class="numeric">{{ sheet.rows | selectattr("gender") | list | length }}</dd></div>
+  {% else %}
   <div><dt>Subjects</dt><dd>{{ sheet.subjects | join(", ") or "None found" }}</dd></div>
+  {% endif %}
 </dl>
 {% include "pages/imports/review/_identity.html" %}
-{% include "pages/imports/review/_preview.html" %}
+{% include "pages/imports/review/_class_list.html" if sheet.is_class_list else "pages/imports/review/_preview.html" %}
 {% endif %}
 {% include "pages/imports/review/_actions.html" %}
 {% endblock %}

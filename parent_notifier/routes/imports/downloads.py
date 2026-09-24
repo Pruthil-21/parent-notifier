@@ -1,4 +1,4 @@
-"""Downloading the sheet format and a pre-filled semester sheet."""
+"""Downloading the class list and sheet formats, and a pre-filled semester sheet."""
 
 import io
 
@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 
 from parent_notifier.routes.academics.semesters import load_semester
 from parent_notifier.services.exports.prefilled_sheet import prefilled_sheet
+from parent_notifier.services.exports.sample_format import class_list_format as list_format
 from parent_notifier.services.exports.sample_format import sample_format
 
 bp = Blueprint("downloads", __name__)
@@ -23,6 +24,12 @@ def _xlsx(data: bytes, filename: str):
 @login_required
 def sheet_format():
     return _xlsx(sample_format(), "parent-notifier-sheet-format.xlsx")
+
+
+@bp.get("/class-list-format.xlsx")
+@login_required
+def class_list_format():
+    return _xlsx(list_format(), "parent-notifier-class-list-format.xlsx")
 
 
 @bp.get("/classes/<int:class_id>/sem/<int:number>/sheet.xlsx")

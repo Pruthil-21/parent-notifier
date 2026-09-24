@@ -65,7 +65,9 @@ and runs on a single computer today.
 
 ## How it works
 
-1. **Set up a class**: name, department and admission year, then add the current semester.
+1. **Set up a class**: name, department, admission year and current semester, with its
+   class list (Enrollment No, Student Name, Parent Name, Parent Phone) or a full semester
+   sheet. You review the students before anything is saved.
 2. **Upload the sheet**: the review page shows new and changed students and any errors.
    Confirm to save.
 3. **Check the status**: tiles and the student list show who is at risk and why.

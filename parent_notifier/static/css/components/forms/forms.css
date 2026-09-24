@@ -181,3 +181,9 @@
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
   gap: var(--space-3);
 }
+
+/* Problems in a file uploaded on the new class form, one per line. */
+.new-class-problems ul {
+  margin: 0;
+  padding-left: var(--space-4);
+}

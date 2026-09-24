@@ -20,6 +20,22 @@ EXAMPLE_ROW = [
 ]
 
 
+CLASS_LIST_HEADERS = [*IDENTITY_HEADERS, "Son / Daughter"]
+# Fictional example students.
+CLASS_LIST_ROWS = [
+    ["230120107001", "Student Name", "Parent Name", "90000 00001", "Daughter"],
+    ["230120107002", "Student Name", "Parent Name", "90000 00002", "Son"],
+]
+
+
+def class_list_format() -> bytes:
+    """The base class list: who the students are and how to reach their parents."""
+    workbook, sheet = new_sheet("Class list", CLASS_LIST_HEADERS)
+    for row in CLASS_LIST_ROWS:
+        add_row(sheet, row)
+    return to_bytes(workbook)
+
+
 def sample_format() -> bytes:
     workbook, sheet = new_sheet("Sheet format", IDENTITY_HEADERS + EXAMPLE_SUBJECTS)
     add_row(sheet, EXAMPLE_ROW)

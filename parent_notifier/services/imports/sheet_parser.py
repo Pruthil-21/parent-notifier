@@ -71,6 +71,13 @@ class ParsedSheet:
     attendance_to: str | None = None
     # Each subject with Mid-Sem marks and the total they are out of.
     subject_max: dict[str, int] = field(default_factory=dict)
+    # Staged while creating its class: cancelling the review removes that class again.
+    new_class: bool = False
+
+    @property
+    def is_class_list(self) -> bool:
+        """Students and contacts only, with no subjects: a class's base list."""
+        return not self.subjects
 
 
 def _normalise(header: str) -> str:
@@ -196,7 +203,8 @@ def _subject_totals(sheet: ParsedSheet, midsem_max: int) -> None:
             sheet.subject_max[subject] = totals.pop()
 
 
-def parse_sheet(grid: list[list[str]], midsem_max: int) -> ParsedSheet:
+def parse_sheet(grid: list[list[str]], midsem_max: int, class_list: bool = False) -> ParsedSheet:
+    """`class_list` accepts a sheet with no subject columns: the students of a new class."""
     sheet = ParsedSheet()
     found = _find_header(grid)
     if found is None:
@@ -211,7 +219,7 @@ def parse_sheet(grid: list[list[str]], midsem_max: int) -> ParsedSheet:
             sheet.errors.append(f"The sheet has no {IDENTITY_LABELS[key]} column")
     subjects = _columns(grid, header_index, identity, sheet)
     sheet.subjects = list(subjects)
-    if not subjects:
+    if not subjects and not class_list:
         sheet.errors.append("No subject columns were found. Each subject needs its own column")
     seen: dict[str, int] = {}
     for offset, cells in enumerate(grid[header_index + 1 :], start=header_index + 2):

@@ -2,6 +2,7 @@
 
 from flask import current_app
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileAllowed, FileField, FileRequired
 from wtforms import SelectField, StringField
 from wtforms.validators import DataRequired, InputRequired, Length, NumberRange, ValidationError
 
@@ -52,6 +53,33 @@ class ClassDetailsForm(FlaskForm):
     def validate_name(self, field) -> None:
         if classes.name_taken(self.mentor_id, field.data, except_class_id=self.class_id):
             raise ValidationError(CLASS_NAME_TAKEN)
+
+
+SEMESTER_CHOICES = [("", "Work it out from the admission year")] + [
+    (str(number), f"Sem {number}") for number in range(MIN_SEMESTER, MAX_SEMESTER + 1)
+]
+
+
+class NewClassForm(ClassDetailsForm):
+    """A class starts with its students: the base class list, or a full semester sheet."""
+
+    semester = SelectField("Current semester", choices=SEMESTER_CHOICES, default="")
+    sheet = FileField(
+        "Class list",
+        validators=[
+            FileRequired("Choose the class list, or a semester sheet, to upload"),
+            FileAllowed(
+                ["xlsx", "csv"],
+                "Upload an Excel (.xlsx) or CSV (.csv) file. Save old .xls files as .xlsx first",
+            ),
+        ],
+    )
+
+    def semester_number(self) -> int:
+        if self.semester.data:
+            return int(self.semester.data)
+        today = clock.today(current_app.config["APP_TIMEZONE"])
+        return semester_numbers.current_for_batch(self.admission_year.data, today)
 
 
 class AddSemesterForm(FlaskForm):

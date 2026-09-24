@@ -63,6 +63,13 @@ def reopen(class_group: ClassGroup) -> None:
     db.session.commit()
 
 
+def is_unused(class_group: ClassGroup) -> bool:
+    """Nothing has been saved into it yet: no students and no semester with a sheet."""
+    return not class_group.students and all(
+        semester.last_imported_at is None for semester in class_group.semesters
+    )
+
+
 def delete_class(class_group: ClassGroup) -> None:
     """Delete the class; the database removes its semesters and students with it."""
     db.session.delete(class_group)
