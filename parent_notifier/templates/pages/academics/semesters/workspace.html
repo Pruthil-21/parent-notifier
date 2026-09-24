@@ -27,7 +27,8 @@
 {% elif read_only %}
 {% call empty_state("No sheet for Sem " ~ semester.number ~ " yet", "The mentor has not uploaded this semester's sheet.") %}{% endcall %}
 {% else %}
-{% call empty_state("No sheet for Sem " ~ semester.number ~ " yet", "Upload this semester's sheet to see every student's attendance and Mid-Sem marks here.") %}
+{% set listed = class_group.students | length %}
+{% call empty_state("No sheet for Sem " ~ semester.number ~ " yet", (listed ~ " students are on the class list. " if listed else "") ~ "Upload this semester's sheet to see every student's attendance and Mid-Sem marks here.") %}
 {% include "pages/imports/upload/_upload_button.html" %}
 {% if can_remove %}
 <a class="button button--subtle" data-dialog-open="remove-semester"

@@ -33,6 +33,10 @@ semester_students = Table(
 )
 
 
+# What a Mid-Sem is out of when the mentor has not changed it.
+DEFAULT_MIDSEM_MAX = 20
+
+
 class ClassGroup(Timestamps, db.Model):
     """One mentor's class, such as CE-A of the 2023 batch, with its status rules."""
 
@@ -51,7 +55,9 @@ class ClassGroup(Timestamps, db.Model):
     admission_year: Mapped[int]
     attendance_threshold: Mapped[int] = mapped_column(default=75, server_default="75")
     midsem_pass_mark: Mapped[int] = mapped_column(default=7, server_default="7")
-    midsem_max: Mapped[int] = mapped_column(default=20, server_default="20")
+    midsem_max: Mapped[int] = mapped_column(
+        default=DEFAULT_MIDSEM_MAX, server_default=str(DEFAULT_MIDSEM_MAX)
+    )
     # Set by the mentor once the batch has left; the class then moves to Past batches.
     finished_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
 

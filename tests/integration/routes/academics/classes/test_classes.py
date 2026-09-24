@@ -1,3 +1,4 @@
+import io
 import re
 
 import pytest
@@ -7,8 +8,19 @@ from parent_notifier.core.extensions import db
 from parent_notifier.models.academics import ClassGroup
 from tests.factories.academics import make_class
 from tests.factories.accounts import make_mentor
+from tests.factories.workbooks import make_xlsx
 
 VALID = {"name": " CE-A ", "department": "Computer   Engineering", "admission_year": "2023"}
+CLASS_LIST = [
+    ["Enrollment No", "Student Name", "Parent Name", "Parent Phone"],
+    ["23CE001", "Avi Shah", "Mehul Shah", "90000 00101"],
+]
+
+
+def _create(client, data):
+    """The new class form, with a one-student class list attached."""
+    files = {"sheet": (io.BytesIO(make_xlsx(CLASS_LIST)), "class-list.xlsx")}
+    return client.post("/classes/new", data=data | files, content_type="multipart/form-data")
 
 
 @pytest.fixture
@@ -48,16 +60,12 @@ def test_list_shows_the_mentors_classes_only(signed_in_client, own_class, strang
     assert "Not yet" in html
 
 
-def test_new_class_is_created_and_opened(app, signed_in_client, mentor):
-    response = signed_in_client.post("/classes/new", data=VALID)
+def test_new_class_is_created_for_its_review(app, signed_in_client, mentor):
+    html = _create(signed_in_client, VALID).get_data(as_text=True)
     [class_group] = _classes(app)
-    assert response.headers["Location"] == f"/classes/{class_group.id}"
     assert (class_group.name, class_group.department) == ("CE-A", "Computer Engineering")
     assert class_group.mentor_id == mentor.id
-    html = signed_in_client.get(response.headers["Location"]).get_data(as_text=True)
-    assert "Class CE-A created." in html
-    assert "No semesters yet" in html
-    assert "Computer Engineering · 2023 batch" in html
+    assert "Review CE-A class list" in html
 
 
 @pytest.mark.parametrize(
@@ -77,26 +85,24 @@ def test_new_class_is_created_and_opened(app, signed_in_client, mentor):
 def test_each_problem_is_explained_and_nothing_is_saved(
     app, signed_in_client, field, value, message
 ):
-    html = signed_in_client.post("/classes/new", data=VALID | {field: value}).get_data(as_text=True)
+    html = _create(signed_in_client, VALID | {field: value}).get_data(as_text=True)
     assert "There is a problem" in html
     assert message in html
     assert _classes(app) == []
 
 
 def test_duplicate_name_is_refused_whatever_the_case(signed_in_client, own_class):
-    html = signed_in_client.post("/classes/new", data=VALID | {"name": "ce-a"}).get_data(
-        as_text=True
-    )
+    html = _create(signed_in_client, VALID | {"name": "ce-a"}).get_data(as_text=True)
     assert "You already have a class with this name" in html
 
 
 def test_another_mentor_may_use_the_same_name(app, signed_in_client, strangers_class):
-    signed_in_client.post("/classes/new", data=VALID | {"name": "IT-B"})
+    _create(signed_in_client, VALID | {"name": "IT-B"})
     assert len(_classes(app)) == 2
 
 
 def test_class_cannot_be_created_for_someone_else(app, signed_in_client, mentor):
-    signed_in_client.post("/classes/new", data=VALID | {"mentor_id": "999", "midsem_max": "5"})
+    _create(signed_in_client, VALID | {"mentor_id": "999", "midsem_max": "5"})
     [class_group] = _classes(app)
     assert class_group.mentor_id == mentor.id
     assert class_group.midsem_max == 20

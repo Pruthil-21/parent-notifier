@@ -168,6 +168,26 @@ def _apply_rows(class_group, semester, sheet, stored, update_identity) -> list[S
     return created
 
 
+def apply_class_list(
+    class_group: ClassGroup, sheet: ParsedSheet, update_identity: bool
+) -> ImportOutcome:
+    """Add the class's students with their contacts; they join a semester when its sheet
+    or PDF is imported. A student already in the class keeps their details unless the
+    mentor chose to update them."""
+    stored = students_by_enrollment(class_group)
+    added = 0
+    for row in sheet.rows:
+        student = stored.get(row.enrollment_no.upper())
+        if student is None:
+            _student(class_group, row)
+            added += 1
+        elif update_identity:
+            _update_identity(student, row)
+    semester_stats.invalidate_class(class_group.id)
+    db.session.commit()
+    return ImportOutcome(added=added, updated=len(sheet.rows) - added)
+
+
 def apply_import(
     class_group: ClassGroup,
     semester: Semester,

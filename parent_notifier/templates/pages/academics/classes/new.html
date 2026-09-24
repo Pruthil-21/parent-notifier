@@ -1,23 +1,37 @@
 {% extends "layouts/app.html" %}
 {% from "components/navigation/breadcrumb.html" import breadcrumb %}
 {% from "components/forms/error_summary.html" import error_summary %}
-{% from "components/forms/field.html" import department_field, text_field %}
+{% from "components/forms/field.html" import department_field, file_field, text_field %}
 
 {% block title %}New class{% endblock %}
 {% block breadcrumb %}{{ breadcrumb([("Home", url_for("home.index")), ("Classes", url_for("classes.index")), ("New class", None)]) }}{% endblock %}
 {% block page_title %}New class{% endblock %}
+{% block page_meta %}A class starts with its students. You check them before anything is saved.{% endblock %}
 
 {% block content %}
 <div class="form-panel">
   {{ error_summary(form, first_field=form.name) }}
-  <form class="form-stack" method="post" novalidate>
+  <form class="form-stack" method="post" enctype="multipart/form-data" novalidate>
     {{ form.hidden_tag() }}
     {{ text_field(form.name, hint="For example CE-A", autocomplete="off") }}
     {{ department_field(form.department) }}
     {{ text_field(form.admission_year, hint="The year this batch joined, like 2023",
                   inputmode="numeric", autocomplete="off") }}
+    <div class="field">
+      {{ form.semester.label(class_="field__label") }}
+      <p class="field__hint" id="semester-hint">The semester the batch is in now. A semester sheet uploaded here goes into it.</p>
+      {{ form.semester(class_="input", aria_describedby="semester-hint") }}
+    </div>
+    {{ file_field(form.sheet, hint="The class list: Enrollment No, Student Name, Parent Name and Parent Phone, with an optional Son / Daughter column. A complete semester sheet works too.", accept=".xlsx,.csv") }}
+    {% if problems %}
+    <div class="field__error new-class-problems" role="alert">
+      <ul>{% for problem in problems[:20] %}<li>{{ problem }}</li>{% endfor %}</ul>
+      {% if problems | length > 20 %}<p>And {{ problems | length - 20 }} more.</p>{% endif %}
+    </div>
+    {% endif %}
+    <p class="text-secondary">Not sure how to lay it out? <a href="{{ url_for('downloads.class_list_format') }}" download>Download the class list format</a>.</p>
     <div class="form-panel__actions">
-      <button class="button button--primary" type="submit">Create class</button>
+      <button class="button button--primary" type="submit">Continue to review</button>
       <a class="button button--subtle" href="{{ url_for('classes.index') }}">Cancel</a>
     </div>
   </form>

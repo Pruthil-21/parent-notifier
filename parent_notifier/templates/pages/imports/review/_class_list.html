@@ -1,0 +1,28 @@
+{# Every student in the class list, as they will be saved. #}
+<h2 class="review-heading">{{ sheet.rows | length }} students</h2>
+<div class="data-grid">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col" class="numeric">Row</th>
+        <th scope="col">Enrollment</th>
+        <th scope="col">Student</th>
+        <th scope="col">Parent</th>
+        <th scope="col">Parent phone</th>
+        <th scope="col">Son or daughter</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in sheet.rows %}
+      <tr>
+        <td class="numeric">{{ row.row_number }}</td>
+        <td>{{ row.enrollment_no }}</td>
+        <th scope="row">{{ row.full_name }}</th>
+        <td>{{ row.parent_name or "–" }}</td>
+        <td>{% if row.phone_e164 %}{{ row.phone_e164 | phone }}{% else %}<span class="figure-fail">{{ row.phone_raw or "Missing" }}</span>{% endif %}</td>
+        <td>{{ {"male": "Son", "female": "Daughter"}.get(row.gender, "–") }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
