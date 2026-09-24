@@ -68,7 +68,8 @@ and runs on a single computer today.
 1. **Set up a class**: name, department, admission year and current semester, with its
    class list (Enrollment No, Student Name, Parent Name, Parent Phone) or a full semester
    sheet. You review the students before anything is saved.
-2. **Upload the sheet**: the review page shows new and changed students and any errors.
+2. **Upload the sheet or the GIS letters PDF**: the review page shows new and changed
+   students and any problems, by row or page.
    Confirm to save.
 3. **Check the status**: tiles and the student list show who is at risk and why.
 4. **Message parents**: open a student or start the queue. Each send opens WhatsApp Web

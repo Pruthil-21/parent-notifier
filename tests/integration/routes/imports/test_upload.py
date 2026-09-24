@@ -52,7 +52,7 @@ def test_semester_page_offers_upload(signed_in_client, base):
 
 def test_upload_page_works_without_javascript(signed_in_client, base):
     html = signed_in_client.get(f"{base}/upload").get_data(as_text=True)
-    assert 'accept=".xlsx,.csv"' in html
+    assert 'accept=".xlsx,.csv,.pdf"' in html
 
 
 def test_good_sheet_is_reviewed_and_staged_but_not_saved(app, signed_in_client, base):
@@ -91,7 +91,12 @@ def test_warnings_and_ignored_columns_are_shown(signed_in_client, base):
 @pytest.mark.parametrize(
     ("filename", "content", "message"),
     [
-        ("marks.pdf", b"%PDF", "Upload an Excel (.xlsx) or CSV (.csv) file"),
+        ("marks.pdf", b"%PDF", "could not be read as a PDF"),
+        (
+            "marks.docx",
+            b"PK",
+            "Upload an Excel (.xlsx) or CSV (.csv) sheet, or the GIS letters PDF",
+        ),
         ("marks.xls", b"old", "Save old .xls files as .xlsx first"),
         ("sem4.xlsx", b"not really a workbook", "The file could not be read"),
     ],

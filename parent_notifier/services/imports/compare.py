@@ -48,6 +48,8 @@ def compare(class_group: ClassGroup, sheet: ParsedSheet) -> Comparison:
             result.new_students += 1
             continue
         result.existing_students += 1
+        if sheet.source == "pdf":
+            continue  # letters never replace saved details, so there is nothing to choose
         current = {
             "full_name": student.full_name,
             "parent_name": student.parent_name,

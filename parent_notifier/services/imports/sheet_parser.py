@@ -73,6 +73,11 @@ class ParsedSheet:
     subject_max: dict[str, int] = field(default_factory=dict)
     # Staged while creating its class: cancelling the review removes that class again.
     new_class: bool = False
+    # "sheet" or "pdf". Letters never change a saved student's details; they only fill
+    # in what is missing, since GIS writes names differently from the class list.
+    source: str = "sheet"
+    # For a PDF: its pages, how many were read, the term and who signed the letters.
+    letter_info: dict = field(default_factory=dict)
 
     @property
     def is_class_list(self) -> bool:

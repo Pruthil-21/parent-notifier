@@ -1,12 +1,12 @@
 {% extends "layouts/app.html" %}
 {% from "components/navigation/breadcrumb.html" import breadcrumb %}
 
-{% block title %}{{ "Review class list" if sheet.is_class_list else "Review sheet · Sem " ~ semester.number }} · {{ class_group.name }}{% endblock %}
+{% block title %}{{ "Review class list" if sheet.is_class_list else ("Review letters" if sheet.source == "pdf" else "Review sheet") ~ " · Sem " ~ semester.number }} · {{ class_group.name }}{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/import-review.css') }}">
 {% endblock %}
-{% block breadcrumb %}{{ breadcrumb([("Home", url_for("home.index")), ("Classes", url_for("classes.index")), (class_group.name, url_for("classes.open_class", class_id=class_group.id)), ("Sem " ~ semester.number, url_for("semesters.workspace", class_id=class_group.id, number=semester.number)), ("Review class list" if sheet.is_class_list else "Review sheet", None)]) }}{% endblock %}
-{% block page_title %}{{ "Review " ~ class_group.name ~ " class list" if sheet.is_class_list else "Review Sem " ~ semester.number ~ " sheet" }}{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Home", url_for("home.index")), ("Classes", url_for("classes.index")), (class_group.name, url_for("classes.open_class", class_id=class_group.id)), ("Sem " ~ semester.number, url_for("semesters.workspace", class_id=class_group.id, number=semester.number)), ("Review class list" if sheet.is_class_list else ("Review letters" if sheet.source == "pdf" else "Review sheet"), None)]) }}{% endblock %}
+{% block page_title %}{{ "Review " ~ class_group.name ~ " class list" if sheet.is_class_list else "Review Sem " ~ semester.number ~ (" letters" if sheet.source == "pdf" else " sheet") }}{% endblock %}
 {% block page_meta %}Nothing is saved until you confirm.{% if sheet.new_class %} Cancelling removes the new class {{ class_group.name }}.{% endif %}{% endblock %}
 
 {% block content %}
@@ -14,7 +14,13 @@
 {% if not sheet.errors %}
 <dl class="summary-list">
   <div><dt>File</dt><dd>{{ filename }}</dd></div>
-  <div><dt>Students in the {{ "list" if sheet.is_class_list else "sheet" }}</dt><dd class="numeric">{{ sheet.rows | length }}</dd></div>
+  {% if sheet.source == "pdf" %}
+  <div><dt>Pages read</dt><dd class="numeric">{{ sheet.letter_info.read }} of {{ sheet.letter_info.pages }}</dd></div>
+  <div><dt>Term</dt><dd>{{ sheet.letter_info.term }}</dd></div>
+  <div><dt>Attendance period</dt><dd>{{ sheet.attendance_from | iso_day }} to {{ sheet.attendance_to | iso_day }}</dd></div>
+  <div><dt>Signed by</dt><dd>{{ sheet.letter_info.mentor }}</dd></div>
+  {% endif %}
+  <div><dt>Students in the {{ "list" if sheet.is_class_list else ("PDF" if sheet.source == "pdf" else "sheet") }}</dt><dd class="numeric">{{ sheet.rows | length }}</dd></div>
   <div><dt>New to {{ class_group.name }}</dt><dd class="numeric">{{ comparison.new_students }}</dd></div>
   <div><dt>Already in {{ class_group.name }}</dt><dd class="numeric">{{ comparison.existing_students }}</dd></div>
   {% if sheet.is_class_list %}
