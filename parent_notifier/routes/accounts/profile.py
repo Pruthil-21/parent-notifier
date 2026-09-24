@@ -14,6 +14,7 @@ from parent_notifier.forms.accounts import (
 )
 from parent_notifier.routes.accounts import throttling
 from parent_notifier.routes.accounts.sessions import safe_next, show_recovery_code, start_session
+from parent_notifier.routes.activity import log
 from parent_notifier.services.accounts import profile, registration
 from parent_notifier.services.shared.phone import format_for_display
 
@@ -86,10 +87,12 @@ def change_password():
             # This browser stays signed in, keeping "Stay signed in" if it was chosen.
             mentor = current_user._get_current_object()
             start_session(mentor, remember="remember_token" in request.cookies)
+            log("security", "password_changed", actor=mentor)
             flash("Password changed. Other browsers have been signed out.", "success")
             return redirect(url_for("profile.index"))
         throttling.record_failed_attempt()
         form.current_password.errors.append(INCORRECT_CURRENT)
+        log("security", "password_changed", succeeded=False)
     return _render(password_form=form)
 
 
@@ -102,6 +105,7 @@ def regenerate_recovery_code():
         code = profile.regenerate_recovery_code(current_user, form.password.data)
         if code:
             flash("New recovery code created. Your old one no longer works.", "success")
+            log("security", "recovery_code_regenerated")
             return show_recovery_code(code, then="profile")
         throttling.record_failed_attempt()
         form.password.errors.append(INCORRECT_CURRENT)
