@@ -2,7 +2,7 @@
 
 Each class counts from its latest semester, built with the same semester view and send
 log as the semester page, so the two pages always show the same numbers. Left and
-detained students are not counted.
+detained students are not counted, and neither are finished batches.
 """
 
 from dataclasses import dataclass
@@ -65,14 +65,18 @@ def _summarise(class_group: ClassGroup) -> ClassSummary:
 def build(mentor_id: int) -> HomeSummary:
     classes = db.session.scalars(
         select(ClassGroup)
-        .where(ClassGroup.mentor_id == mentor_id)
+        .where(ClassGroup.mentor_id == mentor_id, ClassGroup.finished_at.is_(None))
         .options(selectinload(ClassGroup.semesters))
         .order_by(func.lower(ClassGroup.name))
     )
     waiting = db.session.scalars(
         select(Semester)
         .join(ClassGroup)
-        .where(ClassGroup.mentor_id == mentor_id, Semester.last_imported_at.is_(None))
+        .where(
+            ClassGroup.mentor_id == mentor_id,
+            ClassGroup.finished_at.is_(None),
+            Semester.last_imported_at.is_(None),
+        )
         .order_by(func.lower(ClassGroup.name), Semester.number)
     )
     return HomeSummary([_summarise(class_group) for class_group in classes], list(waiting))

@@ -52,6 +52,8 @@ class ClassGroup(Timestamps, db.Model):
     attendance_threshold: Mapped[int] = mapped_column(default=75, server_default="75")
     midsem_pass_mark: Mapped[int] = mapped_column(default=7, server_default="7")
     midsem_max: Mapped[int] = mapped_column(default=20, server_default="20")
+    # Set by the mentor once the batch has left; the class then moves to Past batches.
+    finished_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
 
     # The database deletes children through ON DELETE CASCADE; passive_deletes stops the
     # ORM loading every row first.

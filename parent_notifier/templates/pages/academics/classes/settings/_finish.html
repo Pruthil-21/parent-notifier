@@ -1,0 +1,18 @@
+{# Finishing the batch only moves the class out of the way; nothing is removed. #}
+<section class="settings-section" aria-labelledby="finish-heading">
+  <div class="settings-section__intro">
+    <h2 id="finish-heading">{{ "Finished batch" if class_group.finished_at else "Finish batch" }}</h2>
+    {% if class_group.finished_at %}
+    <p>Finished {{ class_group.finished_at | date }}. {{ class_group.name }} is under Past batches
+      and left out of the totals. Messages can still be sent.</p>
+    {% else %}
+    <p>Once this batch has left, move {{ class_group.name }} to Past batches. Everything in it
+      stays, messages can still be sent, and you can reopen it at any time.</p>
+    {% endif %}
+  </div>
+  <form class="settings-section__form" method="post"
+        action="{{ url_for('class_settings.reopen' if class_group.finished_at else 'class_settings.finish', class_id=class_group.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="button" type="submit">{{ "Reopen batch" if class_group.finished_at else "Finish batch" }}</button>
+  </form>
+</section>

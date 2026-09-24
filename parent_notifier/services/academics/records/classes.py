@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from parent_notifier.core.extensions import db
 from parent_notifier.models.academics import ClassGroup
 from parent_notifier.services.academics.views import semester_stats
+from parent_notifier.services.shared import clock
 
 
 class ClassNameTakenError(Exception):
@@ -48,6 +49,17 @@ def update_rules(
     class_group.midsem_pass_mark = midsem_pass_mark
     class_group.midsem_max = midsem_max
     semester_stats.invalidate_class(class_group.id)
+    db.session.commit()
+
+
+def finish(class_group: ClassGroup) -> None:
+    """The batch has left. Nothing is removed and messages can still be sent."""
+    class_group.finished_at = clock.now()
+    db.session.commit()
+
+
+def reopen(class_group: ClassGroup) -> None:
+    class_group.finished_at = None
     db.session.commit()
 
 

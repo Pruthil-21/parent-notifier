@@ -13,8 +13,7 @@
 {% endcall %}
 {% endblock %}
 
-{% block content %}
-{% if rows %}
+{% macro class_table(rows) %}
 <div class="data-grid">
   <table>
     <thead>
@@ -48,6 +47,17 @@
     </tbody>
   </table>
 </div>
+{% endmacro %}
+
+{% block content %}
+{% if rows %}
+{% set current = rows | selectattr("class_group.finished_at", "none") | list %}
+{% set finished = rows | rejectattr("class_group.finished_at", "none") | list %}
+{% if current %}{{ class_table(current) }}{% endif %}
+{% if finished %}
+<h2 class="section-heading">Past batches</h2>
+{{ class_table(finished) }}
+{% endif %}
 {% else %}
 {% call empty_state("No classes yet", "Create a class for each batch you mentor. You then add its semesters and upload each semester's sheet.") %}
 <a class="button button--primary" href="{{ url_for('classes.new_class') }}">{{ icon("add") }}New class</a>

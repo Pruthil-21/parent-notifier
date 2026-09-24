@@ -1,5 +1,5 @@
-"""Class settings: details, status rules and deleting the class. Each section saves on
-its own."""
+"""Class settings: details, status rules, finishing the batch and deleting the class.
+Each section saves on its own."""
 
 from flask import Blueprint, flash, redirect, render_template, url_for
 from flask_login import current_user, login_required
@@ -85,6 +85,28 @@ def save_rules(class_id: int):
         )
         return redirect(url_for("class_settings.index", class_id=class_id))
     return _render(class_group, rules_form=form)
+
+
+@bp.post("/finish")
+@login_required
+def finish(class_id: int):
+    class_group = load_class(class_id)
+    if class_group.finished_at is None:
+        classes.finish(class_group)
+        log("data", "class_finished", target=class_group, class_group=class_group)
+        flash(f"{class_group.name} moved to Past batches. You can still send messages.", "success")
+    return redirect(url_for("class_settings.index", class_id=class_id))
+
+
+@bp.post("/reopen")
+@login_required
+def reopen(class_id: int):
+    class_group = load_class(class_id)
+    if class_group.finished_at is not None:
+        classes.reopen(class_group)
+        log("data", "class_reopened", target=class_group, class_group=class_group)
+        flash(f"{class_group.name} is a current class again.", "success")
+    return redirect(url_for("class_settings.index", class_id=class_id))
 
 
 @bp.post("/delete")
