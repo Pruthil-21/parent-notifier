@@ -17,6 +17,7 @@ from parent_notifier.models.academics import (
     Student,
 )
 from parent_notifier.models.imports import ImportBatch
+from parent_notifier.services.academics.views import semester_stats
 from parent_notifier.services.imports.cell_parser import SubjectCell
 from parent_notifier.services.imports.compare import students_by_enrollment
 from parent_notifier.services.imports.sheet_parser import ParsedSheet, SheetRow
@@ -178,5 +179,7 @@ def apply_import(
             snapshot=snapshot | {"created_student_ids": [student.id for student in created]},
         )
     )
+    # Identity updates reach every semester of the class, so all their counts go.
+    semester_stats.invalidate_class(class_group.id)
     db.session.commit()
     return outcome

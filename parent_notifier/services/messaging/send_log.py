@@ -8,6 +8,7 @@ from sqlalchemy import select
 from parent_notifier.core.extensions import db
 from parent_notifier.models.academics import Semester
 from parent_notifier.models.messaging import SendLog
+from parent_notifier.services.academics.views import semester_stats
 from parent_notifier.services.academics.views.semester_view import StudentRow
 from parent_notifier.services.messaging import previews
 from parent_notifier.services.messaging.whatsapp_links import whatsapp_app_link, whatsapp_link
@@ -31,6 +32,7 @@ def record(semester: Semester, student_id: int, mentor_id: int, **fields) -> Sen
         **fields,
     )
     db.session.add(entry)
+    semester_stats.invalidate(semester.id)
     db.session.commit()
     return entry
 

@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from parent_notifier.core.extensions import db
 from parent_notifier.models.academics import ClassGroup, Semester, Student
 from parent_notifier.models.messaging import SendLog
+from parent_notifier.services.academics.views import semester_stats
 from parent_notifier.services.shared.phone import normalise_indian_mobile
 
 
@@ -37,6 +38,7 @@ def add_student(
     _set_details(student, details)
     semester.students.append(student)
     try:
+        semester_stats.invalidate(semester.id)  # flushes, so a taken number fails here
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
@@ -46,6 +48,7 @@ def add_student(
 
 def update_student(student: Student, details: dict) -> None:
     _set_details(student, details)
+    semester_stats.invalidate_class(student.class_id)
     db.session.commit()
 
 
@@ -66,5 +69,6 @@ def messages_sent(student: Student) -> int:
 def delete_student(student: Student) -> None:
     """Delete the student with their marks in every semester and their send record. The
     database removes those rows through its foreign keys."""
+    semester_stats.invalidate_class(student.class_id)
     db.session.delete(student)
     db.session.commit()

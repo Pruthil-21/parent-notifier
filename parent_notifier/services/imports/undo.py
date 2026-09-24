@@ -13,6 +13,7 @@ from parent_notifier.models.academics import (
     semester_students,
 )
 from parent_notifier.models.imports import ImportBatch
+from parent_notifier.services.academics.views import semester_stats
 from parent_notifier.services.imports.apply import IDENTITY_FIELDS
 from parent_notifier.services.shared import clock
 
@@ -76,4 +77,5 @@ def undo_import(semester: Semester, batch: ImportBatch) -> None:
     last = snapshot["last_imported_at"]
     semester.last_imported_at = datetime.fromisoformat(last) if last else None
     batch.undone_at = clock.now()
+    semester_stats.invalidate_class(semester.class_id)
     db.session.commit()
