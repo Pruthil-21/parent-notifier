@@ -1,0 +1,113 @@
+{% extends "layouts/app.html" %}
+{% from "components/navigation/breadcrumb.html" import breadcrumb %}
+{% from "components/feedback/badge.html" import badge %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/help.css') }}">
+{% endblock %}
+
+{% block title %}Help{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Home", url_for("home.index")), ("Help", None)]) }}{% endblock %}
+{% block page_title %}Help{% endblock %}
+
+{% block content %}
+<div class="help">
+  <nav class="help__contents" aria-labelledby="contents-heading">
+    <h2 id="contents-heading">On this page</h2>
+    <ul role="list">
+      <li><a href="#sheet">Filling the sheet</a></li>
+      <li><a href="#statuses">What each status means</a></li>
+      <li><a href="#sending">Sending messages</a></li>
+      <li><a href="#pacing">Why sending is paced</a></li>
+      <li><a href="#wording">Changing the message wording</a></li>
+    </ul>
+  </nav>
+
+  <div class="help__body">
+    <section id="sheet" aria-labelledby="sheet-heading">
+      <h2 id="sheet-heading">Filling the sheet</h2>
+      <p>Use one sheet per semester, with one row per student. The first four columns are
+        Enrollment No, Student Name, Parent Name and Parent Phone. Every column after
+        those is one subject, headed with the subject's name. There is no limit on the
+        number of subjects.</p>
+      <p>Each subject cell holds that student's attendance and Mid-Sem marks, for example
+        <code>Theory=86,Practical=92,Marks=16</code>.</p>
+      <ul>
+        <li><strong>Theory</strong> and <strong>Practical</strong> are attendance percentages.</li>
+        <li><strong>Marks</strong> is the Mid-Sem score out of the class's maximum. Write <code>AB</code> if the student was absent.</li>
+        <li>Leave a part out when there is nothing to enter yet: a theory-only subject has no Practical, and Marks stays out until the Mid-Sem is held.</li>
+        <li>Small differences are fine: <code>;</code> or new lines between parts, <code>:</code> instead of <code>=</code>, <code>82%</code>, <code>16/20</code>, lowercase, and short names such as <code>Th</code>, <code>Pr</code> and <code>Mid</code>.</li>
+      </ul>
+      <p>Save the file as <code>.xlsx</code> or <code>.csv</code>, up to {{ max_upload_mb }} MB. An old
+        <code>.xls</code> file has to be saved as <code>.xlsx</code> first. Before anything is
+        saved, the review page lists every problem with its row number.</p>
+      <p>Once a class has students, <strong>Download pre-filled sheet</strong> on the semester
+        page gives you a sheet with their details already in, so you only add the figures.</p>
+      <p><a class="button" href="{{ url_for('downloads.sheet_format') }}" download>Download sheet format</a></p>
+    </section>
+
+    <section id="statuses" aria-labelledby="statuses-heading">
+      <h2 id="statuses-heading">What each status means</h2>
+      <p>Each student gets one status per semester. The first one that fits applies.</p>
+      <dl class="help__terms">
+        <dt>{{ badge("at_risk") }}</dt>
+        <dd>Theory or Practical attendance is below the class's threshold (75% unless changed) in at least one subject.</dd>
+        <dt>{{ badge("needs_attention") }}</dt>
+        <dd>Attendance is fine, but in at least one subject the Mid-Sem score is below the pass mark (7 unless changed) or the student was absent.</dd>
+        <dt>{{ badge("doing_well") }}</dt>
+        <dd>Neither of the above.</dd>
+        <dt>{{ badge("no_data") }}</dt>
+        <dd>The student is in the sheet but has no figures yet.</dd>
+      </dl>
+      <p>Subjects without Mid-Sem marks yet are judged on attendance alone. You can change
+        the threshold, pass mark and maximum marks for each class in <strong>Class settings</strong>.</p>
+      <p>Students marked {{ badge("left") }} or {{ badge("detained") }} stay on record, but they
+        are left out of the tiles and are not messaged.</p>
+    </section>
+
+    <section id="sending" aria-labelledby="sending-heading">
+      <h2 id="sending-heading">Sending messages</h2>
+      <ol>
+        <li>Open WhatsApp Web in this browser and sign in with the number shown as
+          <strong>Sending as</strong> in the top bar. The app can't choose the account:
+          WhatsApp sends from whichever one is signed in.</li>
+        <li>On a semester page, click a student's name, or use <strong>Message pending parents</strong>
+          to go through every parent still waiting for a message.</li>
+        <li>Check the preview. You can switch between English and Gujarati and add a short note.</li>
+        <li>Select <strong>Send on WhatsApp</strong>. A WhatsApp tab opens with the message filled in. Press send there.</li>
+      </ol>
+      <p>The app marks the parent as sent when you select Send on WhatsApp, and it keeps
+        the exact text it prepared. If you then don't send it in WhatsApp, the parent still
+        shows as sent. <strong>Skip</strong> moves on without a message.</p>
+      <p>A new sheet for the semester puts every parent back on the pending list, because
+        the figures have changed.</p>
+    </section>
+
+    <section id="pacing" aria-labelledby="pacing-heading">
+      <h2 id="pacing-heading">Why sending is paced</h2>
+      <p>WhatsApp can restrict a personal number that sends many messages in a short time
+        to people who haven't saved it. To protect your number, the app spaces messages out:</p>
+      <ul>
+        <li>{{ pacing.gap_seconds }} seconds between messages</li>
+        <li>a {{ pacing.burst_pause_minutes }}-minute pause after every {{ pacing.burst_size }} messages</li>
+        <li>at most {{ pacing.daily_limit }} messages a day, across all your classes</li>
+      </ul>
+      <p>These are your current settings. You can change them under <strong>Sending safety</strong>
+        on your <a href="{{ url_for('profile.index') }}">profile</a>. Asking parents to save your
+        number at the start of each semester lowers the risk further.</p>
+    </section>
+
+    <section id="wording" aria-labelledby="wording-heading">
+      <h2 id="wording-heading">Changing the message wording</h2>
+      <p>The wording lives in two text files on the computer that runs the app:</p>
+      <ul>
+        <li><code>message_templates/parent_report.en.txt</code> for English</li>
+        <li><code>message_templates/parent_report.gu.txt</code> for Gujarati</li>
+      </ul>
+      <p>Ask whoever looks after the app to change them. The next message uses the new
+        wording, with no restart. Parts in double curly brackets, such as
+        <code>{{ "{{ student_name }}" }}</code>, are filled in for each student, so keep them as they are.</p>
+    </section>
+  </div>
+</div>
+{% endblock %}
