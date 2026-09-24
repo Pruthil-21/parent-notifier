@@ -1,0 +1,27 @@
+{# The theme menu. Each option is a form button, so it works without JavaScript and the
+   page reloads in the new theme; shell/theme.js switches at once and saves in the
+   background. The choice is kept on the mentor's account, so every browser follows it. #}
+{% set themes = [("system", "System"), ("light", "Light"), ("dark", "Dark")] %}
+{% set chosen = current_user.theme %}
+<details class="account-menu theme-menu" data-menu data-theme-menu>
+  <summary class="account-menu__button" aria-label="Theme: {{ dict(themes)[chosen] }}">
+    {{ icon("theme-" ~ chosen) }}
+  </summary>
+  <div class="account-menu__panel theme-menu__panel">
+    <p class="theme-menu__title" id="theme-menu-title">Theme</p>
+    <form method="post" action="{{ url_for('profile.save_theme') }}" aria-labelledby="theme-menu-title">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="next" value="{{ request.full_path | trim('?') }}">
+      <ul class="account-menu__items" role="list">
+        {% for value, label in themes %}
+        <li>
+          <button type="submit" class="account-menu__item" name="theme" value="{{ value }}"
+                  data-label="{{ label }}" aria-pressed="{{ 'true' if value == chosen else 'false' }}">
+            {{ icon("theme-" ~ value) }}{{ label }}<span class="theme-menu__check">{{ icon("checkmark") }}</span>
+          </button>
+        </li>
+        {% endfor %}
+      </ul>
+    </form>
+  </div>
+</details>
