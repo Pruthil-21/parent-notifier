@@ -2,10 +2,12 @@
 {% from "components/forms/error_summary.html" import error_summary %}
 {% from "components/forms/field.html" import department_field, password_field, text_field %}
 
-{% block title %}Create account{% endblock %}
+{% set heading = "Request an account" if needs_approval else "Create account" %}
+{% block title %}{{ heading }}{% endblock %}
 
 {% block panel %}
-<h1 class="public-panel__title">Create account</h1>
+<h1 class="public-panel__title">{{ heading }}</h1>
+{% if needs_approval %}<p>The admin approves each new account. You can sign in once yours is approved.</p>{% endif %}
 {{ error_summary(form, first_field=form.full_name) }}
 <form class="form-stack" method="post" novalidate>
   {{ form.hidden_tag() }}
@@ -17,7 +19,7 @@
                 type="tel", inputmode="tel", autocomplete="tel-national") }}
   {{ department_field(form.department) }}
   {{ password_field(form.password, hint="8 to 128 characters", autocomplete="new-password") }}
-  <button class="button button--primary button--full" type="submit">Create account</button>
+  <button class="button button--primary button--full" type="submit">{{ "Send request" if needs_approval else "Create account" }}</button>
 </form>
 <p class="public-panel__links">
   Already have an account? <a href="{{ url_for('auth.sign_in') }}">Sign in</a>

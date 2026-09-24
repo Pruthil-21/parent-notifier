@@ -16,7 +16,13 @@
 </form>
 <div class="public-panel__links">
   <p><a href="{{ url_for('auth.reset_password') }}">Forgot your password?</a></p>
+  {% if signup == "open" %}
   <p>New to Parent Notifier? <a href="{{ url_for('registration.create_account') }}">Create account</a></p>
+  {% elif signup == "approval" %}
+  <p>New to Parent Notifier? <a href="{{ url_for('registration.create_account') }}">Request an account</a></p>
+  {% else %}
+  <p>New to Parent Notifier? Ask the admin to create your account.</p>
+  {% endif %}
 </div>
 {% endblock %}
 

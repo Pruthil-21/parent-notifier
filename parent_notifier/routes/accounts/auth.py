@@ -11,6 +11,9 @@ from parent_notifier.services.accounts import credentials, registration
 bp = Blueprint("auth", __name__)
 
 INCORRECT_SIGN_IN = "Username or password is incorrect."
+WAITING_FOR_APPROVAL = (
+    "Your account is waiting for the admin's approval. Try again once it is approved."
+)
 INCORRECT_RESET = "Username or recovery code is incorrect."
 SIGN_IN_TEMPLATE = "pages/accounts/sign_in.html"
 RESET_TEMPLATE = "pages/accounts/reset_password.html"
@@ -24,12 +27,24 @@ def sign_in():
     form = SignInForm(next=request.args.get("next", ""))
     if form.validate_on_submit():
         mentor = credentials.authenticate(form.username.data, form.password.data)
-        if mentor:
+        if mentor and not mentor.approved:
+            # Said only after the right password, so it reveals nothing to a guesser.
+            form.form_errors.append(WAITING_FOR_APPROVAL)
+        elif mentor:
             start_session(mentor, remember=form.remember.data)
+            code = registration.record_sign_in(mentor)
+            if code:
+                return show_recovery_code(code, then="home")
             return redirect(safe_next(form.next.data))
-        throttling.record_failed_attempt()
-        form.form_errors.append(INCORRECT_SIGN_IN)
-    return render_template(SIGN_IN_TEMPLATE, form=form)
+        else:
+            throttling.record_failed_attempt()
+            form.form_errors.append(INCORRECT_SIGN_IN)
+    return _sign_in_page(form)
+
+
+def _sign_in_page(form, status: int = 200):
+    signup = registration.signup_mode()
+    return render_template(SIGN_IN_TEMPLATE, form=form, signup=signup), status
 
 
 @bp.route("/reset-password", methods=["GET", "POST"])
@@ -63,7 +78,7 @@ def too_many_attempts(_error):
         return render_template(RESET_TEMPLATE, form=form), 429
     form = SignInForm()
     form.form_errors.append(throttling.lockout_message("sign-in"))
-    return render_template(SIGN_IN_TEMPLATE, form=form), 429
+    return _sign_in_page(form, 429)
 
 
 @bp.post("/sign-out")
