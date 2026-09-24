@@ -32,10 +32,12 @@ def latest_undoable(semester: Semester) -> ImportBatch | None:
 
 
 def _restore_results(semester: Semester, snapshot: dict) -> None:
-    kept_ids = {subject["id"] for subject in snapshot["subjects"]}
+    kept = {subject["id"]: subject for subject in snapshot["subjects"]}
     for subject in list(semester.subjects):
-        if subject.id not in kept_ids:
+        if subject.id not in kept:
             semester.subjects.remove(subject)  # its results go with it
+        elif "midsem_max" in kept[subject.id]:
+            subject.midsem_max = kept[subject.id]["midsem_max"]
     subject_ids = select(SemesterSubject.id).where(SemesterSubject.semester_id == semester.id)
     db.session.execute(delete(Result).where(Result.semester_subject_id.in_(subject_ids)))
     # A student deleted since the import stays deleted: their saved marks are skipped.

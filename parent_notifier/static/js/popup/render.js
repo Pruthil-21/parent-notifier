@@ -49,7 +49,7 @@ function subjectRow(subject, rules) {
   const below = `below ${rules.threshold}%`;
   const marks = subject.absent
     ? figureCell(0, "", true, "figure-fail", "absent")
-    : figureCell(subject.marks, `/${rules.midsemMax}`, subject.fail, "figure-fail", "below the pass mark");
+    : figureCell(subject.marks, `/${subject.outOf}`, subject.fail, "figure-fail", "below the pass mark");
   if (subject.absent) marks.querySelector("span").textContent = "AB";
   row.append(
     name,

@@ -18,13 +18,14 @@
     <tbody>
       {% for result in row.results %}
       {% set threshold = view.rules.attendance_threshold %}
+      {% set failed = row.fails | map(attribute="subject") | list %}
       <tr>
         <th scope="row">{{ result.subject }}</th>
         <td class="numeric">{{ figure(result.theory, "%", result.theory is not none and result.theory < threshold, "figure-short", "below " ~ threshold ~ "%") }}</td>
         <td class="numeric">{{ figure(result.practical, "%", result.practical is not none and result.practical < threshold, "figure-short", "below " ~ threshold ~ "%") }}</td>
         <td class="numeric">
           {% if result.absent %}<span class="figure-fail">AB</span><span class="visually-hidden"> (absent)</span>
-          {% else %}{{ figure(result.marks, "/" ~ view.rules.midsem_max, result.marks is not none and result.marks < view.rules.midsem_pass_mark, "figure-fail", "below the pass mark") }}{% endif %}
+          {% else %}{{ figure(result.marks, "/" ~ (result.out_of or view.rules.midsem_max), result.subject in failed, "figure-fail", "below the pass mark") }}{% endif %}
         </td>
       </tr>
       {% endfor %}

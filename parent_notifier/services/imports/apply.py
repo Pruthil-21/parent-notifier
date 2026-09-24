@@ -47,7 +47,12 @@ def take_snapshot(semester: Semester, students: list[Student]) -> dict:
     this import may change."""
     return {
         "subjects": [
-            {"id": subject.id, "name": subject.name, "position": subject.position}
+            {
+                "id": subject.id,
+                "name": subject.name,
+                "position": subject.position,
+                "midsem_max": subject.midsem_max,
+            }
             for subject in semester.subjects
         ],
         "student_ids": [student.id for student in semester.students],
@@ -73,8 +78,10 @@ def _iso(day) -> str | None:
     return day.isoformat() if day else None
 
 
-def _subjects(semester: Semester, names: list[str]) -> dict[str, SemesterSubject]:
-    """Existing subjects are matched ignoring case; new ones are added after them."""
+def _subjects(semester: Semester, sheet: ParsedSheet, class_max: int) -> dict:
+    """Existing subjects are matched ignoring case; new ones are added after them. A
+    subject with marks in the sheet takes their total; one without keeps its own."""
+    names = sheet.subjects
     existing = {subject.name.lower(): subject for subject in semester.subjects}
     position = len(existing)
     found = {}
@@ -85,6 +92,9 @@ def _subjects(semester: Semester, names: list[str]) -> dict[str, SemesterSubject
             position += 1
             db.session.add(subject)
             semester.subjects.append(subject)
+        if name in sheet.subject_max:
+            total = sheet.subject_max[name]
+            subject.midsem_max = None if total == class_max else total
         found[name] = subject
     db.session.flush()
     return found
@@ -129,7 +139,7 @@ def _update_identity(student: Student, row: SheetRow) -> None:
 
 def _apply_rows(class_group, semester, sheet, stored, update_identity) -> list[Student]:
     """Add or update every student and merge their results; return the students created."""
-    subjects = _subjects(semester, sheet.subjects)
+    subjects = _subjects(semester, sheet, class_group.midsem_max)
     results = _results(semester)
     members = set(semester.students)
     created = []

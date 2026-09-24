@@ -59,6 +59,8 @@ class ParsedSheet:
     # The days the attendance covers, as ISO dates ("2026-07-07"), when known.
     attendance_from: str | None = None
     attendance_to: str | None = None
+    # Each subject with Mid-Sem marks and the total they are out of.
+    subject_max: dict[str, int] = field(default_factory=dict)
 
 
 def _normalise(header: str) -> str:
@@ -151,6 +153,25 @@ def _row(number, cells, identity, subjects, midsem_max, sheet: ParsedSheet) -> S
     return SheetRow(number, enrollment, name, value("parent_name"), phone, phone_e164, parsed)
 
 
+def _subject_totals(sheet: ParsedSheet, midsem_max: int) -> None:
+    """One total per subject: marks written as 18/25 make it out of 25, plain marks are
+    out of the class's total, and a subject cannot mix the two."""
+    for subject in sheet.subjects:
+        totals = {
+            row.cells[subject].out_of or midsem_max
+            for row in sheet.rows
+            if row.cells[subject].marks is not None
+        }
+        if len(totals) > 1:
+            listed = " and ".join(str(total) for total in sorted(totals))
+            sheet.errors.append(
+                f"{subject}: Mid-Sem marks are out of {listed} in different rows. Write every "
+                "mark in the subject out of the same total, like 18/25"
+            )
+        elif totals:
+            sheet.subject_max[subject] = totals.pop()
+
+
 def parse_sheet(grid: list[list[str]], midsem_max: int) -> ParsedSheet:
     sheet = ParsedSheet()
     found = _find_header(grid)
@@ -183,6 +204,7 @@ def parse_sheet(grid: list[list[str]], midsem_max: int) -> ParsedSheet:
             continue
         seen[key] = offset
         sheet.rows.append(row)
+    _subject_totals(sheet, midsem_max)
     if not sheet.rows and not sheet.errors:
         sheet.errors.append("The sheet has no student rows under the header")
     if len(sheet.errors) > MAX_ERRORS:

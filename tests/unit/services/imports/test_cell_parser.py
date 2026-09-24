@@ -54,8 +54,10 @@ def test_blank_cell_means_no_data_yet(text):
         ("Practical=-5", "Practical must be a percentage from 0 to 100"),
         ("Theory=eighty", "Theory must be a percentage from 0 to 100"),
         ("Theory=80/100", "Theory must be a percentage from 0 to 100"),
-        ("Marks=25", "Marks must be from 0 to 20"),
-        ("Marks=16/30", "Marks must be out of 20 for this class"),
+        ("Marks=25", "Marks must be from 0 to 20. For a subject out of another total"),
+        ("Marks=26/25", "Marks must be from 0 to 25"),
+        ("Marks=16/20.5", "Marks must be out of a whole number up to 100"),
+        ("Marks=16/120", "Marks must be out of a whole number up to 100"),
         ("Marks=80%", "Marks must be a number from 0 to 20, or AB if absent"),
         ("Lab=90", 'Unknown part "Lab"'),
         ("Theory=80,Theory=81", "Theory appears twice"),
@@ -93,3 +95,9 @@ def test_format_round_trips(cell):
 def test_format_reads_like_the_sheet_format():
     assert format_cell(FULL) == "Theory=86,Practical=92,Marks=16"
     assert format_cell(SubjectCell(theory=79, absent=True)) == "Theory=79,Marks=AB"
+
+
+def test_marks_can_name_the_subjects_own_total():
+    assert parse_cell("Marks=18/25", 20) == SubjectCell(marks=18, out_of=25)
+    assert parse_cell("Marks=16/20", 20) == SubjectCell(marks=16)  # the class's own total
+    assert format_cell(SubjectCell(theory=70, marks=18, out_of=25)) == "Theory=70,Marks=18/25"

@@ -21,7 +21,7 @@ def _students(class_group: ClassGroup, semester: Semester) -> list[Student]:
 
 def _cells(semester: Semester) -> dict[tuple[int, int], str]:
     query = (
-        select(Result)
+        select(Result, SemesterSubject.midsem_max)
         .join(SemesterSubject, Result.semester_subject_id == SemesterSubject.id)
         .where(SemesterSubject.semester_id == semester.id)
     )
@@ -32,9 +32,10 @@ def _cells(semester: Semester) -> dict[tuple[int, int], str]:
                 practical=result.practical_pct,
                 marks=result.midsem_marks,
                 absent=result.midsem_absent,
+                out_of=out_of,
             )
         )
-        for result in db.session.scalars(query)
+        for result, out_of in db.session.execute(query)
     }
 
 

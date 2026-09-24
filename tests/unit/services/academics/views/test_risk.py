@@ -73,6 +73,16 @@ def test_shortages_and_fails_are_listed():
 def test_lowest_attendance_and_average():
     results = [GOOD, SubjectResult("OS", theory=80, practical=78, marks=11, absent=False)]
     assert lowest_attendance(results) == Shortage("OS", "Practical", 78)
-    assert midsem_average(results) == 13.5
+    assert midsem_average(results, RULES) == 13.5
     assert lowest_attendance([SubjectResult("OS", marks=5)]) is None
-    assert midsem_average([SubjectResult("OS", absent=True)]) is None
+    assert midsem_average([SubjectResult("OS", absent=True)], RULES) is None
+
+
+def test_a_subject_out_of_25_passes_at_the_same_share():
+    # 7 of 20 is 35%, so out of 25 the line is 8.75: 8 fails, 9 passes.
+    eight = SubjectResult("UHV", theory=90, marks=8, out_of=25)
+    nine = SubjectResult("UHV", theory=90, marks=9, out_of=25)
+    assert fails([eight], RULES) == [Fail("UHV", 8, 25)] and fails([nine], RULES) == []
+    # Averages are out of the class's 20: 20/25 counts as 16.
+    both = [SubjectResult("DS", marks=12), SubjectResult("UHV", marks=20, out_of=25)]
+    assert midsem_average(both, RULES) == 14

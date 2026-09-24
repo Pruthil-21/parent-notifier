@@ -1,7 +1,7 @@
 {# The first rows as they will be saved: Theory / Practical / Mid-Sem per subject. #}
 {% macro value(number, suffix="") %}{% if number is none %}<span class="text-muted">–</span>{% else %}{{ "%g" | format(number) }}{{ suffix }}{% endif %}{% endmacro %}
 <h2 class="review-heading">First {{ [sheet.rows | length, 10] | min }} of {{ sheet.rows | length }} students</h2>
-<p class="text-secondary review-note">Each subject shows Theory % / Practical % / Mid-Sem out of {{ class_group.midsem_max }}.</p>
+<p class="text-secondary review-note">Each subject shows Theory % / Practical % / Mid-Sem, out of {{ class_group.midsem_max }} unless the subject says otherwise.</p>
 <div class="data-grid">
   <table>
     <thead>
@@ -9,7 +9,7 @@
         <th scope="col" class="numeric">Row</th>
         <th scope="col">Enrollment</th>
         <th scope="col">Student</th>
-        {% for subject in sheet.subjects %}<th scope="col" class="numeric">{{ subject }}</th>{% endfor %}
+        {% for subject in sheet.subjects %}<th scope="col" class="numeric">{{ subject }}{% if sheet.subject_max.get(subject, class_group.midsem_max) != class_group.midsem_max %} <span class="text-secondary">(out of {{ sheet.subject_max[subject] }})</span>{% endif %}</th>{% endfor %}
       </tr>
     </thead>
     <tbody>
