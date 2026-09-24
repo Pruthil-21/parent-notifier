@@ -52,7 +52,7 @@ class WholeNumberField(IntegerField):
 
 
 def _listed_department(_form, field) -> None:
-    if field.data not in departments.DEPARTMENTS:
+    if departments.canonical(field.data) != field.data:
         raise ValidationError("Choose a department from the list")
 
 
