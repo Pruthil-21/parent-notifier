@@ -26,14 +26,21 @@ def get_class(mentor_id: int, class_id: int) -> ClassGroup | None:
     )
 
 
-def class_links(mentor_id: int) -> list[tuple[int, str]]:
-    """Id and name of each class, for the navigation pane."""
+def class_links(mentor_id: int) -> list:
+    """Each class's id, name, department, batch year and finish time, in name order, for
+    the navigation pane."""
     query = (
-        select(ClassGroup.id, ClassGroup.name)
+        select(
+            ClassGroup.id,
+            ClassGroup.name,
+            ClassGroup.department,
+            ClassGroup.admission_year,
+            ClassGroup.finished_at,
+        )
         .where(ClassGroup.mentor_id == mentor_id)
         .order_by(func.lower(ClassGroup.name))
     )
-    return [(row.id, row.name) for row in db.session.execute(query)]
+    return list(db.session.execute(query))
 
 
 def _over_semesters(expression):

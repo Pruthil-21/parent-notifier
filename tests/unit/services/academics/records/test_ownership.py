@@ -55,4 +55,4 @@ def test_lists_are_sorted_by_name_and_hold_only_the_mentors_classes(owner, stran
         "ce-b",
         "IT-A",
     ]
-    assert [name for _id, name in ownership.class_links(owner.id)] == ["CE-A", "ce-b", "IT-A"]
+    assert [row.name for row in ownership.class_links(owner.id)] == ["CE-A", "ce-b", "IT-A"]

@@ -13,6 +13,7 @@ from werkzeug.serving import make_server
 
 from parent_notifier import create_app
 from parent_notifier.core.extensions import db
+from parent_notifier.services.shared import clock
 from tests.factories.academics import import_sheet, make_class, make_semester
 from tests.factories.accounts import PASSWORD, make_mentor
 
@@ -44,6 +45,10 @@ def demo(tmp_path_factory):
         class_group = make_class(mentor)
         import_sheet(class_group, make_semester(class_group, 4), mentor.id)
         make_semester(class_group, 5)
+        # Three more, so the menu groups by department and has a finished batch.
+        make_class(mentor, name="CE-B", admission_year=2025)
+        make_class(mentor, name="IT-A", department="Information Technology", admission_year=2024)
+        make_class(mentor, name="CE-OLD", admission_year=2021, finished_at=clock.now())
         class_id = class_group.id
     server = make_server("127.0.0.1", 0, app, threaded=True)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
