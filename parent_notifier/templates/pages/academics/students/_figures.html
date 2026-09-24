@@ -1,0 +1,50 @@
+{# This semester's figures for the student, one row per subject. An empty box means no
+   figure yet. A problem is listed above the table and marks its row. #}
+<fieldset class="field student-figures" aria-describedby="figures-hint">
+  <legend class="field__label">Sem {{ semester.number }} attendance and marks</legend>
+  {% if rows %}
+  <p class="field__hint" id="figures-hint">Leave a box empty when there is no figure yet. A sheet uploaded later updates these.</p>
+  {% if figure_errors %}
+  <div class="field__error student-figures__errors" role="alert">
+    {{ icon("error", size=16) }}
+    <ul>{% for message in figure_errors %}<li>{{ message }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+  <div class="data-grid">
+    <table class="student-figures__table">
+      <thead>
+        <tr>
+          <th scope="col">Subject</th>
+          <th scope="col">Theory %</th>
+          <th scope="col">Practical %</th>
+          <th scope="col">Mid-Sem</th>
+          <th scope="col">Absent</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        {% set index = loop.index0 %}
+        <tr{% if row.error %} class="student-figures__row--error"{% endif %}>
+          <th scope="row">{{ row.name }}</th>
+          {% for part, value, label in [("theory", row.theory, "Theory %"), ("practical", row.practical, "Practical %")] %}
+          <td data-label="{{ label }}"><input class="input student-figures__input" name="r{{ index }}-{{ part }}" value="{{ value }}"
+                     inputmode="decimal" autocomplete="off" aria-label="{{ row.name }} {{ label }}"
+                     {% if row.error %}aria-invalid="true"{% endif %}></td>
+          {% endfor %}
+          <td class="student-figures__marks" data-label="Mid-Sem out of {{ row.total }}">
+            <input class="input student-figures__input" name="r{{ index }}-marks" value="{{ row.marks }}"
+                   inputmode="decimal" autocomplete="off" aria-label="{{ row.name }} Mid-Sem out of {{ row.total }}"
+                   {% if row.error %}aria-invalid="true"{% endif %}>
+            <span class="text-secondary">/{{ row.total }}</span>
+          </td>
+          <td data-label="Absent"><input type="checkbox" name="r{{ index }}-absent" value="1" {% if row.absent %}checked{% endif %}
+                     aria-label="{{ row.name }}: absent for the Mid-Sem"></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="field__hint" id="figures-hint">This semester has no subjects yet. They come from the first sheet you upload; you can then enter figures here.</p>
+  {% endif %}
+</fieldset>
