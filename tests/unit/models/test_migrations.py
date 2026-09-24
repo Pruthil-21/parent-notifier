@@ -39,7 +39,7 @@ def _tables_without_row_level_security(connection) -> list[str]:
 def _check_activity_log_is_append_only(connection) -> None:
     """Postgres refuses edits and recent deletes, yet deleting an account still works."""
     import pytest
-    from sqlalchemy.exc import InternalError
+    from sqlalchemy.exc import DBAPIError
 
     connection.execute(
         text(
@@ -55,8 +55,10 @@ def _check_activity_log_is_append_only(connection) -> None:
         )
     )
     for statement in ("UPDATE activity_log SET event = 'x'", "DELETE FROM activity_log"):
-        with connection.begin_nested(), pytest.raises(InternalError):
+        savepoint = connection.begin_nested()
+        with pytest.raises(DBAPIError, match=r"(?i)activity log"):
             connection.execute(text(statement))
+        savepoint.rollback()
     connection.execute(text("DELETE FROM mentors"))
     assert connection.execute(text("SELECT actor_id FROM activity_log")).scalar() is None
     connection.rollback()
