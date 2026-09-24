@@ -2,7 +2,7 @@
 
 from flask import Flask
 
-from parent_notifier.routes import help
+from parent_notifier.routes import announcements, help
 from parent_notifier.routes.academics import class_settings, classes, home, semesters, students
 from parent_notifier.routes.accounts import auth, profile, registration
 from parent_notifier.routes.admin import classes as admin_classes
@@ -26,6 +26,7 @@ BLUEPRINTS = (
     downloads.bp,
     send_log.bp,
     help.bp,
+    announcements.bp,
     admin_users.bp,
     admin_classes.bp,
     admin_logs.bp,
@@ -36,3 +37,4 @@ BLUEPRINTS = (
 def register_blueprints(app: Flask) -> None:
     for blueprint in BLUEPRINTS:
         app.register_blueprint(blueprint)
+    announcements.init_announcements(app)

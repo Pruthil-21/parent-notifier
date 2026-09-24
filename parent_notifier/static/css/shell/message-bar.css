@@ -65,3 +65,7 @@
   background: var(--color-info-bg);
   color: var(--color-info);
 }
+
+.announcement {
+  margin-bottom: var(--space-4);
+}

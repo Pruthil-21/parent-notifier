@@ -1,0 +1,18 @@
+{# The admin's announcement. Closing it is saved to the account, so it stays closed on
+   every device; one the admin marked "always shown" has no close button. #}
+{% set banner = announcement_banner() %}
+{% if banner %}
+<div class="message-bar message-bar--info announcement" role="region" aria-label="Announcement">
+  {{ icon("info") }}
+  <p class="message-bar__text">{{ banner.text }}</p>
+  {% if banner.dismissible %}
+  <form method="post" action="{{ url_for('announcements.dismiss', announcement_id=banner.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+    <button type="submit" class="message-bar__dismiss">
+      {{ icon("dismiss", size=16, label="Dismiss announcement") }}
+    </button>
+  </form>
+  {% endif %}
+</div>
+{% endif %}

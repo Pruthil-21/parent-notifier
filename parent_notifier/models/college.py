@@ -1,6 +1,6 @@
 """Settings for the whole college, kept by the admin."""
 
-from sqlalchemy import String, event, insert
+from sqlalchemy import Boolean, ForeignKey, String, event, insert
 from sqlalchemy.orm import Mapped, mapped_column
 
 from parent_notifier.core.extensions import db
@@ -42,6 +42,30 @@ class Setting(Timestamps, db.Model):
 
     key: Mapped[str] = mapped_column(String(40), primary_key=True)
     value: Mapped[str] = mapped_column(String(200))
+
+
+class Announcement(Timestamps, db.Model):
+    """The banner every signed-in page shows. Publishing a new one replaces it."""
+
+    __tablename__ = "announcements"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    text: Mapped[str] = mapped_column(String(300))
+    dismissible: Mapped[bool] = mapped_column(Boolean)
+    created_by_id: Mapped[int | None] = mapped_column(ForeignKey("mentors.id", ondelete="SET NULL"))
+
+
+class AnnouncementDismissal(db.Model):
+    """A mentor closed the announcement, so it stays hidden on all their devices."""
+
+    __tablename__ = "announcement_dismissals"
+
+    announcement_id: Mapped[int] = mapped_column(
+        ForeignKey("announcements.id", ondelete="CASCADE"), primary_key=True
+    )
+    mentor_id: Mapped[int] = mapped_column(
+        ForeignKey("mentors.id", ondelete="CASCADE"), primary_key=True
+    )
 
 
 @event.listens_for(Department.__table__, "after_create")

@@ -2,12 +2,13 @@
 departments, and the announcement banner."""
 
 from flask import Blueprint, abort, flash, redirect, render_template, url_for
+from flask_login import current_user
 
-from parent_notifier.forms.admin import DepartmentForm, SignupModeForm
+from parent_notifier.forms.admin import AnnouncementForm, DepartmentForm, SignupModeForm
 from parent_notifier.routes.activity import log
 from parent_notifier.routes.admin.access import admin_required, confirmed_password_required
 from parent_notifier.services.accounts import registration
-from parent_notifier.services.shared import departments
+from parent_notifier.services.shared import announcements, departments
 
 bp = Blueprint("admin_settings", __name__, url_prefix="/admin/settings")
 
@@ -107,3 +108,45 @@ def remove_department(department_id: int):
     log("admin", "department_removed", target=("department", department_id, name))
     flash(f"{name} removed.", "success")
     return redirect(url_for("admin_settings.departments_page"))
+
+
+def _announcement_page(form=None, status: int = 200):
+    return render_template(
+        "pages/admin/settings/announcement.html",
+        form=form or AnnouncementForm(formdata=None),
+        current=announcements.current(),
+    ), status
+
+
+@bp.get("/announcement")
+@admin_required
+def announcement():
+    return _announcement_page()
+
+
+@bp.post("/announcement")
+@confirmed_password_required
+def publish_announcement():
+    form = AnnouncementForm()
+    if not form.validate_on_submit():
+        return _announcement_page(form, 400)
+    published = announcements.publish(
+        form.text.data, dismissible=form.dismissible.data == "yes", by=current_user
+    )
+    log(
+        "admin",
+        "announcement_published",
+        target=("announcement", published.id, published.text),
+        details={"dismissible": published.dismissible},
+    )
+    flash("Announcement published. Every mentor sees it now.", "success")
+    return redirect(url_for("admin_settings.announcement"))
+
+
+@bp.post("/announcement/remove")
+@confirmed_password_required
+def remove_announcement():
+    if announcements.remove():
+        log("admin", "announcement_removed")
+        flash("Announcement removed.", "success")
+    return redirect(url_for("admin_settings.announcement"))

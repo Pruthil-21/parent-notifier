@@ -1,8 +1,8 @@
 """Forms on the admin pages. None of them can set an account's role."""
 
 from flask_wtf import FlaskForm
-from wtforms import PasswordField, RadioField, StringField
-from wtforms.validators import InputRequired, Length, ValidationError
+from wtforms import PasswordField, RadioField, StringField, TextAreaField
+from wtforms.validators import DataRequired, InputRequired, Length, ValidationError
 
 from parent_notifier.forms.accounts import (
     USERNAME_TAKEN,
@@ -62,3 +62,21 @@ class DepartmentForm(FlaskForm):
         listed = departments.canonical(field.data)
         if listed and listed != self.current:
             raise ValidationError(f"{listed} is already listed")
+
+
+class AnnouncementForm(FlaskForm):
+    text = TextAreaField(
+        "Message",
+        validators=[
+            DataRequired("Write the announcement"),
+            Length(max=300, message="Announcement must be 300 characters or fewer"),
+            printable("Announcement"),
+        ],
+        # One line on the banner, so line breaks become spaces.
+        filters=[lambda value: " ".join(value.split()) if value else value],
+    )
+    dismissible = RadioField(
+        "Who can close it",
+        choices=[("yes", "Mentors can dismiss it"), ("no", "Always shown")],
+        default="yes",
+    )

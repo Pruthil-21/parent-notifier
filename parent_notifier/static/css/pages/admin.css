@@ -214,4 +214,12 @@
   .department-rename .input {
     width: min(360px, 60vw);
   }
+
+  .announcement-preview {
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-control);
+    background: var(--color-surface-subtle);
+    overflow-wrap: anywhere;
+  }
 }
