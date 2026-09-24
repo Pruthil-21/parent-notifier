@@ -15,6 +15,7 @@ from flask_login import current_user
 from parent_notifier.core.navigation import register_child_links
 from parent_notifier.forms.accounts import USERNAME_TAKEN, AccountDetailsForm
 from parent_notifier.forms.admin import ConfirmPasswordForm, NewAccountForm
+from parent_notifier.forms.admin_accounts import DeleteAccountForm, TransferClassesForm
 from parent_notifier.routes.accounts import throttling
 from parent_notifier.routes.accounts.sessions import safe_next
 from parent_notifier.routes.activity import log
@@ -25,7 +26,7 @@ from parent_notifier.routes.admin.access import (
     remember_confirmation,
 )
 from parent_notifier.services.accounts import credentials, profile, registration
-from parent_notifier.services.admin import users
+from parent_notifier.services.admin import accounts, users
 from parent_notifier.services.shared import activity, departments
 
 bp = Blueprint("admin_users", __name__, url_prefix="/admin/users")
@@ -72,17 +73,29 @@ def index():
     )
 
 
-@bp.get("/<int:account_id>")
-@admin_required
-def detail(account_id: int):
-    account = load_account(account_id)
+def _transfer_form(account, classes, formdata=None):
+    return TransferClassesForm(
+        formdata=formdata, classes=classes, mentors=accounts.mentors_except(account)
+    )
+
+
+def _detail_page(account, transfer_form=None, delete_form=None, status: int = 200):
+    classes = users.classes_of(account)
     return render_template(
         "pages/admin/users/detail.html",
         account=account,
-        classes=users.classes_of(account),
+        classes=classes,
         recent=users.recent_activity(account),
         event_label=activity.event_label,
-    )
+        transfer_form=transfer_form or _transfer_form(account, classes),
+        delete_form=delete_form or DeleteAccountForm(formdata=None, username=account.username),
+    ), status
+
+
+@bp.get("/<int:account_id>")
+@admin_required
+def detail(account_id: int):
+    return _detail_page(load_account(account_id))
 
 
 def _other_account(account_id: int):
@@ -199,3 +212,50 @@ def confirm_password():
         )
         form.password.errors.append("Your password is incorrect")
     return render_template("pages/admin/confirm_password.html", form=form, back=back)
+
+
+@bp.post("/<int:account_id>/transfer")
+@confirmed_password_required
+def transfer(account_id: int):
+    account = load_account(account_id)
+    classes = users.classes_of(account)
+    form = _transfer_form(account, classes, formdata=request.form)
+    if not form.validate_on_submit():
+        return _detail_page(account, transfer_form=form, status=400)
+    moving = [c for c in classes if c.id in set(form.classes.data)]
+    new_mentor = next(m for m in accounts.mentors_except(account) if m.id == form.to_mentor.data)
+    try:
+        accounts.transfer_classes(moving, new_mentor)
+    except accounts.NameClashError as clash:
+        form.classes.errors.append(
+            f"{new_mentor.full_name} already has a class called {', '.join(clash.names)}. "
+            "Rename it first."
+        )
+        return _detail_page(account, transfer_form=form, status=400)
+    names = [c.name for c in moving]
+    log(
+        "admin",
+        "classes_transferred",
+        target=account,
+        details={"classes": names, "to": new_mentor.username},
+    )
+    flash(f"Moved {', '.join(names)} to {new_mentor.full_name}.", "success")
+    return redirect(url_for("admin_users.detail", account_id=account.id))
+
+
+@bp.post("/<int:account_id>/delete")
+@confirmed_password_required
+def delete(account_id: int):
+    account = _other_account(account_id)
+    form = DeleteAccountForm(username=account.username)
+    if not form.validate_on_submit():
+        return _detail_page(account, delete_form=form, status=400)
+    target = ("account", account.id, f"{account.full_name} ({account.username})")
+    try:
+        accounts.delete_account(account)
+    except accounts.ClassesRemainError:
+        form.confirmation.errors.append("Move or delete this account's classes first")
+        return _detail_page(account, delete_form=form, status=400)
+    log("admin", "account_deleted", target=target)
+    flash(f"The account {target[2]} was deleted.", "success")
+    return redirect(url_for("admin_users.index"))

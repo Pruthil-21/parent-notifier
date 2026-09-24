@@ -136,4 +136,28 @@
     letter-spacing: 0.05em;
     user-select: all;
   }
+
+  .account-transfer {
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .choice-list {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .choice-list li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .account-delete {
+    margin-top: var(--space-6);
+  }
 }
