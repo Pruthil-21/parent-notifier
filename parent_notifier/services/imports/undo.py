@@ -52,8 +52,10 @@ def _restore_identities(snapshot: dict) -> None:
     for saved in snapshot["identities"]:
         student = db.session.get(Student, saved["id"])
         if student is not None:
+            # Imports saved before a detail was kept leave that detail as it is.
             for name in IDENTITY_FIELDS:
-                setattr(student, name, saved[name])
+                if name in saved:
+                    setattr(student, name, saved[name])
 
 
 def _remove_created_students(snapshot: dict) -> None:

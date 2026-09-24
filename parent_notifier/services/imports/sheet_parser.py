@@ -33,8 +33,17 @@ _ALIASES = {
         "phone": "parent phone|parents phone|parent mobile|parents mobile|phone|mobile"
         "|mobile no|phone no|contact|contact no|whatsapp|parent contact|parent whatsapp"
         "|parent phone no|parent mobile no",
+        "gender": "gender|sex|son daughter|son or daughter|boy girl|boy or girl",
     }.items()
 }
+# Son or daughter, however it is written; the message says "your son" or "your daughter".
+_GENDERS = {
+    **dict.fromkeys(("son", "male", "m", "boy"), "male"),
+    **dict.fromkeys(("daughter", "female", "f", "girl"), "female"),
+}
+# A number Excel wrote in scientific form, like 1.25020405011E+13, has already lost its
+# last digits, so it can never be matched or messaged.
+_SHORTENED = re.compile(r"^\d(?:\.\d+)?e\+?\d+$", re.IGNORECASE)
 MAX_SUBJECT_NAME = 80
 
 
@@ -47,6 +56,7 @@ class SheetRow:
     phone_raw: str
     phone_e164: str | None
     cells: dict[str, SubjectCell]
+    gender: str | None = None  # None when the sheet does not say
 
 
 @dataclass
@@ -134,6 +144,18 @@ def _row(number, cells, identity, subjects, midsem_max, sheet: ParsedSheet) -> S
 
     enrollment, name, phone = value("enrollment_no"), value("full_name"), value("phone")
     problems = _identity_problems(number, {key: value(key) for key in IDENTITY_LIMITS})
+    for key, raw in (("enrollment_no", enrollment), ("phone", phone)):
+        if _SHORTENED.match(raw):
+            problems.append(
+                f"Row {number}: {IDENTITY_LABELS[key]} {raw} was shortened by Excel and has lost "
+                "digits. Format the column as Text, type the numbers again and save"
+            )
+    gender = _GENDERS.get(value("gender").lower())
+    if value("gender") and gender is None:
+        sheet.warnings.append(
+            f'Row {number}: Son or daughter "{value("gender")}" is not Son or Daughter, so it '
+            "is left unset"
+        )
     parsed: dict[str, SubjectCell] = {}
     for subject, index in subjects.items():
         try:
@@ -142,7 +164,7 @@ def _row(number, cells, identity, subjects, midsem_max, sheet: ParsedSheet) -> S
             problems.append(f"Row {number}, {subject}: {error}")
     sheet.errors.extend(problems)
     phone_e164 = normalise_indian_mobile(phone)
-    if phone_e164 is None:
+    if phone_e164 is None and not _SHORTENED.match(phone):
         shown = f'"{phone}"' if phone else "blank"
         sheet.warnings.append(
             f"Row {number}: parent phone is {shown}, not a 10-digit mobile number. "
@@ -150,7 +172,9 @@ def _row(number, cells, identity, subjects, midsem_max, sheet: ParsedSheet) -> S
         )
     if problems:
         return None
-    return SheetRow(number, enrollment, name, value("parent_name"), phone, phone_e164, parsed)
+    return SheetRow(
+        number, enrollment, name, value("parent_name"), phone, phone_e164, parsed, gender
+    )
 
 
 def _subject_totals(sheet: ParsedSheet, midsem_max: int) -> None:

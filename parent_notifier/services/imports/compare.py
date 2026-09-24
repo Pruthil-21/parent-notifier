@@ -9,7 +9,13 @@ from parent_notifier.core.extensions import db
 from parent_notifier.models.academics import ClassGroup, Student
 from parent_notifier.services.imports.sheet_parser import ParsedSheet
 
-FIELDS = (("full_name", "Student name"), ("parent_name", "Parent name"), ("phone", "Phone"))
+FIELDS = (
+    ("full_name", "Student name"),
+    ("parent_name", "Parent name"),
+    ("phone", "Phone"),
+    ("gender", "Son or daughter"),
+)
+_GENDER_WORDS = {"male": "Son", "female": "Daughter", None: ""}
 
 
 @dataclass(frozen=True)
@@ -46,11 +52,13 @@ def compare(class_group: ClassGroup, sheet: ParsedSheet) -> Comparison:
             "full_name": student.full_name,
             "parent_name": student.parent_name,
             "phone": student.phone_raw,
+            "gender": _GENDER_WORDS[student.gender],
         }
         incoming = {
             "full_name": row.full_name,
             "parent_name": row.parent_name,
             "phone": row.phone_raw,
+            "gender": _GENDER_WORDS[row.gender],
         }
         for key, label in FIELDS:
             if _differs(key, current[key], incoming[key], student, row):

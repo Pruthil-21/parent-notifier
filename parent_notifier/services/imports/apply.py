@@ -24,7 +24,7 @@ from parent_notifier.services.imports.compare import students_by_enrollment
 from parent_notifier.services.imports.sheet_parser import ParsedSheet, SheetRow
 from parent_notifier.services.shared import clock
 
-IDENTITY_FIELDS = ("full_name", "parent_name", "phone_raw", "phone_e164")
+IDENTITY_FIELDS = ("full_name", "parent_name", "phone_raw", "phone_e164", "gender")
 RESULT_FIELDS = ("theory_pct", "practical_pct", "midsem_marks", "midsem_absent")
 
 
@@ -120,6 +120,7 @@ def _student(class_group: ClassGroup, row: SheetRow) -> Student:
         parent_name=row.parent_name,
         phone_raw=row.phone_raw,
         phone_e164=row.phone_e164,
+        gender=row.gender,
     )
     db.session.add(student)
     return student
@@ -135,6 +136,8 @@ def _update_identity(student: Student, row: SheetRow) -> None:
             setattr(student, name, value)
     if row.phone_raw:
         student.phone_e164 = row.phone_e164
+    if row.gender:
+        student.gender = row.gender
 
 
 def _apply_rows(class_group, semester, sheet, stored, update_identity) -> list[Student]:
