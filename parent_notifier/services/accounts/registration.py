@@ -1,5 +1,7 @@
 """Creating mentor accounts, replacing recovery codes and resetting passwords."""
 
+import secrets
+
 from sqlalchemy import exists, select
 from sqlalchemy.exc import IntegrityError
 
@@ -108,8 +110,37 @@ def record_sign_in(mentor: Mentor) -> str | None:
     approved) gets one now, returned so it can be shown once."""
     mentor.last_sign_in_at = clock.now()
     code = None
-    if not mentor.recovery_code_hash:
+    # A mentor with an admin-set password gets their code after choosing their own.
+    if not mentor.recovery_code_hash and not mentor.must_change_password:
         code = recovery_codes.generate()
         mentor.recovery_code_hash = recovery_codes.hash_code(code)
+    db.session.commit()
+    return code
+
+
+# No 0/O or 1/I/L, so a password read out or copied by hand is not mistyped.
+_TEMPORARY_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789"
+
+
+def set_temporary_password(mentor: Mentor) -> str:
+    """Give the mentor a password chosen by the admin, returned once to be handed over.
+    It works for one sign-in: the mentor must then choose their own, and gets a new
+    recovery code. Every browser the mentor was signed in on is signed out."""
+    groups = ("".join(secrets.choice(_TEMPORARY_ALPHABET) for _ in range(4)) for _ in range(3))
+    password = "-".join(groups)
+    set_password(mentor, password)
+    mentor.must_change_password = True
+    mentor.recovery_code_hash = ""
+    db.session.commit()
+    return password
+
+
+def choose_own_password(mentor: Mentor, password: str) -> str:
+    """Replace an admin-set password with the mentor's own; returns their new recovery
+    code, shown once."""
+    set_password(mentor, password)
+    mentor.must_change_password = False
+    code = recovery_codes.generate()
+    mentor.recovery_code_hash = recovery_codes.hash_code(code)
     db.session.commit()
     return code

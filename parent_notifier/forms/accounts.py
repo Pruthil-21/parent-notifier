@@ -116,6 +116,10 @@ class RecoveryCodeSavedForm(FlaskForm):
     )
 
 
+class ChooseOwnPasswordForm(FlaskForm):
+    new_password = new_password_field("New password")
+
+
 class ResetPasswordForm(FlaskForm):
     username = StringField(
         "Username", validators=[InputRequired("Enter your username")], filters=[strip]
