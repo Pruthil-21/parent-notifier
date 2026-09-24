@@ -39,5 +39,12 @@ def paginate(query, number: int, per_page: int) -> Page:
     return Page(items, number, per_page, total)
 
 
+def paginate_list(items: list, number: int, per_page: int) -> Page:
+    """The same for a list already in memory, such as rows sorted by a count."""
+    total = len(items)
+    number = min(max(1, number), max(1, ceil(total / per_page)))
+    return Page(items[(number - 1) * per_page : number * per_page], number, per_page, total)
+
+
 def page_number(value: str | None) -> int:
     return int(value) if value and value.isdecimal() and len(value) < 6 else 1

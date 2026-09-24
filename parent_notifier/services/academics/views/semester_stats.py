@@ -15,7 +15,7 @@ from parent_notifier.core.extensions import db
 from parent_notifier.models.academics import Semester, SemesterStats
 from parent_notifier.services.shared import clock
 
-MAX_AGE = timedelta(minutes=30)
+MAX_AGE = timedelta(hours=6)
 
 
 @dataclass(frozen=True)

@@ -1,0 +1,63 @@
+{% extends "layouts/app.html" %}
+{% from "components/navigation/breadcrumb.html" import breadcrumb %}
+{% from "components/data/pagination.html" import pagination %}
+{% from "components/feedback/empty_state.html" import empty_state %}
+{% from "pages/admin/_class_table.html" import class_table %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/admin.css') }}">
+{% endblock %}
+
+{% block title %}All classes{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Overview", url_for("home.index")), ("All classes", None)]) }}{% endblock %}
+{% block page_title %}All classes{% endblock %}
+{% block page_meta %}Every class in the college, each opening read-only{% endblock %}
+
+{% block content %}
+<form class="admin-filters" method="get" role="search">
+  <div class="admin-filters__field">
+    <label for="classes-search">Search classes</label>
+    <input class="input" id="classes-search" name="q" type="search" value="{{ filters.search }}" maxlength="100"
+           placeholder="Class or mentor name" autocomplete="off">
+  </div>
+  <div class="admin-filters__field">
+    <label for="classes-department">Department</label>
+    <select class="input" id="classes-department" name="department">
+      <option value="">All departments</option>
+      {% for name in department_list %}<option value="{{ name }}" {% if name == filters.department %}selected{% endif %}>{{ name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="admin-filters__field">
+    <label for="classes-year">Batch</label>
+    <select class="input" id="classes-year" name="year">
+      <option value="">All batches</option>
+      {% for year in years %}<option value="{{ year }}" {% if year == filters.year %}selected{% endif %}>{{ year }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="admin-filters__field">
+    <label for="classes-status">Show</label>
+    <select class="input" id="classes-status" name="status">
+      {% for value, label in [("current", "Current classes"), ("finished", "Finished batches"), ("all", "All")] %}
+      <option value="{{ value }}" {% if value == filters.status %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="admin-filters__field">
+    <label for="classes-sort">Sort by</label>
+    <select class="input" id="classes-sort" name="sort">
+      {% for value, label in sorts.items() %}<option value="{{ value }}" {% if value == filters.sort %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </div>
+  <button class="button" type="submit">Apply</button>
+  {% if filters.filtered %}<a class="button button--subtle" href="{{ url_for('admin_classes.index') }}">Clear</a>{% endif %}
+</form>
+
+{% if page.items %}
+{{ class_table(page.items) }}
+{{ pagination(page, "classes") }}
+{% elif filters.filtered %}
+{% call empty_state("Nothing matches", "Try another search or filter, or clear them.") %}{% endcall %}
+{% else %}
+{% call empty_state("No classes yet", "They appear here as mentors create them.") %}{% endcall %}
+{% endif %}
+{% endblock %}

@@ -36,6 +36,7 @@ bp = Blueprint("admin_users", __name__, url_prefix="/admin/users")
 # endpoints or blueprints that count as each.
 ADMIN_PAGES = (
     ("Users", "admin_users.index", ("admin_users.index", "admin_users.new")),
+    ("All classes", "admin_classes.index", ("admin_classes.index",)),
     ("Activity log", "admin_logs.index", ("admin_logs",)),
     ("Departments", "admin_settings.departments_page", ("admin_settings.departments_page",)),
     ("Announcement", "admin_settings.announcement", ("admin_settings.announcement",)),

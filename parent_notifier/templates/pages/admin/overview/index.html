@@ -1,18 +1,22 @@
 {% extends "layouts/app.html" %}
 {% from "components/data/pagination.html" import pagination %}
 {% from "components/feedback/empty_state.html" import empty_state %}
+{% from "pages/admin/_class_table.html" import class_table %}
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/admin.css') }}">
 {% endblock %}
 
+{# What needs attention across the college's current classes. Finding a mentor or class
+   is the menu's and search's job; the full class list is under Admin. #}
 {% block title %}Overview{% endblock %}
 {% block page_title %}Overview{% endblock %}
-{% block page_meta %}Every mentor and class in the college{% endblock %}
+{% block page_meta %}Current classes across the college. Finished batches are left out.{% endblock %}
 
 {% block content %}
+{% set totals = overview.totals %}
 <ul class="tiles" role="list" aria-label="College summary">
-  {% for label, value in [("Mentors", totals.mentors), ("Classes", totals.classes), ("Students", totals.students)] %}
+  {% for label, value in [("Classes", totals.classes), ("Students", totals.students), ("At risk", totals.at_risk), ("Messages pending", totals.pending), ("Sent, last 7 days", totals.sent)] %}
   <li class="tile"><span class="tile__link">
     <span class="tile__label">{{ label }}</span>
     <span class="tile__value numeric">{{ value }}</span>
@@ -20,36 +24,52 @@
   {% endfor %}
 </ul>
 
-{% set mentors_view = filters.view == "mentors" %}
-<nav class="view-tabs" aria-label="Show">
-  <a class="view-tabs__tab" href="{{ url_with(view=None, q=None, department=filters.department) }}" {% if mentors_view %}aria-current="page"{% endif %}>By mentor</a>
-  <a class="view-tabs__tab" href="{{ url_with(view='classes', q=None, department=filters.department) }}" {% if not mentors_view %}aria-current="page"{% endif %}>By class</a>
-</nav>
-
-<form class="admin-filters" method="get" role="search">
-  {% if not mentors_view %}<input type="hidden" name="view" value="classes">{% endif %}
-  <div class="admin-filters__field">
-    <label for="overview-search">{{ "Search mentors" if mentors_view else "Search classes" }}</label>
-    <input class="input" id="overview-search" name="q" type="search" value="{{ filters.search }}" maxlength="100"
-           placeholder="{{ 'Name, username or phone' if mentors_view else 'Class or mentor name' }}" autocomplete="off">
+{% if overview.departments %}
+<section class="overview-section" aria-labelledby="departments-heading">
+  <h2 id="departments-heading">By department</h2>
+  <div class="data-grid">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Department</th>
+          <th scope="col" class="numeric">Classes</th>
+          <th scope="col" class="numeric">Students</th>
+          <th scope="col" class="numeric">At risk</th>
+          <th scope="col" class="numeric">Pending</th>
+          <th scope="col" class="numeric">Sent, last 7 days</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for name, figures in overview.departments %}
+        <tr>
+          <th scope="row">
+            <a href="{{ url_with(department=name) }}#pending-heading"
+               {% if name == overview.department %}aria-current="true"{% endif %}>{{ name }}</a>
+          </th>
+          <td class="numeric">{{ figures.classes }}</td>
+          <td class="numeric">{{ figures.students }}</td>
+          <td class="numeric">{{ figures.at_risk }}</td>
+          <td class="numeric">{{ figures.pending }}</td>
+          <td class="numeric">{{ figures.sent }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
-  <div class="admin-filters__field">
-    <label for="overview-department">Department</label>
-    <select class="input" id="overview-department" name="department">
-      <option value="">All departments</option>
-      {% for name in department_list %}<option value="{{ name }}" {% if name == filters.department %}selected{% endif %}>{{ name }}</option>{% endfor %}
-    </select>
-  </div>
-  <button class="button" type="submit">Apply</button>
-  {% if filters.filtered %}<a class="button button--subtle" href="{{ url_with(q=None, department=None) }}">Clear</a>{% endif %}
-</form>
-
-{% if page.items %}
-{% include "pages/admin/overview/_mentors.html" if mentors_view else "pages/admin/overview/_classes.html" %}
-{{ pagination(page, "mentors" if mentors_view else "classes") }}
-{% elif filters.filtered %}
-{% call empty_state("Nothing matches", "Try another search or department, or clear the filters.") %}{% endcall %}
-{% else %}
-{% call empty_state("No " ~ ("mentors" if mentors_view else "classes") ~ " yet", "They appear here as accounts and classes are created.") %}{% endcall %}
+</section>
 {% endif %}
+
+<section class="overview-section" aria-labelledby="pending-heading">
+  <div class="overview-section__head">
+    <h2 id="pending-heading">Classes with messages pending{% if overview.department %} · {{ overview.department }}{% endif %}</h2>
+    {% if overview.department %}<a href="{{ url_with(department=None) }}#pending-heading">Show every department</a>{% endif %}
+    <a class="overview-section__all" href="{{ url_for('admin_classes.index') }}">See all classes</a>
+  </div>
+  {% if overview.pending.items %}
+  {{ class_table(overview.pending.items, label="Classes with messages pending") }}
+  {{ pagination(overview.pending, "classes") }}
+  {% else %}
+  {% call empty_state("No messages pending", "Every parent in these classes has been messaged since the last sheet.") %}{% endcall %}
+  {% endif %}
+</section>
 {% endblock %}

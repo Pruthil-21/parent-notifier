@@ -23,3 +23,6 @@ def test_the_admin_menu_groups_mentors_and_their_classes(app, admin_client, ment
     read_only = admin_client.get(f"/admin/classes/{class_id}/sem/4").get_data(as_text=True)
     assert _current(read_only) == [f"/admin/classes/{class_id}"]
     assert _current(admin_client.get("/admin/users/").get_data(as_text=True)) == ["/admin/users/"]
+    assert _current(admin_client.get("/admin/classes/").get_data(as_text=True)) == [
+        "/admin/classes/"  # Admin > All classes, not Mentors
+    ]
