@@ -5,7 +5,7 @@ mentor owns it, so the admin cannot send from, edit or import into another mento
 class even by hand-made requests.
 """
 
-from flask import Blueprint, abort, redirect, render_template, url_for
+from flask import Blueprint, abort, g, redirect, render_template, url_for
 
 from parent_notifier.core.extensions import db
 from parent_notifier.models.academics import ClassGroup
@@ -33,6 +33,7 @@ def _load(class_id: int, number: int | None = None):
         semester = semesters.get_semester(class_group, number)
         if semester is None:
             abort(404)
+    g.nav_mentor_id = class_group.mentor_id  # the menu marks this class's mentor
     return class_group, semester, db.session.get(Mentor, class_group.mentor_id)
 
 

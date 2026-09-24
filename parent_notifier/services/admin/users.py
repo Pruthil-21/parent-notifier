@@ -72,3 +72,13 @@ def classes_of(mentor: Mentor) -> list[ClassGroup]:
 def recent_activity(mentor: Mentor, limit: int = 10) -> list[ActivityEntry]:
     query = select(ActivityEntry).where(ActivityEntry.actor_id == mentor.id)
     return list(db.session.scalars(query.order_by(ActivityEntry.id.desc()).limit(limit)))
+
+
+def menu_links() -> list[tuple[int, str]]:
+    """Each approved account's id and name, in name order, for the admin's menu."""
+    query = (
+        select(Mentor.id, Mentor.full_name)
+        .where(Mentor.approved.is_(True))
+        .order_by(func.lower(Mentor.full_name), Mentor.id)
+    )
+    return [(account_id, name) for account_id, name in db.session.execute(query)]

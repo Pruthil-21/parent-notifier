@@ -82,3 +82,23 @@ def test_long_sections_can_be_marked_filterable(app_with_sections, monkeypatch):
     with app_with_sections.test_request_context("/guide"):
         [guide] = navigation_context()["nav_items"]
     assert guide["id"] == "user-guide" and guide["filterable"] is True
+
+
+def test_a_section_can_claim_pages_from_another_blueprint(monkeypatch):
+    monkeypatch.setattr(
+        navigation,
+        "NAV_ITEMS",
+        (
+            NavItem("people", "People", "guide.index", pages=("guide.person",), key="people"),
+            NavItem("help", "Guide", "guide.index"),
+        ),
+    )
+    app = create_app("testing")
+    blueprint = Blueprint("guide", __name__)
+    blueprint.add_url_rule("/guide", "index", lambda: "ok")
+    blueprint.add_url_rule("/guide/<int:n>", "person", lambda n: "ok")
+    app.register_blueprint(blueprint)
+    for path, section in (("/guide/1", "People"), ("/guide", "Guide")):
+        with app.test_request_context(path):
+            active = [item["label"] for item in navigation_context()["nav_items"] if item["active"]]
+        assert active == [section]

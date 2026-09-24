@@ -1,5 +1,6 @@
 from tests.factories.academics import make_class
 from tests.factories.accounts import make_mentor
+from tests.factories.pages import main_content
 
 
 def test_users_list_searches_and_opens_an_account(app, admin_client, mentor):
@@ -8,7 +9,7 @@ def test_users_list_searches_and_opens_an_account(app, admin_client, mentor):
         make_class(mentor, name="CE-B")
     html = admin_client.get("/admin/users/").get_data(as_text=True)
     assert "Asha Patel" in html and "Nirav Shah" in html and "Pruthil Mistry" in html
-    found = admin_client.get("/admin/users/?q=nirav").get_data(as_text=True)
+    found = main_content(admin_client.get("/admin/users/?q=nirav"))
     assert "Nirav Shah" in found and "Asha Patel" not in found
 
     detail = admin_client.get(f"/admin/users/{mentor.id}").get_data(as_text=True)

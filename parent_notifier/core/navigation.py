@@ -21,10 +21,22 @@ class NavItem:
     admin_only: bool = False
     # Its sub-items can be narrowed by typing, for sections that grow long.
     filterable: bool = False
+    # Pages that belong here although their blueprint is another section's, such as a
+    # mentor's account page under Mentors rather than Admin. A section that lists pages
+    # does not also claim its own link's blueprint.
+    pages: tuple[str, ...] = ()
+    # Names the section when two share a link; sub-items are registered under it.
+    key: str = ""
 
     @property
     def blueprints(self) -> tuple[str, ...]:
+        if self.pages:
+            return self.also_covers
         return (self.endpoint.split(".", 1)[0], *self.also_covers)
+
+    @property
+    def section_key(self) -> str:
+        return self.key or self.endpoint
 
 
 NAV_ITEMS = (
@@ -37,10 +49,26 @@ NAV_ITEMS = (
         filterable=True,
     ),
     NavItem(
+        "people",
+        "Mentors",
+        "admin_users.index",
+        also_covers=("admin_classes",),
+        admin_only=True,
+        filterable=True,
+        pages=(
+            "admin_users.detail",
+            "admin_users.edit",
+            "admin_users.reset_password",
+            "admin_users.transfer",
+            "admin_users.delete",
+        ),
+        key="mentors",
+    ),
+    NavItem(
         "admin",
         "Admin",
         "admin_users.index",
-        also_covers=("admin_logs", "admin_classes", "admin_settings"),
+        also_covers=("admin_logs", "admin_settings"),
         admin_only=True,
     ),
     NavItem("person", "Profile", "profile.index"),
@@ -48,16 +76,18 @@ NAV_ITEMS = (
 )
 
 
-def register_child_links(app: Flask, endpoint: str, links: ChildLinks) -> None:
+def register_child_links(app: Flask, section: str, links: ChildLinks) -> None:
     """Let the blueprint that owns a section list its sub-items without core knowing
-    about classes or any other domain."""
-    app.extensions.setdefault("nav_child_links", {})[endpoint] = links
+    about classes or any other domain. `section` is the item's key, or its endpoint."""
+    app.extensions.setdefault("nav_child_links", {})[section] = links
 
 
-def _item_context(item: NavItem) -> dict[str, object]:
-    provider = current_app.extensions.get("nav_child_links", {}).get(item.endpoint)
+def _item_context(item: NavItem, claimed_by: NavItem | None) -> dict[str, object]:
+    provider = current_app.extensions.get("nav_child_links", {}).get(item.section_key)
     children = provider() if provider else []
-    in_section = request.blueprint in item.blueprints
+    # A page another section claims belongs to that section only.
+    claimed = claimed_by is not None
+    in_section = item is claimed_by if claimed else request.blueprint in item.blueprints
     return {
         # Names the section in the page, for its folding and filter controls.
         "id": item.label.lower().replace(" ", "-"),
@@ -77,11 +107,13 @@ def navigation_context() -> dict[str, object]:
     page that does not exist yet."""
     registered = current_app.view_functions
     is_admin = current_user.is_authenticated and current_user.is_admin
-    items = [
-        _item_context(item)
+    shown = [
+        item
         for item in NAV_ITEMS
         if item.endpoint in registered and (is_admin or not item.admin_only)
     ]
+    claimed_by = next((item for item in shown if request.endpoint in item.pages), None)
+    items = [_item_context(item, claimed_by) for item in shown]
     home_url = items[0]["url"] if items else "/"
     return {"nav_items": items, "home_url": home_url}
 
