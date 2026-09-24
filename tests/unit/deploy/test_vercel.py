@@ -19,7 +19,7 @@ def build(monkeypatch, tmp_path):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     monkeypatch.setenv("FLASK_CONFIG", "testing")
-    for name in ("DATABASE_URL", "RUN_MIGRATIONS"):
+    for name in ("DATABASE_URL", "RUN_MIGRATIONS", "VERCEL_ENV"):
         monkeypatch.delenv(name, raising=False)
     return module
 
@@ -45,6 +45,14 @@ def test_migrations_need_a_database_address_unless_switched_off(build, monkeypat
         build.migrate()
     monkeypatch.setenv("RUN_MIGRATIONS", "false")
     build.migrate()
+
+
+def test_a_preview_build_leaves_the_live_database_alone(build, monkeypatch, tmp_path):
+    database = tmp_path / "live.db"
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{database.as_posix()}")
+    monkeypatch.setenv("VERCEL_ENV", "preview")
+    build.migrate()
+    assert not database.exists()
 
 
 def test_a_serverless_start_skips_the_migration_tool(monkeypatch):

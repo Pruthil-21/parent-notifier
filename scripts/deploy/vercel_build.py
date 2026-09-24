@@ -1,6 +1,8 @@
 """Vercel's build step: bring the database up to date.
 
-The migrations run against DATABASE_URL, unless RUN_MIGRATIONS is "false".
+The migrations run against DATABASE_URL, unless RUN_MIGRATIONS is "false" or the build
+is a pull request preview, which shares the live database and must not change it before
+the change is merged.
 """
 
 import os
@@ -15,6 +17,9 @@ sys.path.insert(0, str(ROOT))
 def migrate() -> None:
     if os.environ.get("RUN_MIGRATIONS", "").strip().lower() == "false":
         print("Skipped migrations: RUN_MIGRATIONS is false")
+        return
+    if os.environ.get("VERCEL_ENV") == "preview":
+        print("Skipped migrations: preview builds leave the live database alone")
         return
     if not os.environ.get("DATABASE_URL"):
         raise SystemExit("DATABASE_URL is not set; add it in the Vercel project settings.")
