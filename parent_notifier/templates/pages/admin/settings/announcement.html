@@ -1,0 +1,58 @@
+{% extends "layouts/app.html" %}
+{% from "components/navigation/breadcrumb.html" import breadcrumb %}
+{% from "components/forms/error_summary.html" import error_summary %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/admin.css') }}">
+{% endblock %}
+
+{% block title %}Announcement{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Overview", url_for("home.index")), ("Announcement", None)]) }}{% endblock %}
+{% block page_title %}Announcement{% endblock %}
+{% block page_meta %}A banner at the top of every page, for every mentor. Publishing replaces the current one.{% endblock %}
+
+{% block content %}
+{% if current %}
+<section class="settings-section" aria-labelledby="current-heading">
+  <div class="settings-section__intro">
+    <h2 id="current-heading">Showing now</h2>
+    <p>Published {{ current.created_at | date_time }}.
+      {{ "Mentors can dismiss it." if current.dismissible else "Always shown." }}</p>
+  </div>
+  <div class="settings-section__form form-stack">
+    <p class="announcement-preview">{{ current.text }}</p>
+    <form method="post" action="{{ url_for('admin_settings.remove_announcement') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="button" type="submit">Remove announcement</button>
+    </form>
+  </div>
+</section>
+{% endif %}
+
+<section class="settings-section" aria-labelledby="new-heading">
+  <div class="settings-section__intro">
+    <h2 id="new-heading">{{ "New announcement" if current else "Publish an announcement" }}</h2>
+    <p>Plain text, up to 300 characters.</p>
+  </div>
+  <form class="settings-section__form form-stack" method="post" action="{{ url_for('admin_settings.publish_announcement') }}" novalidate>
+    {{ error_summary(form, first_field=form.text) }}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field{% if form.text.errors %} field--error{% endif %}">
+      {{ form.text.label(class_="field__label") }}
+      {% if form.text.errors %}
+      <p class="field__error" id="{{ form.text.id }}-error">{{ icon("error", size=16) }}<span>{{ form.text.errors[0] }}</span></p>
+      {% endif %}
+      {{ form.text(class_="input", rows=3, maxlength=300,
+                   aria_describedby=(form.text.id ~ "-error") if form.text.errors else False,
+                   aria_invalid="true" if form.text.errors else False) }}
+    </div>
+    <fieldset class="field">
+      <legend class="field__label">{{ form.dismissible.label.text }}</legend>
+      {% for option in form.dismissible %}
+      <label class="choice">{{ option() }} {{ option.label.text }}</label>
+      {% endfor %}
+    </fieldset>
+    <div><button class="button button--primary" type="submit">Publish</button></div>
+  </form>
+</section>
+{% endblock %}
