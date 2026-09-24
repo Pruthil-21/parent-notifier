@@ -7,6 +7,7 @@ password reset share both counters: a lockout on one is a lockout on the other.
 
 import time
 from collections.abc import Callable
+from datetime import timedelta
 
 from flask import g, request
 from flask_limiter.util import get_remote_address
@@ -14,6 +15,7 @@ from flask_login import current_user
 
 from parent_notifier.core.extensions import limiter
 from parent_notifier.services.accounts.credentials import normalise_username
+from parent_notifier.services.shared import activity, clock
 
 WINDOW_MINUTES = 15
 FAILURES_PER_USERNAME = 5
@@ -70,3 +72,16 @@ def retry_wait() -> str:
 def lockout_message(action: str) -> str:
     """For example "Too many sign-in attempts. Try again in 12 minutes." """
     return f"Too many {action} attempts. Try again in {retry_wait()}."
+
+
+def locked_in_log(username: str, action: str) -> str | None:
+    """The lockout message when the activity log shows too many recent failures for this
+    username, or None. The in-memory limits only see one server; the log sees them all."""
+    until = activity.locked_until(
+        username, FAILURES_PER_USERNAME, timedelta(minutes=WINDOW_MINUTES)
+    )
+    if until is None:
+        return None
+    minutes = max(1, round((until - clock.now()).total_seconds() / 60))
+    wait = f"{minutes} minute" if minutes == 1 else f"{minutes} minutes"
+    return f"Too many {action} attempts. Try again in {wait}."

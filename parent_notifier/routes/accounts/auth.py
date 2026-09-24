@@ -27,6 +27,10 @@ def sign_in():
         return redirect(url_for("home.index"))
     form = SignInForm(next=request.args.get("next", ""))
     if form.validate_on_submit():
+        if locked := throttling.locked_in_log(_typed_username(), "sign-in"):
+            form.form_errors.append(locked)
+            log("security", "sign_in_locked", username=_typed_username(), succeeded=False)
+            return _sign_in_page(form, 429)
         mentor = credentials.authenticate(form.username.data, form.password.data)
         if mentor and not mentor.approved:
             # Said only after the right password, so it reveals nothing to a guesser.
@@ -70,6 +74,9 @@ def reset_password():
         return redirect(url_for("home.index"))
     form = ResetPasswordForm()
     if form.validate_on_submit():
+        if locked := throttling.locked_in_log(_typed_username(), "password reset"):
+            form.form_errors.append(locked)
+            return render_template(RESET_TEMPLATE, form=form), 429
         result = registration.reset_password(
             form.username.data, form.recovery_code.data, form.new_password.data
         )
