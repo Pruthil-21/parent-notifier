@@ -21,7 +21,7 @@ from parent_notifier.forms.fields import (
     single_spaced,
     strip,
 )
-from parent_notifier.models.accounts import MESSAGE_LANGUAGES
+from parent_notifier.models.accounts import MESSAGE_LANGUAGES, THEMES
 from parent_notifier.services.accounts import registration
 from parent_notifier.services.accounts.credentials import MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH
 
@@ -155,11 +155,30 @@ class RegenerateRecoveryCodeForm(FlaskForm):
 
 _LANGUAGE_LABELS = {"en": "English", "gu": "ગુજરાતી (Gujarati)"}
 # Built from the model's list, so a language added there without a label fails at start-up.
+_THEME_LABELS = {"system": "System", "light": "Light", "dark": "Dark"}
+THEME_CHOICES = [(theme, _THEME_LABELS[theme]) for theme in THEMES]
 LANGUAGE_CHOICES = [(code, _LANGUAGE_LABELS[code]) for code in MESSAGE_LANGUAGES]
 
 
 class PreferencesForm(FlaskForm):
+    theme = SelectField("Theme", choices=None)
     message_language = SelectField("Default message language", choices=LANGUAGE_CHOICES)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.theme.choices = THEME_CHOICES
+
+
+class ThemeForm(FlaskForm):
+    """The theme menu in the top bar. `next` brings the mentor back to the same page
+    when the form is sent without JavaScript."""
+
+    theme = SelectField("Theme", choices=None)
+    next = HiddenField()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.theme.choices = THEME_CHOICES
 
 
 def _setting(label: str, unit: str, low: int, high: int) -> WholeNumberField:

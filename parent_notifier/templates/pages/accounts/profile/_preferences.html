@@ -2,13 +2,18 @@
 <section class="settings-section" aria-labelledby="preferences-heading">
   <div class="settings-section__intro">
     <h2 id="preferences-heading">Preferences</h2>
-    <p>The language each message starts in. You can still switch for one parent in the
-      message window.</p>
+    <p>How the app looks, and the language each message starts in. You can still switch
+      language for one parent in the message window.</p>
   </div>
   <form class="settings-section__form form-stack" method="post"
         action="{{ url_for('profile.save_preferences') }}" novalidate>
-    {{ error_summary(preferences_form, first_field=preferences_form.message_language) }}
+    {{ error_summary(preferences_form, first_field=preferences_form.theme) }}
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field">
+      {{ preferences_form.theme.label(class_="field__label") }}
+      {{ preferences_form.theme(class_="input", **{"aria-describedby": "theme-hint"}) }}
+      <p class="field__hint" id="theme-hint">System follows the light or dark setting of this computer.</p>
+    </div>
     <div class="field">
       {{ preferences_form.message_language.label(class_="field__label") }}
       {{ preferences_form.message_language(class_="input") }}

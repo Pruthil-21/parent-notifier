@@ -1,6 +1,6 @@
 """The profile page. Every section edits the signed-in mentor only; no ids in URLs."""
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from parent_notifier.forms.accounts import (
@@ -10,9 +10,10 @@ from parent_notifier.forms.accounts import (
     PreferencesForm,
     RegenerateRecoveryCodeForm,
     SendingSafetyForm,
+    ThemeForm,
 )
 from parent_notifier.routes.accounts import throttling
-from parent_notifier.routes.accounts.sessions import show_recovery_code, start_session
+from parent_notifier.routes.accounts.sessions import safe_next, show_recovery_code, start_session
 from parent_notifier.services.accounts import profile, registration
 from parent_notifier.services.shared.phone import format_for_display
 
@@ -121,7 +122,7 @@ def save_preferences():
     form = PreferencesForm()
     if not form.validate_on_submit():
         return _render(preferences_form=form)
-    profile.update_preferences(current_user, form.message_language.data)
+    profile.update_preferences(current_user, form.theme.data, form.message_language.data)
     flash("Preferences saved.", "success")
     return redirect(url_for("profile.index"))
 
@@ -135,3 +136,17 @@ def save_sending_safety():
     profile.update_sending_safety(current_user, form.settings())
     flash("Sending safety saved.", "success")
     return redirect(url_for("profile.index"))
+
+
+@bp.post("/theme")
+@login_required
+def save_theme():
+    """The top bar's theme menu. Its script has already switched the page, so it only
+    needs a 204; without JavaScript the page reloads in the new theme."""
+    form = ThemeForm()
+    if not form.validate_on_submit():
+        abort(400)
+    profile.update_theme(current_user, form.theme.data)
+    if request.accept_mimetypes.best_match(["text/html", "application/json"]) == "application/json":
+        return "", 204
+    return redirect(safe_next(form.next.data))

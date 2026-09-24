@@ -1,4 +1,4 @@
-/* The end of the top bar: the "Sending as" number and the account menu. */
+/* The end of the top bar: the "Sending as" number, the theme menu and the account menu. */
 
 .top-bar__end {
   display: flex;
@@ -126,4 +126,27 @@
   .account-menu__sending-as {
     display: block;
   }
+}
+
+/* The theme menu shares the account menu's button and panel. */
+.theme-menu__panel {
+  width: 200px;
+}
+
+.theme-menu__title {
+  padding: var(--space-3) var(--space-4) 0;
+  font-size: var(--text-caption);
+  line-height: var(--leading-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+.theme-menu__check {
+  display: inline-flex;
+  margin-left: auto;
+  color: var(--color-accent-text);
+}
+
+.theme-menu [aria-pressed="false"] .theme-menu__check {
+  visibility: hidden;
 }

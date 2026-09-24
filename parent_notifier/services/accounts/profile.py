@@ -45,8 +45,14 @@ def regenerate_recovery_code(mentor: Mentor, current_password: str) -> str | Non
     return code
 
 
-def update_preferences(mentor: Mentor, message_language: str) -> None:
+def update_preferences(mentor: Mentor, theme: str, message_language: str) -> None:
+    mentor.theme = theme
     mentor.message_language = message_language
+    db.session.commit()
+
+
+def update_theme(mentor: Mentor, theme: str) -> None:
+    mentor.theme = theme
     db.session.commit()
 
 

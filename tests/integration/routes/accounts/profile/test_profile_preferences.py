@@ -19,18 +19,23 @@ def _saved(app, mentor_id):
 def test_sections_show_current_settings(signed_in_client):
     html = signed_in_client.get("/profile/").get_data(as_text=True)
     assert '<option selected value="en">English</option>' in html
+    assert '<option selected value="system">System</option>' in html
     for value in ("20", "15", "5", "60"):
         assert f'value="{value}"' in html
 
 
-def test_default_language_is_saved(app, signed_in_client, mentor):
-    response = signed_in_client.post("/profile/preferences", data={"message_language": "gu"})
+def test_theme_and_default_language_are_saved(app, signed_in_client, mentor):
+    data = {"theme": "dark", "message_language": "gu"}
+    response = signed_in_client.post("/profile/preferences", data=data)
     assert response.headers["Location"] == "/profile/"
-    assert _saved(app, mentor.id).message_language == "gu"
+    saved = _saved(app, mentor.id)
+    assert (saved.theme, saved.message_language) == ("dark", "gu")
 
 
 def test_unknown_language_is_refused(app, signed_in_client, mentor):
-    html = signed_in_client.post("/profile/preferences", data={"message_language": "hi"})
+    html = signed_in_client.post(
+        "/profile/preferences", data={"theme": "system", "message_language": "hi"}
+    )
     assert "There is a problem" in html.get_data(as_text=True)
     assert _saved(app, mentor.id).message_language == "en"
 
