@@ -154,6 +154,47 @@ def mentor_page(filters: Filters) -> pagination.Page:
     return page.with_items(rows)
 
 
+def _sent_by_class(class_ids: list[int]) -> dict[int, int]:
+    if not class_ids:
+        return {}
+    return dict(
+        db.session.execute(
+            select(Semester.class_id, func.count(SendLog.id))
+            .join(Semester, SendLog.semester_id == Semester.id)
+            .where(
+                Semester.class_id.in_(class_ids),
+                SendLog.status == "sent",
+                SendLog.created_at >= _since(),
+            )
+            .group_by(Semester.class_id)
+        ).all()
+    )
+
+
+def class_rows(classes: list[ClassGroup]) -> list[ClassRow]:
+    """Each class with its mentor, latest semester, counts and messages sent this week."""
+    ids = [class_group.id for class_group in classes]
+    mentors = {
+        m.id: m
+        for m in db.session.scalars(
+            select(Mentor).where(Mentor.id.in_({c.mentor_id for c in classes}))
+        )
+    }
+    latest = _latest_semesters(ids)
+    counts = semester_stats.counts_for(list(latest.values()))
+    sent = _sent_by_class(ids)
+    return [
+        ClassRow(
+            class_group,
+            mentors[class_group.mentor_id],
+            latest.get(class_group.id),
+            counts[latest[class_group.id].id] if class_group.id in latest else Counts(),
+            sent.get(class_group.id, 0),
+        )
+        for class_group in classes
+    ]
+
+
 def class_page(filters: Filters) -> pagination.Page:
     query = select(ClassGroup).join(Mentor, ClassGroup.mentor_id == Mentor.id)
     if filters.department:
@@ -170,33 +211,4 @@ def class_page(filters: Filters) -> pagination.Page:
         filters.page,
         PER_PAGE,
     )
-    ids = [class_group.id for class_group in page.items]
-    mentors = {
-        m.id: m
-        for m in db.session.scalars(
-            select(Mentor).where(Mentor.id.in_({c.mentor_id for c in page.items}))
-        )
-    }
-    latest = _latest_semesters(ids)
-    counts = semester_stats.counts_for(list(latest.values()))
-    sent = dict(
-        db.session.execute(
-            select(Semester.class_id, func.count(SendLog.id))
-            .join(Semester, SendLog.semester_id == Semester.id)
-            .where(
-                Semester.class_id.in_(ids), SendLog.status == "sent", SendLog.created_at >= _since()
-            )
-            .group_by(Semester.class_id)
-        ).all()
-    )
-    rows = [
-        ClassRow(
-            class_group,
-            mentors[class_group.mentor_id],
-            latest.get(class_group.id),
-            counts[latest[class_group.id].id] if class_group.id in latest else Counts(),
-            sent.get(class_group.id, 0),
-        )
-        for class_group in page.items
-    ]
-    return page.with_items(rows)
+    return page.with_items(class_rows(list(page.items)))

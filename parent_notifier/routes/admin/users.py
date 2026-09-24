@@ -27,7 +27,7 @@ from parent_notifier.routes.admin.access import (
     remember_confirmation,
 )
 from parent_notifier.services.accounts import credentials, profile, registration
-from parent_notifier.services.admin import accounts, users
+from parent_notifier.services.admin import accounts, overview, users
 from parent_notifier.services.shared import activity, departments
 
 bp = Blueprint("admin_users", __name__, url_prefix="/admin/users")
@@ -89,6 +89,7 @@ def _detail_page(account, transfer_form=None, delete_form=None, status: int = 20
         "pages/admin/users/detail.html",
         account=account,
         classes=classes,
+        class_rows=overview.class_rows(classes),
         recent=users.recent_activity(account),
         event_label=activity.event_label,
         transfer_form=transfer_form or _transfer_form(account, classes),
