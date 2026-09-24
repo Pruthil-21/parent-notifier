@@ -5,7 +5,8 @@
   <div><dt>Students</dt><dd>{{ batch.added_count }} added, {{ batch.updated_count }} updated</dd></div>
 </dl>
 <p class="confirm-text">Attendance and marks go back to how they were before this import.
-  Students it added are removed from Sem {{ semester.number }}. This can only be done once.</p>
+  Students it added are removed from Sem {{ semester.number }}. This can only be done once;
+  to bring the data back, upload the same sheet again.</p>
 <form class="form-panel__actions" method="post"
       action="{{ url_for('import_undo.undo_last', class_id=class_group.id, number=semester.number) }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

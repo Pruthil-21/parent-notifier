@@ -46,6 +46,11 @@
   box-shadow: var(--shadow-flyout);
 }
 
+.menu__panel--end {
+  right: 0;
+  left: auto;
+}
+
 .menu__items {
   display: grid;
   gap: 2px;
@@ -90,4 +95,10 @@
   justify-content: flex-start;
   gap: var(--space-2);
   color: var(--color-accent-text);
+}
+
+/* A destructive item, such as Undo last import, keeps its note on the right. */
+.menu__footer .menu__item--danger {
+  justify-content: space-between;
+  color: var(--color-danger);
 }

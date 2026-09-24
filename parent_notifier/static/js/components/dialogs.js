@@ -14,9 +14,13 @@ export function initDialogs(root = document) {
     if (!(dialog instanceof HTMLDialogElement)) continue;
     opener.addEventListener("click", (event) => {
       event.preventDefault();
-      // An opener inside a menu leaves the menu open behind the dialog otherwise.
+      // An opener inside a menu leaves the menu open behind the dialog otherwise, and
+      // focus comes back to the menu's button, since the item itself is hidden again.
       const menu = opener.closest("details[open]");
-      if (menu) menu.open = false;
+      if (menu) {
+        menu.open = false;
+        dialog.addEventListener("close", () => menu.querySelector("summary").focus(), { once: true });
+      }
       openDialog(dialog);
     });
   }

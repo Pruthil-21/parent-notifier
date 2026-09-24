@@ -33,9 +33,9 @@ def _students(app):
         return db.session.scalar(select(func.count()).select_from(Student))
 
 
-def test_undo_is_disabled_until_there_is_an_import(signed_in_client, base):
+def test_undo_is_offered_only_once_there_is_an_import(signed_in_client, base):
     html = signed_in_client.get(base).get_data(as_text=True)
-    assert '<button class="button" type="button" disabled>Undo last import</button>' in html
+    assert "Undo last import" not in html
     assert '<dialog id="undo-import"' not in html
 
 
@@ -47,6 +47,7 @@ def test_after_an_import_undo_explains_what_it_does(signed_in_client, base):
     assert "2 added, 0 updated" in html
     page = signed_in_client.get(f"{base}/import/undo").get_data(as_text=True)
     assert "Undo last import?" in page
+    assert "upload the same sheet again" in page
 
 
 def test_undo_restores_the_semester(app, signed_in_client, base):
