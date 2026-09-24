@@ -3,7 +3,6 @@
 // names are plain links to each student's page. The popup object returned here is what
 // the language, send and queue modules hook into.
 
-import { initLanguage } from "./language.js";
 import { initPacing } from "./pacing.js";
 import { renderMessage, renderStudent } from "./render.js";
 import { initSendButton } from "./send.js";
@@ -34,7 +33,7 @@ function createPopup(dialog, students) {
     onShow: (listener) => showListeners.push(listener),
     refreshMessage: () => {
       noteCount.textContent = `${note.value.length} of ${note.maxLength}`;
-      renderMessage(dialog, students.get(currentId), popup.language(), note.value);
+      renderMessage(dialog, students.get(currentId), note.value);
     },
     show(id) {
       const student = students.get(id);
@@ -81,7 +80,6 @@ function createPopup(dialog, students) {
       then?.();
     }, 0);
   });
-  popup.language = initLanguage(dialog, popup.refreshMessage);
   note.addEventListener("input", popup.refreshMessage);
   return popup;
 }

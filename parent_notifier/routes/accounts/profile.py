@@ -131,7 +131,7 @@ def save_preferences():
     form = PreferencesForm()
     if not form.validate_on_submit():
         return _render(preferences_form=form)
-    profile.update_preferences(current_user, form.theme.data, form.message_language.data)
+    profile.update_preferences(current_user, form.theme.data)
     flash("Preferences saved.", "success")
     return redirect(url_for("profile.index"))
 

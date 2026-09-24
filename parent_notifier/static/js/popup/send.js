@@ -51,9 +51,9 @@ function closeIfBlank(tab) {
 }
 
 // Must be called straight from a click handler, before any await.
-export async function sendToParent(logUrl, language, note) {
+export async function sendToParent(logUrl, note) {
   if (onPhone()) {
-    const data = await postLog(logUrl, { status: "sent", language, note });
+    const data = await postLog(logUrl, { status: "sent", note });
     return { ...data, openUrl: data.whatsappAppUrl };
   }
   const tab = window.open("", TAB_NAME);
@@ -64,7 +64,7 @@ export async function sendToParent(logUrl, language, note) {
   }
   let data;
   try {
-    data = await postLog(logUrl, { status: "sent", language, note });
+    data = await postLog(logUrl, { status: "sent", note });
   } catch (error) {
     closeIfBlank(tab);
     throw error;
@@ -104,7 +104,7 @@ export function initSendButton(popup) {
     const { id, link } = popup.current();
     button.setAttribute("aria-busy", "true");
     try {
-      const data = await sendToParent(link.dataset.logUrl, popup.language(), popup.note());
+      const data = await sendToParent(link.dataset.logUrl, popup.note());
       popup.markDone(id, data.label);
       popup.pacing.update(data.pacing);
       if (data.openUrl) {

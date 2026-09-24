@@ -18,9 +18,7 @@ def setup(app, mentor):
         semester = make_semester(class_group, 4)
         import_sheet(class_group, semester, mentor.id)
         avi = db.session.scalars(select(Student).filter_by(enrollment_no="23CE001")).one()
-        send_log.record(
-            semester, avi.id, mentor.id, status="sent", language="en", note="", message=""
-        )
+        send_log.record(semester, avi.id, mentor.id, status="sent", note="", message="")
         return f"/classes/{class_group.id}/sem/4", avi.id
 
 

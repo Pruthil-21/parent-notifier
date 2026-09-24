@@ -38,9 +38,7 @@ def classes(app, mentor):
             student = db.session.scalars(
                 db.select(Student).filter_by(enrollment_no=enrollment_no)
             ).one()
-            send_log.record(
-                sem4, student.id, mentor.id, status=status, language="en", note="", message=""
-            )
+            send_log.record(sem4, student.id, mentor.id, status=status, note="", message="")
         ce_b = make_class(mentor, name="CE-B", admission_year=2024)
         import_sheet(ce_b, make_semester(ce_b, 2), mentor.id, rows=EXTRA)
         return [(ce_a.id, 4), (ce_b.id, 2)]

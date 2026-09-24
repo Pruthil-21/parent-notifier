@@ -82,14 +82,14 @@ export function renderStudent(dialog, student, rules) {
 export const NOTE_MARKER = "⁣NOTE⁣";
 
 // The message exactly as it will open in WhatsApp, for the preview and the link.
-export function messageText(student, language, note = "") {
-  const messages = student.messages[language];
+export function messageText(student, note = "") {
+  const messages = student.messages;
   const trimmed = note.trim();
   return trimmed ? messages.withNote.replace(NOTE_MARKER, trimmed) : messages.plain;
 }
 
-export function renderMessage(dialog, student, language, note = "") {
-  const text = messageText(student, language, note);
+export function renderMessage(dialog, student, note = "") {
+  const text = messageText(student, note);
   slot(dialog, "message").textContent = text;
   return text;
 }

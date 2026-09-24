@@ -16,7 +16,7 @@ ROWS = [
 
 
 def log(client, base, student_id, **body):
-    payload = {"status": "sent", "language": "en", "note": ""} | body
+    payload = {"status": "sent", "note": ""} | body
     return client.post(f"{base}/students/{student_id}/log", json=payload)
 
 

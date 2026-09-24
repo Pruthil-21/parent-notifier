@@ -12,7 +12,6 @@ from parent_notifier.services.academics.records import semesters
 from parent_notifier.services.academics.views import grid_filters, semester_view
 from parent_notifier.services.imports import undo
 from parent_notifier.services.messaging import pacing, previews, send_log
-from parent_notifier.services.messaging.message_templates import LANGUAGES
 
 bp = Blueprint("semesters", __name__, url_prefix="/classes/<int:class_id>")
 
@@ -27,7 +26,7 @@ def load_semester(class_id: int, number: int) -> tuple[ClassGroup, Semester]:
 
 
 def _popup_payload(class_group, semester, view, rows, marks, pending, mentor) -> list[dict]:
-    """The popup's data for the rows on screen: figures, both messages and send status.
+    """The popup's data for the rows on screen: figures, the message and send status.
     Messages are signed by the class's own mentor, whoever is looking."""
     config = current_app.config
     context = previews.context_for(
@@ -70,7 +69,6 @@ def workspace_context(class_group, semester, mentor) -> dict:
         "marks": marks,
         "labels": _labels(view, marks),
         "sent_ids": {sid for sid, mark in marks.items() if mark.status == "sent"},
-        "languages": LANGUAGES,
     }
 
 

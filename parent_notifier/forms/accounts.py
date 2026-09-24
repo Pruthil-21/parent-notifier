@@ -22,7 +22,7 @@ from parent_notifier.forms.fields import (
     single_spaced,
     strip,
 )
-from parent_notifier.models.accounts import MESSAGE_LANGUAGES, THEMES
+from parent_notifier.models.accounts import THEMES
 from parent_notifier.services.accounts import registration
 from parent_notifier.services.accounts.credentials import MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH
 
@@ -160,16 +160,13 @@ class RegenerateRecoveryCodeForm(FlaskForm):
     )
 
 
-_LANGUAGE_LABELS = {"en": "English", "gu": "ગુજરાતી (Gujarati)"}
-# Built from the model's list, so a language added there without a label fails at start-up.
+# Built from the model's list, so a theme added there without a label fails at start-up.
 _THEME_LABELS = {"system": "System", "light": "Light", "dark": "Dark"}
 THEME_CHOICES = [(theme, _THEME_LABELS[theme]) for theme in THEMES]
-LANGUAGE_CHOICES = [(code, _LANGUAGE_LABELS[code]) for code in MESSAGE_LANGUAGES]
 
 
 class PreferencesForm(FlaskForm):
     theme = SelectField("Theme", choices=THEME_CHOICES)
-    message_language = SelectField("Default message language", choices=LANGUAGE_CHOICES)
 
 
 class ThemeForm(FlaskForm):

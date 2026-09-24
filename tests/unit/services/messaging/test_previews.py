@@ -2,7 +2,7 @@ from parent_notifier.services.academics.views.risk import SubjectResult
 from parent_notifier.services.academics.views.semester_view import StudentRow
 from parent_notifier.services.messaging import previews
 
-CONFIG = {"COLLEGE_NAME": "GCET", "COLLEGE_NAME_GU": "જી.સી.ઈ.ટી."}
+CONFIG = {"COLLEGE_NAME": "GCET"}
 ROW = StudentRow(
     id=1,
     enrollment_no="23CE001",
@@ -20,12 +20,11 @@ ROW = StudentRow(
 )
 
 
-def test_both_languages_come_plain_and_with_a_note_marker():
+def test_the_message_comes_plain_and_with_a_note_marker():
     context = previews.context_for(4, 20, "Asha Patel", CONFIG)
     messages = previews.messages_for(ROW, context)
-    assert set(messages) == {"en", "gu"}
-    assert previews.NOTE_MARKER not in messages["en"]["plain"]
-    assert f"Note from the mentor: {previews.NOTE_MARKER}" in messages["en"]["withNote"]
-    assert messages["en"]["plain"].endswith("Prof. Asha Patel\nGCET")
-    assert messages["gu"]["plain"].endswith("પ્રો. Asha Patel\nજી.સી.ઈ.ટી.")
-    assert "Sem 4" in messages["en"]["plain"]
+    assert set(messages) == {"plain", "withNote"}
+    assert previews.NOTE_MARKER not in messages["plain"]
+    assert f"Note from the mentor / મેન્ટરની નોંધ: {previews.NOTE_MARKER}" in messages["withNote"]
+    assert messages["plain"].endswith("Prof. Asha Patel\nGCET")
+    assert "Sem 4" in messages["plain"] and "સેમ 4" in messages["plain"]

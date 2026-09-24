@@ -1,0 +1,32 @@
+{#- The parent report: each part in English, then in Gujarati. Faculty may edit the
+    wording; keep the {{ ... }} parts, which are filled in for each student.
+    Available: student_name, enrollment_no, semester; subjects (each has name, theory,
+    practical and marks, already written as "86%", "N/A", "16/20", "AB" or "--/20");
+    ward ("your daughter", "your son" or "your ward"), them ("her", "him" or
+    "your ward") and ward_gu ("આપની પુત્રી", "આપના પુત્ર" or "આપના પાલ્ય"); from_date and
+    to_date (like 07-07-26, or empty when not known); note (empty unless the mentor
+    typed one); mentor_name and college_name. -#}
+Dear Parent,
+આદરણીય વાલીશ્રી,
+
+This is regarding the attendance and academic performance of {{ ward }} {{ student_name }} (Enrollment No. {{ enrollment_no }}) for Sem {{ semester }}{% if from_date %}, from {{ from_date }} to {{ to_date }}{% endif %}.
+{{ ward_gu }} {{ student_name }} (એનરોલમેન્ટ નં. {{ enrollment_no }}) ની સેમ {{ semester }} ની{% if from_date %} તા. {{ from_date }} થી તા. {{ to_date }} સુધીની{% endif %} હાજરી અને શૈક્ષણિક પ્રગતિની વિગતો નીચે મુજબ છે:
+
+{% for subject in subjects %}
+{{ loop.index }}. {{ subject.name }}: Theory – {{ subject.theory }}, Practical – {{ subject.practical }}, Mid-Sem – {{ subject.marks }}
+{% endfor %}
+
+Kindly take note of the above attendance and academic performance and guide {{ them }} to attend classes and practical sessions regularly and focus on studies.
+ઉપરોક્ત હાજરી અને શૈક્ષણિક પ્રગતિની નોંધ લઈ, તેને નિયમિત રીતે વર્ગો અને પ્રેક્ટિકલ સત્રોમાં હાજર રહેવા તથા અભ્યાસ પર ધ્યાન આપવા માર્ગદર્શન આપશો.
+
+You are free to meet the mentor between 9:00 AM and 5:00 PM on working days for any clarification or discussion.
+કોઈ પણ સ્પષ્ટતા કે ચર્ચા માટે આપ કાર્યકારી દિવસોમાં સવારે 9:00 થી સાંજે 5:00 દરમિયાન મેન્ટરને મળી શકો છો.
+{% if note %}
+
+Note from the mentor / મેન્ટરની નોંધ: {{ note }}
+{% endif %}
+
+Regards,
+આભાર સહ,
+{{ mentor_name }}
+{{ college_name }}
