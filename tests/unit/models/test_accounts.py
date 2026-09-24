@@ -14,6 +14,12 @@ def test_new_mentor_gets_documented_defaults():
     assert (mentor.send_gap_seconds, mentor.burst_size) == (20, 15)
     assert (mentor.burst_pause_minutes, mentor.daily_send_limit) == (5, 60)
     assert mentor.session_version == 1
+    assert (mentor.role, mentor.is_admin, mentor.approved) == ("mentor", False, True)
+    assert (mentor.department, mentor.must_change_password, mentor.last_sign_in_at) == (
+        None,
+        False,
+        None,
+    )
 
 
 def test_usernames_are_unique():
@@ -24,8 +30,8 @@ def test_usernames_are_unique():
 
 @pytest.mark.parametrize(
     "fields",
-    [{"username": "AshaPatel"}, {"theme": "blue"}, {"message_language": "hi"}],
-    ids=["uppercase username", "unknown theme", "unknown language"],
+    [{"username": "AshaPatel"}, {"theme": "blue"}, {"message_language": "hi"}, {"role": "hod"}],
+    ids=["uppercase username", "unknown theme", "unknown language", "unknown role"],
 )
 def test_database_rejects_invalid_values(fields):
     with pytest.raises(IntegrityError):
@@ -68,3 +74,11 @@ def test_loader_rejects_malformed_or_unknown_ids(login_id):
 )
 def test_initials_use_first_and_last_names(full_name, initials):
     assert make_mentor(full_name=full_name).initials == initials
+
+
+def test_an_account_waiting_for_approval_cannot_stay_signed_in():
+    mentor = make_mentor(approved=False)
+    assert load_mentor(mentor.get_id()) is None
+    mentor.approved = True
+    db.session.commit()
+    assert load_mentor(mentor.get_id()) == mentor
