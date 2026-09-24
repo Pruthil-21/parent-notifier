@@ -6,7 +6,7 @@ from parent_notifier.core.config import TESTING_SECRET_KEY, load_config
 @pytest.fixture(autouse=True)
 def clean_environment(monkeypatch):
     names = ("SECRET_KEY", "MAX_UPLOAD_MB", "SESSION_COOKIE_SECURE", "APP_TIMEZONE", "TRUST_PROXY")
-    for name in (*names, "DATABASE_URL"):
+    for name in (*names, "DATABASE_URL", "VERCEL"):
         monkeypatch.delenv(name, raising=False)
 
 
@@ -88,3 +88,13 @@ def test_proxy_headers_are_trusted_only_when_asked(tmp_path, monkeypatch):
     assert load_config("testing", tmp_path)["TRUST_PROXY"] is False
     monkeypatch.setenv("TRUST_PROXY", "true")
     assert load_config("testing", tmp_path)["TRUST_PROXY"] is True
+
+
+def test_on_vercel_cookies_are_secure_proxy_trusted_and_uploads_capped(tmp_path, monkeypatch):
+    monkeypatch.setenv("VERCEL", "1")
+    config = load_config("testing", tmp_path)
+    assert config["SESSION_COOKIE_SECURE"] is config["REMEMBER_COOKIE_SECURE"] is True
+    assert config["TRUST_PROXY"] is True
+    assert config["MAX_CONTENT_LENGTH"] == 4 * 1024 * 1024
+    monkeypatch.setenv("TRUST_PROXY", "false")
+    assert load_config("testing", tmp_path)["TRUST_PROXY"] is False

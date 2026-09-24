@@ -55,3 +55,10 @@ filterwarnings = [
     # Flask-Login 0.6.3 calls datetime.utcnow() when it sets the remember-me cookie.
     "ignore:datetime.datetime.utcnow:DeprecationWarning:flask_login",
 ]
+
+# Vercel loads the app from parent_notifier/wsgi.py and runs this build step first.
+[tool.vercel]
+entrypoint = "parent_notifier.wsgi:app"
+
+[tool.vercel.scripts]
+build = "python scripts/deploy/vercel_build.py"
