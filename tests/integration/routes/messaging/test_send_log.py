@@ -26,6 +26,9 @@ def test_send_is_stored_and_returns_the_whatsapp_link(app, signed_in_client, set
     assert query["phone"] == ["919000000101"]
     [entry] = _entries(app)
     assert query["text"] == [entry.message]
+    app_link = urlsplit(data["whatsappAppUrl"])
+    assert (app_link.netloc, app_link.path) == ("wa.me", "/919000000101")
+    assert parse_qs(app_link.query)["text"] == [entry.message]
     assert entry.message.startswith("આદરણીય વાલીશ્રી,")
     assert (entry.round, entry.language) == (1, "gu")
 
@@ -34,6 +37,7 @@ def test_skip_is_stored_without_a_link(app, signed_in_client, setup):
     base, ids = setup
     data = _log(signed_in_client, base, ids["23CE002"], status="skipped").get_json()
     assert (data["status"], data["whatsappUrl"], data["label"]) == ("skipped", None, "Skipped")
+    assert data["whatsappAppUrl"] is None
 
 
 @pytest.mark.parametrize(

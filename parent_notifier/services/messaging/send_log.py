@@ -10,7 +10,7 @@ from parent_notifier.models.academics import Semester
 from parent_notifier.models.messaging import SendLog
 from parent_notifier.services.academics.views.semester_view import StudentRow
 from parent_notifier.services.messaging import previews
-from parent_notifier.services.messaging.whatsapp_links import whatsapp_link
+from parent_notifier.services.messaging.whatsapp_links import whatsapp_app_link, whatsapp_link
 from parent_notifier.services.shared import clock
 from parent_notifier.services.shared.formatting import format_day_month
 
@@ -57,6 +57,7 @@ def label(mark: Mark | None, has_phone: bool, timezone: str) -> str:
 class Logged:
     mark: Mark
     whatsapp_url: str | None
+    whatsapp_app_url: str | None
 
 
 def log_send(
@@ -75,8 +76,12 @@ def log_send(
     entry = record(
         semester, row.id, mentor_id, status=status, language=language, note=note, message=message
     )
-    link = whatsapp_link(row.phone_e164, message) if status == "sent" else None
-    return Logged(Mark(entry.status, entry.created_at), link)
+    mark = Mark(entry.status, entry.created_at)
+    if status != "sent":
+        return Logged(mark, None, None)
+    return Logged(
+        mark, whatsapp_link(row.phone_e164, message), whatsapp_app_link(row.phone_e164, message)
+    )
 
 
 def pending_ids(rows: list[StudentRow], marks: dict[int, Mark]) -> set[int]:

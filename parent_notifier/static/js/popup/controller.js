@@ -16,6 +16,8 @@ function createPopup(dialog, students) {
   const note = dialog.querySelector("[data-note]");
   const noteCount = dialog.querySelector('[data-slot="note-count"]');
   const showListeners = [];
+  const appLink = dialog.querySelector("[data-whatsapp-open]");
+  let afterAppLink = null;
   const links = () => [...document.querySelectorAll("[data-student-link]")];
   let currentId = null;
 
@@ -49,6 +51,18 @@ function createPopup(dialog, students) {
       const next = ids[ids.indexOf(currentId) + step];
       if (next) popup.show(next);
     },
+    // The Open WhatsApp link (phones, or a blocked tab), and what to do once it is used.
+    showAppLink(url, then = null) {
+      appLink.href = url;
+      appLink.hidden = false;
+      afterAppLink = then;
+      appLink.focus();
+    },
+    hideAppLink() {
+      appLink.hidden = true;
+      appLink.removeAttribute("href");
+      afterAppLink = null;
+    },
     markDone(id, label) {
       students.get(id).mark = label;
       dialog.querySelector('[data-slot="mark"]').textContent = label;
@@ -59,6 +73,14 @@ function createPopup(dialog, students) {
       }
     },
   };
+  appLink.addEventListener("click", () => {
+    const then = afterAppLink;
+    // Let the tap open WhatsApp before the popup moves on.
+    setTimeout(() => {
+      popup.hideAppLink();
+      then?.();
+    }, 0);
+  });
   popup.language = initLanguage(dialog, popup.refreshMessage);
   note.addEventListener("input", popup.refreshMessage);
   return popup;

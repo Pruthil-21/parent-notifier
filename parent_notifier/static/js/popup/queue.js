@@ -54,8 +54,18 @@ export function initQueue(popup) {
       popup.markDone(id, data.label);
       popup.pacing.update(data.pacing);
       student.pending = false;
-      index += 1;
-      showCurrent();
+      const next = () => {
+        index += 1;
+        showCurrent();
+      };
+      if (data.openUrl) {
+        // A phone, or a blocked tab: the next parent comes up once Open WhatsApp is used.
+        popup.showAppLink(data.openUrl, next);
+        status.textContent = "Saved. Select Open WhatsApp, then press send in WhatsApp.";
+        status.classList.remove("is-error");
+      } else {
+        next();
+      }
     } catch (error) {
       if (error.pacing) popup.pacing.update(error.pacing);
       status.textContent = error.message;

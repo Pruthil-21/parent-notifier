@@ -82,5 +82,6 @@ def log(class_id: int, number: int, student_id: int):
         status=status,
         label=send_log.label(logged.mark, True, timezone),
         whatsappUrl=logged.whatsapp_url,
+        whatsappAppUrl=logged.whatsapp_app_url,
         pacing=pacing_json(pacing.status_for(current_user, timezone)),
     )

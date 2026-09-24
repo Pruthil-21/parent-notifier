@@ -56,9 +56,8 @@ def demo(tmp_path_factory):
         db.engine.dispose()
 
 
-@pytest.fixture
-def signed_in(page, demo):
-    """A signed-in page that fails the test on any script error or console error."""
+def sign_in(page, demo) -> list[str]:
+    """Sign the page in, and collect every script error and console error it logs."""
     errors = []
 
     def on_console(message):
@@ -73,11 +72,32 @@ def signed_in(page, demo):
     page.on("pageerror", lambda error: errors.append(str(error)))
     page.on("console", on_console)
     # WhatsApp Web is never contacted; the tab gets a stand-in page instead.
-    page.context.route("https://web.whatsapp.com/**", lambda route: route.fulfill(body="ok"))
+    for whatsapp in ("https://web.whatsapp.com/**", "https://wa.me/**"):
+        page.context.route(whatsapp, lambda route: route.fulfill(body="ok"))
     page.goto(f"{demo.url}/sign-in")
     page.fill("input[name=username]", "ashapatel")
     page.fill("input[name=password]", PASSWORD)
     page.click("button[type=submit]")
     page.wait_for_url(f"{demo.url}/")
+    return errors
+
+
+@pytest.fixture
+def signed_in(page, demo):
+    """A signed-in page that fails the test on any script error or console error."""
+    errors = sign_in(page, demo)
     yield page
+    assert errors == []
+
+
+@pytest.fixture
+def signed_in_phone(browser, demo):
+    """The same, on a phone-sized touch screen."""
+    context = browser.new_context(
+        viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True
+    )
+    page = context.new_page()
+    errors = sign_in(page, demo)
+    yield page
+    context.close()
     assert errors == []
