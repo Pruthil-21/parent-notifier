@@ -222,4 +222,25 @@
     background: var(--color-surface-subtle);
     overflow-wrap: anywhere;
   }
+
+  /* Choices grouped under a visible legend, without the browser's box. */
+  .account-panel fieldset,
+  .settings-section fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .log-text {
+    min-width: 16rem;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  @media (width < 640px) {
+    .admin-filters__field {
+      flex: 1 1 100%;
+    }
+  }
 }
