@@ -82,3 +82,16 @@ def test_related_links(signed_in_client):
     html = signed_in_client.get("/").get_data(as_text=True)
     assert 'href="/sheet-format.xlsx" download>Download sheet format</a>' in html
     assert 'href="/profile/">Profile</a>' in html
+
+
+def test_first_run_shows_the_set_up_steps_instead_of_tiles(signed_in_client):
+    html = signed_in_client.get("/").get_data(as_text=True)
+    assert "Set up your first class" in html
+    for step in ("Create a class", "Add a semester", "Upload its sheet"):
+        assert f"<h3>{step}</h3>" in html
+    assert 'class="tiles"' not in html and 'id="my-classes"' not in html
+
+
+def test_first_run_panel_goes_once_there_is_a_class(signed_in_client, one_class):
+    html = signed_in_client.get("/").get_data(as_text=True)
+    assert "Set up your first class" not in html

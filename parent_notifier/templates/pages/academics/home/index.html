@@ -15,9 +15,13 @@
 {% endblock %}
 
 {% block content %}
-{% include "pages/academics/home/_tiles.html" %}
+{% if summary.classes %}{% include "pages/academics/home/_tiles.html" %}{% endif %}
 <div class="home-layout">
+  {% if summary.classes %}
   {% include "pages/academics/home/_classes.html" %}
+  {% else %}
+  {% include "pages/academics/home/_first_run.html" %}
+  {% endif %}
   {% include "pages/academics/home/_related.html" %}
 </div>
 {% endblock %}

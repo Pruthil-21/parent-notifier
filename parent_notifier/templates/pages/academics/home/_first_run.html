@@ -1,0 +1,28 @@
+{# Shown instead of the tiles and class list until the mentor has a class. #}
+<section class="first-run" aria-labelledby="first-run-heading">
+  <h2 id="first-run-heading">Set up your first class</h2>
+  <ol class="first-run__steps" role="list">
+    <li>
+      <span class="first-run__number numeric" aria-hidden="true">1</span>
+      <div>
+        <h3>Create a class</h3>
+        <p class="text-secondary">One for each batch you mentor, such as CE-A.</p>
+      </div>
+    </li>
+    <li>
+      <span class="first-run__number numeric" aria-hidden="true">2</span>
+      <div>
+        <h3>Add a semester</h3>
+        <p class="text-secondary">Choose the semester you are mentoring now.</p>
+      </div>
+    </li>
+    <li>
+      <span class="first-run__number numeric" aria-hidden="true">3</span>
+      <div>
+        <h3>Upload its sheet</h3>
+        <p class="text-secondary">Students, parents' numbers, attendance and Mid-Sem marks. The sheet format shows the columns.</p>
+      </div>
+    </li>
+  </ol>
+  <a class="button button--primary" href="{{ url_for('classes.new_class') }}">{{ icon("add") }}New class</a>
+</section>
