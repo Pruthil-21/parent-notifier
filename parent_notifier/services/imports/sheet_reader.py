@@ -10,8 +10,6 @@ import io
 import zipfile
 from pathlib import PurePath
 
-from openpyxl import load_workbook
-
 MAX_ROWS = 1000
 MAX_COLUMNS = 64
 MAX_UNPACKED_BYTES = 50 * 1024 * 1024
@@ -55,6 +53,9 @@ def _check_archive(data: bytes) -> None:
 
 
 def _xlsx_rows(data: bytes):
+    # Imported here, not at the top, so starting the app doesn't wait for openpyxl.
+    from openpyxl import load_workbook
+
     _check_archive(data)
     # read_only parses rows lazily, so a damaged sheet can fail while rows are read, not
     # only when the file is opened. openpyxl raises many different types for that.

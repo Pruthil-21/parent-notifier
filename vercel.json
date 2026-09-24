@@ -1,14 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": ["bom1"],
   "functions": {
     "parent_notifier/wsgi.py": {
-      "excludeFiles": "{tests/**,samples/**,scripts/**,public/**,.github/**}"
+      "excludeFiles": "{tests/**,samples/**,scripts/**,.github/**}"
     }
-  },
-  "headers": [
-    {
-      "source": "/static/(.*)",
-      "headers": [{ "key": "X-Content-Type-Options", "value": "nosniff" }]
-    }
-  ]
+  }
 }

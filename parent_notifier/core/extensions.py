@@ -7,7 +7,6 @@ from flask import Flask
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_login import LoginManager
-from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
 from sqlalchemy import MetaData, event
@@ -31,8 +30,6 @@ class Base(DeclarativeBase):
 
 
 db = SQLAlchemy(model_class=Base)
-# Batch mode: SQLite cannot ALTER most constraints in place, so Alembic copies the table.
-migrate = Migrate(render_as_batch=True)
 csrf = CSRFProtect()
 # No default limits: only the routes that check secrets or can be hammered opt in.
 limiter = Limiter(key_func=get_remote_address)
@@ -53,9 +50,19 @@ def _enable_sqlite_foreign_keys(dbapi_connection, _connection_record) -> None:
         cursor.close()
 
 
+def init_migrations(app: Flask) -> None:
+    """Flask-Migrate, for the `flask db` commands. It loads Alembic, which is slow to
+    import, so a serverless start skips it and the deploy build step calls this itself."""
+    from flask_migrate import Migrate
+
+    # Batch mode: SQLite cannot ALTER most constraints in place, so Alembic copies the table.
+    Migrate(app, db, directory=str(MIGRATIONS_DIR), render_as_batch=True)
+
+
 def init_extensions(app: Flask) -> None:
     db.init_app(app)
-    migrate.init_app(app, db, directory=str(MIGRATIONS_DIR))
+    if not app.config["SERVERLESS"]:
+        init_migrations(app)
     csrf.init_app(app)
     limiter.init_app(app)
     login_manager.init_app(app)

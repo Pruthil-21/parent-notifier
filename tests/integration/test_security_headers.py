@@ -44,3 +44,13 @@ def test_templates_use_no_inline_scripts_styles_or_handlers():
         assert not re.search(r"<script(?![^>]*\bsrc=)(?![^>]*application/json)", html), template
         assert " style=" not in html, template
         assert not re.search(r"\son[a-z]+=", html), template
+
+
+def test_static_files_can_be_kept_by_a_cdn_even_when_signed_in(signed_in_client):
+    """Vercel's CDN caches a response only with s-maxage and no cookie attached."""
+    response = signed_in_client.get("/static/css/app.css")
+    assert response.headers["Cache-Control"] == (
+        "public, max-age=0, must-revalidate, s-maxage=31536000"
+    )
+    assert "Set-Cookie" not in response.headers
+    assert "Cookie" not in response.headers.get("Vary", "")

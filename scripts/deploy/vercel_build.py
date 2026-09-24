@@ -1,25 +1,15 @@
-"""Vercel's build step: publish the static files and bring the database up to date.
+"""Vercel's build step: bring the database up to date.
 
-Vercel serves files in public/ straight from its CDN, so the app's CSS and JavaScript
-are copied to public/static/, the same paths the pages link to. Then the database
-migrations run against DATABASE_URL, unless RUN_MIGRATIONS is "false".
+The migrations run against DATABASE_URL, unless RUN_MIGRATIONS is "false".
 """
 
 import os
-import shutil
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 # Run as a file, Python only sees this script's folder; the app lives at the root.
 sys.path.insert(0, str(ROOT))
-
-
-def publish_static() -> None:
-    target = ROOT / "public" / "static"
-    shutil.rmtree(target, ignore_errors=True)
-    shutil.copytree(ROOT / "parent_notifier" / "static", target)
-    print(f"Copied static files to {target.relative_to(ROOT)}")
 
 
 def migrate() -> None:
@@ -31,12 +21,14 @@ def migrate() -> None:
     from flask_migrate import upgrade
 
     from parent_notifier import create_app
+    from parent_notifier.core.extensions import init_migrations
 
-    with create_app().app_context():
+    app = create_app()
+    init_migrations(app)  # a serverless app skips this at start
+    with app.app_context():
         upgrade()
     print("Database is up to date")
 
 
 if __name__ == "__main__":
-    publish_static()
     migrate()

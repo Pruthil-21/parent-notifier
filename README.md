@@ -134,7 +134,8 @@ The app runs on Vercel's free plan with a free Supabase Postgres database. Use i
 testing with the fictional demo data only; real student records belong on the college
 server planned for 1.0.0.
 
-1. **Create the database.** In a new Supabase project, open **Connect**, choose
+1. **Create the database.** Create a Supabase project in the **Mumbai (ap-south-1)**
+   region, where the app also runs. Open **Connect**, choose
    **Transaction pooler** and copy the address (it ends in `:6543/postgres`). Put your
    database password in place of `[YOUR-PASSWORD]`.
 2. **Create the Vercel project.** Import this repository in Vercel; it detects the app
@@ -146,8 +147,9 @@ server planned for 1.0.0.
    | `SECRET_KEY` | a long random value, from `python -c "import secrets; print(secrets.token_hex(32))"` |
    | `DATABASE_URL` | the Supabase address from step 1 |
 
-3. **Deploy.** The build copies the CSS and JavaScript to Vercel's CDN and creates the
-   tables in Supabase.
+3. **Deploy.** The build creates the tables in Supabase. The app runs in Vercel's
+   Mumbai region (`bom1`, set in `vercel.json`), and Vercel's CDN keeps the CSS and
+   JavaScript near each visitor until the next deploy.
 4. **Load the demo data (optional).** From your computer, in PowerShell:
 
    ```

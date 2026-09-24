@@ -9,11 +9,6 @@ from sqlalchemy import select
 
 from parent_notifier.core.extensions import db
 from parent_notifier.models.accounts import Mentor
-from parent_notifier.services.academics.records import classes, semesters
-from parent_notifier.services.accounts import registration
-from parent_notifier.services.imports.apply import apply_import
-from parent_notifier.services.imports.sheet_parser import parse_sheet
-from parent_notifier.services.imports.sheet_reader import read_sheet
 
 SAMPLES = Path(__file__).resolve().parents[2] / "samples"
 DEMO_USERNAME = "pruthilmistry"
@@ -23,6 +18,11 @@ DEMO_SEMESTERS = (6, 7)
 
 
 def _import_sample(class_group, mentor, number: int) -> int:
+    from parent_notifier.services.academics.records import semesters
+    from parent_notifier.services.imports.apply import apply_import
+    from parent_notifier.services.imports.sheet_parser import parse_sheet
+    from parent_notifier.services.imports.sheet_reader import read_sheet
+
     semester, _ = semesters.add_semester(class_group, number)
     path = SAMPLES / f"ce-a-sem-{number}.xlsx"
     sheet = parse_sheet(read_sheet(path.name, path.read_bytes()), class_group.midsem_max)
@@ -36,6 +36,10 @@ def _import_sample(class_group, mentor, number: int) -> int:
 @with_appcontext
 def seed_demo() -> None:
     """Replace the demo mentor with a fresh one holding class CE-A and two semesters."""
+    # Imported here so the command's needs don't slow down every start of the app.
+    from parent_notifier.services.academics.records import classes
+    from parent_notifier.services.accounts import registration
+
     if current_app.config["ENV_NAME"] == "production":
         raise click.ClickException("seed-demo only runs outside production.")
     existing = db.session.scalar(select(Mentor).where(Mentor.username == DEMO_USERNAME))
