@@ -1,8 +1,15 @@
 {% extends "layouts/app.html" %}
+{% from "components/navigation/action_bar.html" import action_bar %}
 
 {% block title %}Home{% endblock %}
 {% block page_title %}Home{% endblock %}
 
+{% block actions %}
+{% call action_bar() %}
+<a class="button button--primary" href="{{ url_for('classes.new_class') }}">{{ icon("add") }}New class</a>
+{% endcall %}
+{% endblock %}
+
 {% block content %}
-<p class="text-secondary">Signed in as {{ current_user.full_name }}.</p>
+{% include "pages/academics/home/_tiles.html" %}
 {% endblock %}

@@ -1,0 +1,36 @@
+{# Tiles across all classes, each counted from the class's latest semester. A tile opens
+   the one class behind its figure; when several classes add to it, the list below. #}
+{% macro place(row) %}{{ row.class_group.name }} · Sem {{ row.semester.number }}{% endmacro %}
+{% macro spread(figure) %}{% set count = summary.classes | selectattr(figure) | list | length %}{% if count == 1 %}{{ place(summary.only(figure)) }}{% elif count %}in {{ count }} classes{% else %}in any class{% endif %}{% endmacro %}
+{% macro filtered(figure, status) %}{% set row = summary.only(figure) %}{% if row %}{{ url_for('semesters.workspace', class_id=row.class_group.id, number=row.semester.number, status=status) }}{% else %}#my-classes{% endif %}{% endmacro %}
+<ul class="tiles" role="list" aria-label="Summary of all classes">
+  <li class="tile tile--at-risk">
+    <a class="tile__link" href="{{ filtered('at_risk', 'at_risk') }}">
+      <span class="tile__label">Students at risk</span>
+      <span class="tile__value numeric">{{ summary.at_risk }}</span>
+      <span class="tile__share">{{ spread("at_risk") }}</span>
+    </a>
+  </li>
+  <li class="tile tile--messaged">
+    <a class="tile__link" href="{{ filtered('pending', 'pending') }}">
+      <span class="tile__label">Parents to message</span>
+      <span class="tile__value numeric">{{ summary.pending }}</span>
+      <span class="tile__share">{{ spread("pending") }}</span>
+    </a>
+  </li>
+  <li class="tile">
+    <a class="tile__link" href="{{ url_for('classes.index') }}">
+      <span class="tile__label">Classes</span>
+      <span class="tile__value numeric">{{ summary.classes | length }}</span>
+      <span class="tile__share">{{ summary.classes | sum(attribute="students") }} students now</span>
+    </a>
+  </li>
+  {% set waiting = summary.waiting %}
+  <li class="tile{% if waiting %} tile--needs-attention{% endif %}">
+    <a class="tile__link" href="{% if waiting | length == 1 %}{{ url_for('semesters.workspace', class_id=waiting[0].class_id, number=waiting[0].number) }}{% else %}#my-classes{% endif %}">
+      <span class="tile__label">Semesters waiting for a sheet</span>
+      <span class="tile__value numeric">{{ waiting | length }}</span>
+      <span class="tile__share">{% if waiting | length == 1 %}{{ waiting[0].class_group.name }} · Sem {{ waiting[0].number }}{% elif waiting %}{% set names = waiting | map(attribute='class_group.name') | unique | list %}{% if names | length == 1 %}{{ names[0] }}{% else %}in {{ names | length }} classes{% endif %}{% else %}Every semester has a sheet{% endif %}</span>
+    </a>
+  </li>
+</ul>

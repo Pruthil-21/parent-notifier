@@ -21,7 +21,7 @@ def test_correct_details_sign_in_and_go_home(client, mentor):
     response = sign_in(client)
     assert response.status_code == 302
     assert response.headers["Location"] == "/"
-    assert "Signed in as Asha Patel" in client.get("/").get_data(as_text=True)
+    assert 'aria-label="Account: Asha Patel"' in client.get("/").get_data(as_text=True)
 
 
 @pytest.mark.parametrize(
