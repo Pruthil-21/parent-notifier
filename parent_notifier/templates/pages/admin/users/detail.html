@@ -76,6 +76,7 @@
 
   <section class="account-panel account-panel--wide" aria-labelledby="activity-heading">
     <h2 id="activity-heading">Recent activity</h2>
+    <p><a href="{{ url_for('admin_logs.index', person=account.username) }}">See all activity</a></p>
     {% if recent %}
     <ul class="account-list" role="list">
       {% for entry in recent %}

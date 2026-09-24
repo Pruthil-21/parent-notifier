@@ -1,0 +1,102 @@
+{% extends "layouts/app.html" %}
+{% from "components/navigation/breadcrumb.html" import breadcrumb %}
+{% from "components/data/pagination.html" import pagination %}
+{% from "components/feedback/empty_state.html" import empty_state %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/admin.css') }}">
+{% endblock %}
+
+{% block title %}Activity log{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Overview", url_for("home.index")), ("Activity log", None)]) }}{% endblock %}
+{% block page_title %}Activity log{% endblock %}
+{% block page_meta %}Who did what, and when. Entries are kept for at least a year and cannot be changed.{% endblock %}
+
+{% block content %}
+<nav class="view-tabs" aria-label="Category">
+  <a class="view-tabs__tab" href="{{ url_with(category=None, event=None) }}" {% if not filters.category %}aria-current="page"{% endif %}>All</a>
+  {% for key, label in categories %}
+  <a class="view-tabs__tab" href="{{ url_with(category=key, event=None) }}" {% if filters.category == key %}aria-current="page"{% endif %}>{{ label }}</a>
+  {% endfor %}
+</nav>
+
+<form class="admin-filters" method="get" role="search">
+  {% if filters.category %}
+  <input type="hidden" name="category" value="{{ filters.category }}">
+  <div class="admin-filters__field">
+    <label for="log-event">Event</label>
+    <select class="input" id="log-event" name="event">
+      <option value="">All events</option>
+      {% for key, label in events[filters.category].items() %}<option value="{{ key }}" {% if key == filters.event %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </div>
+  {% endif %}
+  <div class="admin-filters__field">
+    <label for="log-person">Person</label>
+    <input class="input" id="log-person" name="person" type="search" value="{{ filters.person }}" maxlength="80"
+           placeholder="Name or username" autocomplete="off">
+  </div>
+  <div class="admin-filters__field">
+    <label for="log-department">Department</label>
+    <select class="input" id="log-department" name="department">
+      <option value="">All departments</option>
+      {% for name in department_list %}<option value="{{ name }}" {% if name == filters.department %}selected{% endif %}>{{ name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="admin-filters__field">
+    <label for="log-class">Class</label>
+    <input class="input" id="log-class" name="class" type="search" value="{{ filters.class_name }}" maxlength="40"
+           placeholder="Like CE-A" autocomplete="off">
+  </div>
+  <div class="admin-filters__field">
+    <label for="log-since">From</label>
+    <input class="input" id="log-since" name="since" type="date" value="{{ filters.since or '' }}">
+  </div>
+  <div class="admin-filters__field">
+    <label for="log-until">To</label>
+    <input class="input" id="log-until" name="until" type="date" value="{{ filters.until or '' }}">
+  </div>
+  <label class="admin-filters__check">
+    <input type="checkbox" name="failed" value="1" {% if filters.failed_only %}checked{% endif %}> Failed only
+  </label>
+  <button class="button" type="submit">Apply</button>
+  {% if filters.filtered %}<a class="button button--subtle" href="{{ url_for('admin_logs.index', category=filters.category) }}">Clear</a>{% endif %}
+</form>
+
+{% if page.items %}
+<div class="data-grid">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">When</th>
+        {% if not filters.category %}<th scope="col">Category</th>{% endif %}
+        <th scope="col">Event</th>
+        <th scope="col">Who</th>
+        <th scope="col">What</th>
+        <th scope="col">Class</th>
+        <th scope="col">Details</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in page.items %}
+      <tr>
+        <td class="log-when">{{ entry.created_at | date_time }}</td>
+        {% if not filters.category %}<td>{{ category_labels[entry.category] }}</td>{% endif %}
+        <td>{{ event_label(entry.category, entry.event) }}{% if not entry.succeeded %} <span class="badge badge--at-risk">Failed</span>{% endif %}</td>
+        <td>
+          {% if entry.actor_name %}<span class="cell-title">{{ entry.actor_name }}</span>{% endif %}
+          <span class="cell-note">{{ entry.username or "" }}{% if entry.department %} · {{ entry.department }}{% endif %}</span>
+        </td>
+        <td>{{ entry.target_label or "" }}</td>
+        <td>{{ entry.class_label or "" }}</td>
+        <td class="cell-note">{{ describe(entry.details) }}{% if entry.ip_address %}{% if entry.details %} · {% endif %}from {{ entry.ip_address }}{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{{ pagination(page, "entries") }}
+{% else %}
+{% call empty_state("Nothing matches" if filters.filtered else "Nothing logged yet", "Try other filters, or clear them." if filters.filtered else "Sign-ins, changes and messages appear here as they happen.") %}{% endcall %}
+{% endif %}
+{% endblock %}
