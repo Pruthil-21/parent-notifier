@@ -19,6 +19,8 @@ class NavItem:
     also_covers: tuple[str, ...] = ()
     # Shown only to the admin.
     admin_only: bool = False
+    # Its sub-items can be narrowed by typing, for sections that grow long.
+    filterable: bool = False
 
     @property
     def blueprints(self) -> tuple[str, ...]:
@@ -32,6 +34,7 @@ NAV_ITEMS = (
         "Classes",
         "classes.index",
         also_covers=("semesters", "class_settings", "imports", "import_undo", "students"),
+        filterable=True,
     ),
     NavItem(
         "admin",
@@ -56,6 +59,8 @@ def _item_context(item: NavItem) -> dict[str, object]:
     children = provider() if provider else []
     in_section = request.blueprint in item.blueprints
     return {
+        # Names the section in the page, for its folding and filter controls.
+        "id": item.label.lower().replace(" ", "-"),
         "icon": item.icon,
         "label": item.label,
         "url": url_for(item.endpoint),
@@ -63,6 +68,7 @@ def _item_context(item: NavItem) -> dict[str, object]:
         # The section link is the current page only when no sub-item is.
         "current": in_section and not any(child["active"] for child in children),
         "children": children,
+        "filterable": item.filterable,
     }
 
 
