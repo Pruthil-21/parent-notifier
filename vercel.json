@@ -5,7 +5,8 @@
   ],
   "functions": {
     "parent_notifier/wsgi.py": {
-      "excludeFiles": "{tests/**,samples/**,scripts/**,.github/**}"
+      "excludeFiles": "{tests/**,samples/**,scripts/**,.github/**}",
+      "maxDuration": 60
     }
   }
 }
