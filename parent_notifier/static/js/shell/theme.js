@@ -28,6 +28,7 @@ if (menu) {
       const response = await fetch(form.action, {
         method: "POST",
         body,
+        keepalive: true, // finishes saving even if the mentor opens another page at once
         headers: { Accept: "application/json" },
       });
       if (!response.ok) throw new Error(`Theme not saved: ${response.status}`);
