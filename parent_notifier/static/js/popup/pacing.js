@@ -23,6 +23,7 @@ export function initPacing(popup) {
   const { dialog } = popup;
   const note = dialog.querySelector('[data-slot="pacing"]');
   const buttons = [...dialog.querySelectorAll("[data-popup-send], [data-queue-send]")];
+  for (const button of buttons) button.dataset.label = button.textContent.trim();
   let state = {};
   let timer = null;
 
@@ -35,6 +36,8 @@ export function initPacing(popup) {
     const waiting = state.reason === "daily" || left > 0;
     for (const button of buttons) {
       button.disabled = waiting || button.dataset.noPhone === "true";
+      // The wait shows on the button itself, so a greyed-out Send never looks broken.
+      button.textContent = left > 0 && state.reason !== "daily" ? `Wait ${left} s` : button.dataset.label;
     }
     note.textContent = describe(state, left);
     if (!waiting && timer) {

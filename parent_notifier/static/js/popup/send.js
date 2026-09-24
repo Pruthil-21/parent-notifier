@@ -1,11 +1,19 @@
-// Sending one parent's message. The WhatsApp tab is opened blank inside the click (so
-// pop-up blockers allow it and one named tab is reused), then the send is logged, and
-// only when the server accepts it does the tab go to WhatsApp Web with the text the
-// server rendered and stored.
+// Sending one parent's message. On a laptop the WhatsApp tab is opened blank inside the
+// click (so pop-up blockers allow it and one named tab is reused), then the send is
+// logged, and only when the server accepts it does the tab go to WhatsApp Web with the
+// text the server rendered and stored. On a phone, or when the browser blocks the tab,
+// the send is logged first and an "Open WhatsApp" link appears instead: a real click on
+// a link always works, and the phone's WhatsApp app opens only from a tap.
 
 import { confirmThen } from "./sending-as.js";
 
 const TAB_NAME = "parent-notifier-whatsapp";
+
+// Phones and tablets: the browser says it is mobile, or the main pointer is a finger.
+// Touchscreen laptops count as laptops, since their main pointer is the trackpad.
+export function onPhone() {
+  return navigator.userAgentData?.mobile === true || window.matchMedia("(pointer: coarse)").matches;
+}
 
 function csrfToken() {
   return document.querySelector('meta[name="csrf-token"]')?.content ?? "";
@@ -42,6 +50,10 @@ function closeIfBlank(tab) {
 
 // Must be called straight from a click handler, before any await.
 export async function sendToParent(logUrl, language, note) {
+  if (onPhone()) {
+    const data = await postLog(logUrl, { status: "sent", language, note });
+    return { ...data, openUrl: data.whatsappAppUrl };
+  }
   const tab = window.open("", TAB_NAME);
   try {
     if (tab) tab.opener = null; // WhatsApp's page must not be able to steer this one
@@ -55,11 +67,9 @@ export async function sendToParent(logUrl, language, note) {
     closeIfBlank(tab);
     throw error;
   }
-  if (tab) {
-    tab.location.href = data.whatsappUrl;
-  } else {
-    window.open(data.whatsappUrl, TAB_NAME); // pop-ups blocked: try once more
-  }
+  if (!tab) return { ...data, openUrl: data.whatsappUrl }; // the browser blocked the tab
+  tab.location.href = data.whatsappUrl;
+  tab.focus(); // from the second send on, the reused tab would otherwise stay behind
   return data;
 }
 
@@ -73,6 +83,7 @@ export function initSendButton(popup) {
   };
 
   popup.onShow((student) => {
+    popup.hideAppLink();
     // Pacing decides the final disabled state from this and its own countdown.
     button.dataset.noPhone = String(!student.phoneValid);
     say(student.phoneValid ? "" : "This parent has no valid mobile number. Edit the student to fix it.");
@@ -87,7 +98,12 @@ export function initSendButton(popup) {
       const data = await sendToParent(link.dataset.logUrl, popup.language(), popup.note());
       popup.markDone(id, data.label);
       popup.pacing.update(data.pacing);
-      say("Opened in WhatsApp Web. Press send there to deliver it.");
+      if (data.openUrl) {
+        popup.showAppLink(data.openUrl);
+        say("Saved. Select Open WhatsApp, then press send in WhatsApp.");
+      } else {
+        say("Opened in WhatsApp Web. Press send there to deliver it.");
+      }
     } catch (error) {
       if (error.pacing) popup.pacing.update(error.pacing);
       say(error.message, true);

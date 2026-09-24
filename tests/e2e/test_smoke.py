@@ -126,3 +126,37 @@ def test_resting_on_a_link_loads_its_page_before_the_click(signed_in, demo):
         "(performance.getEntriesByType('navigation')[0])"
     )
     assert entry["activationStart"] > 0 or entry["deliveryType"] == "navigational-prefetch"
+
+
+def _send_first_time(page, popup):
+    popup.get_by_role("button", name="Send on WhatsApp").click()
+    page.get_by_role("button", name="Yes, continue").click()
+
+
+def test_on_a_phone_send_saves_then_opens_the_whatsapp_app(signed_in_phone, demo):
+    page = signed_in_phone
+    page.goto(f"{demo.url}/classes/{demo.class_id}/sem/4")
+    popup = page.locator("#student-popup")
+    page.get_by_role("link", name="Riya Patel").click()
+    _send_first_time(page, popup)
+    open_app = popup.get_by_role("link", name="Open WhatsApp")
+    expect(open_app).to_be_visible()
+    expect(open_app).to_have_attribute("href", re.compile(r"^https://wa\.me/919000000103\?text="))
+    expect(popup.locator('[data-slot="mark"]')).to_have_text(re.compile(r"^Sent "))
+    with page.expect_popup():
+        open_app.tap()
+    expect(open_app).to_be_hidden()
+
+
+def test_a_blocked_whatsapp_tab_offers_a_link_instead(signed_in, demo):
+    page = signed_in
+    page.add_init_script("window.open = () => null")  # as a pop-up blocker would
+    page.goto(f"{demo.url}/classes/{demo.class_id}/sem/4")
+    popup = page.locator("#student-popup")
+    page.get_by_role("link", name="Isha Joshi").click()
+    _send_first_time(page, popup)
+    open_link = popup.get_by_role("link", name="Open WhatsApp")
+    expect(open_link).to_have_attribute(
+        "href", re.compile(r"^https://web\.whatsapp\.com/send\?phone=919000000104&text=")
+    )
+    expect(popup.get_by_role("button", name=re.compile(r"^Wait \d+ s$"))).to_be_disabled()

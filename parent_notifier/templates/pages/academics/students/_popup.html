@@ -69,6 +69,9 @@
     <button type="button" class="button button--primary" data-popup-send>Send on WhatsApp</button>
     <button type="button" class="button" data-queue-skip>Skip</button>
     <button type="button" class="button button--primary" data-queue-send>Send and next</button>
+    {# Shown after Send saves the message when a tab can't be opened for it: on a phone,
+       where the WhatsApp app opens only from a tap, or when the browser blocks the tab. #}
+    <a class="button button--primary" data-whatsapp-open hidden target="_blank" rel="noopener noreferrer">Open WhatsApp</a>
   </div>
   <div class="queue-done" data-queue-done hidden>
     <p class="queue-done__title">All pending parents are done.</p>

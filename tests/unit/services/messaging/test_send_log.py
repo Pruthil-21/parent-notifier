@@ -4,7 +4,7 @@ from urllib.parse import parse_qs, urlsplit
 import pytest
 
 from parent_notifier.services.messaging import send_log
-from parent_notifier.services.messaging.whatsapp_links import whatsapp_link
+from parent_notifier.services.messaging.whatsapp_links import whatsapp_app_link, whatsapp_link
 from tests.factories.academics import make_class, make_semester, make_student
 from tests.factories.accounts import make_mentor
 
@@ -19,9 +19,18 @@ def test_link_goes_to_whatsapp_web_with_the_text_encoded():
     assert " " not in link and "\n" not in link
 
 
-def test_link_refuses_anything_but_digits():
+def test_phone_link_opens_the_whatsapp_app_with_the_same_text():
+    text = "Dear Parent,\nDBMS: 86% & more?"
+    link = whatsapp_app_link("+919000000101", text)
+    parts = urlsplit(link)
+    assert (parts.scheme, parts.netloc, parts.path) == ("https", "wa.me", "/919000000101")
+    assert parse_qs(parts.query) == {"text": [text]}
+
+
+@pytest.mark.parametrize("make_link", [whatsapp_link, whatsapp_app_link])
+def test_link_refuses_anything_but_digits(make_link):
     with pytest.raises(ValueError, match=r"\+91XXXXXXXXXX"):
-        whatsapp_link("+91 90000 00101", "x")
+        make_link("+91 90000 00101", "x")
 
 
 @pytest.mark.usefixtures("app_context")
