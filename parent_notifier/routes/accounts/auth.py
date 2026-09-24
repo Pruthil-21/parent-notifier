@@ -6,6 +6,7 @@ from flask_login import current_user, login_required, logout_user
 from parent_notifier.forms.accounts import ChooseOwnPasswordForm, ResetPasswordForm, SignInForm
 from parent_notifier.routes.accounts import throttling
 from parent_notifier.routes.accounts.sessions import safe_next, show_recovery_code, start_session
+from parent_notifier.routes.activity import log
 from parent_notifier.services.accounts import credentials, registration
 
 bp = Blueprint("auth", __name__)
@@ -30,9 +31,17 @@ def sign_in():
         if mentor and not mentor.approved:
             # Said only after the right password, so it reveals nothing to a guesser.
             form.form_errors.append(WAITING_FOR_APPROVAL)
+            log(
+                "security",
+                "sign_in_failed",
+                actor=mentor,
+                succeeded=False,
+                details={"reason": "waiting for approval"},
+            )
         elif mentor:
             start_session(mentor, remember=form.remember.data)
             code = registration.record_sign_in(mentor)
+            log("security", "sign_in", actor=mentor)
             if mentor.must_change_password:
                 return redirect(url_for("auth.choose_password"))
             if code:
@@ -41,7 +50,12 @@ def sign_in():
         else:
             throttling.record_failed_attempt()
             form.form_errors.append(INCORRECT_SIGN_IN)
+            log("security", "sign_in_failed", username=_typed_username(), succeeded=False)
     return _sign_in_page(form)
+
+
+def _typed_username() -> str:
+    return credentials.normalise_username(request.form.get("username", ""))
 
 
 def _sign_in_page(form, status: int = 200):
@@ -62,12 +76,14 @@ def reset_password():
         if result:
             mentor, new_code = result
             start_session(mentor)
+            log("security", "password_reset", actor=mentor)
             flash(
                 "Your password has been reset. Your old recovery code no longer works.", "success"
             )
             return show_recovery_code(new_code, then="home")
         throttling.record_failed_attempt()
         form.form_errors.append(INCORRECT_RESET)
+        log("security", "password_reset", username=_typed_username(), succeeded=False)
     return render_template(RESET_TEMPLATE, form=form)
 
 
@@ -80,11 +96,14 @@ def too_many_attempts(_error):
         return render_template(RESET_TEMPLATE, form=form), 429
     form = SignInForm()
     form.form_errors.append(throttling.lockout_message("sign-in"))
+    log("security", "sign_in_locked", username=_typed_username(), succeeded=False)
     return _sign_in_page(form, 429)
 
 
 @bp.post("/sign-out")
 def sign_out():
+    if current_user.is_authenticated:
+        log("security", "sign_out")
     # Clear first: logout_user() leaves a note in the session that deletes the
     # remember-me cookie, and clearing afterwards would throw that note away.
     session.clear()
@@ -119,6 +138,7 @@ def choose_password():
         mentor = current_user._get_current_object()
         code = registration.choose_own_password(mentor, form.new_password.data)
         start_session(mentor)  # set_password signed out every session, this one too
+        log("security", "password_chosen", actor=mentor)
         flash("Your password is set.", "success")
         return show_recovery_code(code, then="home")
     return render_template("pages/accounts/choose_password.html", form=form)

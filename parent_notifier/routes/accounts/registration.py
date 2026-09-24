@@ -6,6 +6,7 @@ from flask_login import current_user, login_required
 from parent_notifier.core.extensions import limiter
 from parent_notifier.forms.accounts import USERNAME_TAKEN, CreateAccountForm, RecoveryCodeSavedForm
 from parent_notifier.routes.accounts import sessions, throttling
+from parent_notifier.routes.activity import log
 from parent_notifier.services.accounts import recovery_codes, registration
 
 bp = Blueprint("registration", __name__)
@@ -40,8 +41,10 @@ def create_account():
             form.username.errors.append(USERNAME_TAKEN)
         else:
             if needs_approval:
+                log("security", "account_requested", actor=mentor)
                 return render_template("pages/accounts/request_sent.html", mentor=mentor)
             sessions.start_session(mentor)
+            log("security", "account_created", actor=mentor)
             flash("Your account is ready.", "success")
             return sessions.show_recovery_code(code, then="home")
     return render_template(CREATE_TEMPLATE, form=form, needs_approval=needs_approval)
