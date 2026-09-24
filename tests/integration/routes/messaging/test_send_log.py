@@ -30,6 +30,11 @@ def test_send_is_stored_and_returns_the_whatsapp_link(app, signed_in_client, set
     assert (app_link.netloc, app_link.path) == ("wa.me", "/919000000101")
     assert parse_qs(app_link.query)["text"] == [entry.message]
     assert entry.message.startswith("આદરણીય વાલીશ્રી,")
+    with app.app_context():
+        from parent_notifier.models.activity import ActivityEntry
+
+        logged = db.session.scalars(db.select(ActivityEntry).filter_by(category="messaging")).one()
+        assert (logged.event, logged.details["language"]) == ("message_sent", "gu")
     assert (entry.round, entry.language) == (1, "gu")
 
 

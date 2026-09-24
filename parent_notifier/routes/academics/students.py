@@ -10,6 +10,7 @@ from parent_notifier.forms.academics import (
     EditStudentForm,
 )
 from parent_notifier.routes.academics.semesters import load_semester
+from parent_notifier.routes.activity import log
 from parent_notifier.services.academics.records import students
 from parent_notifier.services.academics.views import semester_view
 
@@ -61,6 +62,7 @@ def add(class_id: int, number: int):
             form.enrollment_no.errors.append(ENROLLMENT_TAKEN)
         else:
             flash(f"{student.full_name} added to Sem {number}.", "success")
+            log("data", "student_added", target=student, class_group=class_group)
             return redirect(url_for("semesters.workspace", class_id=class_id, number=number))
     return _form_page(class_group, semester, form)
 
@@ -77,6 +79,13 @@ def edit(class_id: int, number: int, student_id: int):
     if form.validate_on_submit():
         students.update_student(student, form.details())
         flash(f"{student.full_name} saved.", "success")
+        log(
+            "data",
+            "student_edited",
+            target=student,
+            class_group=class_group,
+            details={"status": student.status},
+        )
         return redirect(url_for("semesters.workspace", class_id=class_id, number=number))
     return _form_page(class_group, semester, form, student)
 
@@ -91,7 +100,9 @@ def delete(class_id: int, number: int, student_id: int):
     form = DeleteStudentForm(enrollment_no=student.enrollment_no)
     if form.validate_on_submit():
         name = student.full_name
+        target = ("student", student.id, f"{name} ({student.enrollment_no})")
         students.delete_student(student)
+        log("data", "student_deleted", target=target, class_group=class_group)
         flash(f"{name} deleted, with their marks and send record.", "success")
         return redirect(url_for("semesters.workspace", class_id=class_id, number=number))
     edit_form = EditStudentForm(formdata=None, obj=student, phone=student.phone_raw)

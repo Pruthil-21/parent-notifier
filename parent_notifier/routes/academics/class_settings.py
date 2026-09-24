@@ -12,6 +12,7 @@ from parent_notifier.forms.academics import (
 )
 from parent_notifier.models.academics import ClassGroup
 from parent_notifier.routes.academics.classes import load_class
+from parent_notifier.routes.activity import log
 from parent_notifier.services.academics.records import classes
 
 bp = Blueprint("class_settings", __name__, url_prefix="/classes/<int:class_id>/settings")
@@ -53,6 +54,7 @@ def save_details(class_id: int):
             form.name.errors.append(CLASS_NAME_TAKEN)
         else:
             flash("Class details saved.", "success")
+            log("data", "class_edited", target=class_group, class_group=class_group)
             return redirect(url_for("class_settings.index", class_id=class_id))
     return _render(class_group, details_form=form)
 
@@ -70,6 +72,17 @@ def save_rules(class_id: int):
             form.midsem_max.data,
         )
         flash("Status rules saved.", "success")
+        log(
+            "data",
+            "class_rules_changed",
+            target=class_group,
+            class_group=class_group,
+            details={
+                "attendance": form.attendance_threshold.data,
+                "pass_mark": form.midsem_pass_mark.data,
+                "midsem_max": form.midsem_max.data,
+            },
+        )
         return redirect(url_for("class_settings.index", class_id=class_id))
     return _render(class_group, rules_form=form)
 
@@ -82,6 +95,7 @@ def delete(class_id: int):
     if form.validate_on_submit():
         name = class_group.name
         classes.delete_class(class_group)
+        log("data", "class_deleted", target=("class", class_id, name))
         flash(f"Class {name} deleted, with its semesters and students.", "success")
         return redirect(url_for("classes.index"))
     return _render(class_group, delete_form=form)

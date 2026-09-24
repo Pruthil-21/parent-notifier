@@ -7,6 +7,7 @@ from parent_notifier.core.extensions import limiter
 from parent_notifier.forms.imports import ConfirmImportForm, UploadSheetForm
 from parent_notifier.models.academics import ClassGroup, Semester
 from parent_notifier.routes.academics.semesters import load_semester
+from parent_notifier.routes.activity import log
 from parent_notifier.services.imports import staging
 from parent_notifier.services.imports.apply import apply_import
 from parent_notifier.services.imports.compare import compare
@@ -93,6 +94,13 @@ def confirm(class_id: int, number: int):
     flash(
         f"Sheet imported: {outcome.added} new and {outcome.updated} existing students.",
         "success",
+    )
+    log(
+        "data",
+        "sheet_imported",
+        target=semester,
+        class_group=class_group,
+        details={"file": staged.filename, "added": outcome.added, "updated": outcome.updated},
     )
     return redirect(url_for("semesters.workspace", class_id=class_id, number=number))
 

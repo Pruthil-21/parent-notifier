@@ -6,6 +6,7 @@ from flask_login import current_user, login_required
 from parent_notifier.core.navigation import register_child_links
 from parent_notifier.forms.academics import CLASS_NAME_TAKEN, ClassDetailsForm, add_semester_form
 from parent_notifier.models.academics import ClassGroup
+from parent_notifier.routes.activity import log
 from parent_notifier.services.academics.records import classes, ownership
 
 bp = Blueprint("classes", __name__, url_prefix="/classes")
@@ -56,6 +57,7 @@ def new_class():
             form.name.errors.append(CLASS_NAME_TAKEN)
         else:
             flash(f"Class {class_group.name} created.", "success")
+            log("data", "class_created", target=class_group, class_group=class_group)
             return redirect(url_for("classes.open_class", class_id=class_group.id))
     return render_template("pages/academics/classes/new.html", form=form)
 
