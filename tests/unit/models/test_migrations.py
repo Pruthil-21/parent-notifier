@@ -20,6 +20,7 @@ def test_migrations_match_the_models_and_downgrade_cleanly(tmp_path, monkeypatch
             assert compare_metadata(context, db.metadata) == []
             if connection.dialect.name == "postgresql":
                 assert _tables_without_row_level_security(connection) == []
+                _check_activity_log_is_append_only(connection)
         downgrade(revision="base")
         assert inspect(db.engine).get_table_names() == ["alembic_version"]
         db.engine.dispose()
@@ -33,3 +34,29 @@ def _tables_without_row_level_security(connection) -> list[str]:
         "WHERE nspname = current_schema() AND relkind = 'r' AND NOT relrowsecurity"
     )
     return sorted(connection.execute(query).scalars())
+
+
+def _check_activity_log_is_append_only(connection) -> None:
+    """Postgres refuses edits and recent deletes, yet deleting an account still works."""
+    import pytest
+    from sqlalchemy.exc import InternalError
+
+    connection.execute(
+        text(
+            "INSERT INTO mentors (full_name, username, whatsapp_number, password_hash,"
+            " recovery_code_hash, created_at, updated_at) VALUES ('A', 'a', '+919000000001',"
+            " 'x', 'x', now(), now())"
+        )
+    )
+    connection.execute(
+        text(
+            "INSERT INTO activity_log (created_at, category, event, succeeded, actor_id)"
+            " SELECT now(), 'security', 'sign_in', true, id FROM mentors"
+        )
+    )
+    for statement in ("UPDATE activity_log SET event = 'x'", "DELETE FROM activity_log"):
+        with connection.begin_nested(), pytest.raises(InternalError):
+            connection.execute(text(statement))
+    connection.execute(text("DELETE FROM mentors"))
+    assert connection.execute(text("SELECT actor_id FROM activity_log")).scalar() is None
+    connection.rollback()
