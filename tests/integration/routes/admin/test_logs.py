@@ -43,7 +43,8 @@ def test_the_log_filters_by_category_person_department_and_failures(app, admin_c
 
 def test_dates_narrow_the_log_and_old_entries_are_cleared(app, admin_client):
     _seed(app)
-    tomorrow = (clock.now() + timedelta(days=1)).date().isoformat()
+    # The page reads dates in the college's time zone, so tomorrow is counted there too.
+    tomorrow = (clock.today(app.config["APP_TIMEZONE"]) + timedelta(days=1)).isoformat()
     later = admin_client.get(f"/admin/activity/?since={tomorrow}").get_data(as_text=True)
     assert "Nothing matches" in later
     with app.app_context():
