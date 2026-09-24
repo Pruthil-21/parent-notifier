@@ -161,24 +161,16 @@ LANGUAGE_CHOICES = [(code, _LANGUAGE_LABELS[code]) for code in MESSAGE_LANGUAGES
 
 
 class PreferencesForm(FlaskForm):
-    theme = SelectField("Theme", choices=None)
+    theme = SelectField("Theme", choices=THEME_CHOICES)
     message_language = SelectField("Default message language", choices=LANGUAGE_CHOICES)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.theme.choices = THEME_CHOICES
 
 
 class ThemeForm(FlaskForm):
     """The theme menu in the top bar. `next` brings the mentor back to the same page
     when the form is sent without JavaScript."""
 
-    theme = SelectField("Theme", choices=None)
+    theme = SelectField("Theme", choices=THEME_CHOICES)
     next = HiddenField()
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.theme.choices = THEME_CHOICES
 
 
 def _setting(label: str, unit: str, low: int, high: int) -> WholeNumberField:
