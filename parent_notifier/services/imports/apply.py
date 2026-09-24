@@ -5,6 +5,7 @@ the mentor ticks "Update these details". A blank cell keeps whatever was saved b
 """
 
 from dataclasses import dataclass
+from datetime import date
 
 from sqlalchemy import select
 
@@ -63,7 +64,13 @@ def take_snapshot(semester: Semester, students: list[Student]) -> dict:
         "last_imported_at": semester.last_imported_at.isoformat()
         if semester.last_imported_at
         else None,
+        "attendance_from": _iso(semester.attendance_from),
+        "attendance_to": _iso(semester.attendance_to),
     }
+
+
+def _iso(day) -> str | None:
+    return day.isoformat() if day else None
 
 
 def _subjects(semester: Semester, names: list[str]) -> dict[str, SemesterSubject]:
@@ -167,6 +174,9 @@ def apply_import(
     semester.round_counter += 1
     semester.current_round = semester.round_counter
     semester.last_imported_at = clock.now()
+    if sheet.attendance_from and sheet.attendance_to:
+        semester.attendance_from = date.fromisoformat(sheet.attendance_from)
+        semester.attendance_to = date.fromisoformat(sheet.attendance_to)
     db.session.add(
         ImportBatch(
             semester_id=semester.id,

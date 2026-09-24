@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 from parent_notifier.services.academics.views.risk import SubjectResult
 from parent_notifier.services.academics.views.semester_view import StudentRow
 from parent_notifier.services.messaging import previews
@@ -21,7 +23,8 @@ ROW = StudentRow(
 
 
 def test_the_message_comes_plain_and_with_a_note_marker():
-    context = previews.context_for(4, 20, "Asha Patel", CONFIG)
+    semester = SimpleNamespace(number=4, attendance_from=None, attendance_to=None)
+    context = previews.context_for(semester, 20, "Asha Patel", CONFIG)
     messages = previews.messages_for(ROW, context)
     assert set(messages) == {"plain", "withNote"}
     assert previews.NOTE_MARKER not in messages["plain"]

@@ -1,6 +1,6 @@
 """Undoing the most recent import of a semester by restoring its snapshot."""
 
-from datetime import datetime
+from datetime import date, datetime
 
 from sqlalchemy import delete, exists, select
 
@@ -76,6 +76,11 @@ def undo_import(semester: Semester, batch: ImportBatch) -> None:
     semester.current_round = batch.previous_round
     last = snapshot["last_imported_at"]
     semester.last_imported_at = datetime.fromisoformat(last) if last else None
+    # Imports saved before the dates existed keep whatever dates the semester has.
+    for name in ("attendance_from", "attendance_to"):
+        if name in snapshot:
+            value = snapshot[name]
+            setattr(semester, name, date.fromisoformat(value) if value else None)
     batch.undone_at = clock.now()
     semester_stats.invalidate_class(semester.class_id)
     db.session.commit()

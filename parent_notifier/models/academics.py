@@ -1,6 +1,6 @@
 """Classes (a batch of students under one mentor), their semesters and their students."""
 
-from datetime import datetime
+from datetime import date, datetime
 
 from sqlalchemy import (
     CheckConstraint,
@@ -86,6 +86,9 @@ class Semester(db.Model):
     current_round: Mapped[int] = mapped_column(default=0, server_default="0")
     round_counter: Mapped[int] = mapped_column(default=0, server_default="0")
     last_imported_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    # The days the latest sheet's attendance covers, shown in the message when known.
+    attendance_from: Mapped[date | None]
+    attendance_to: Mapped[date | None]
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=lambda: clock.now())
 
     class_group: Mapped[ClassGroup] = relationship(back_populates="semesters")

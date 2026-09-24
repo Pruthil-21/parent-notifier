@@ -34,7 +34,7 @@ def _upload_page(class_group, semester, form):
 def upload_page(class_id: int, number: int):
     """The upload form as a page, for browsers without JavaScript."""
     class_group, semester = load_semester(class_id, number)
-    return _upload_page(class_group, semester, UploadSheetForm())
+    return _upload_page(class_group, semester, UploadSheetForm.for_semester(semester))
 
 
 @bp.post("/import")
@@ -52,6 +52,7 @@ def upload(class_id: int, number: int):
         form.sheet.errors.append(str(error))
         return _upload_page(class_group, semester, form)
     sheet = parse_sheet(grid, class_group.midsem_max)
+    sheet.attendance_from, sheet.attendance_to = form.period()
     token = None
     if not sheet.errors:
         token = staging.stage(owner(class_group, semester), filename, sheet)
