@@ -7,6 +7,7 @@ from parent_notifier.routes.academics import class_settings, classes, home, seme
 from parent_notifier.routes.accounts import auth, profile, registration
 from parent_notifier.routes.admin import classes as admin_classes
 from parent_notifier.routes.admin import logs as admin_logs
+from parent_notifier.routes.admin import settings as admin_settings
 from parent_notifier.routes.admin import users as admin_users
 from parent_notifier.routes.imports import downloads, undo, upload
 from parent_notifier.routes.messaging import send_log
@@ -28,6 +29,7 @@ BLUEPRINTS = (
     admin_users.bp,
     admin_classes.bp,
     admin_logs.bp,
+    admin_settings.bp,
 )
 
 

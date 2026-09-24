@@ -45,6 +45,23 @@ def transfer_classes(classes: list[ClassGroup], to_mentor: Mentor) -> None:
     db.session.commit()
 
 
+def requests() -> list[Mentor]:
+    """Accounts waiting for approval, oldest first."""
+    query = select(Mentor).where(Mentor.approved.is_(False)).order_by(Mentor.created_at)
+    return list(db.session.scalars(query))
+
+
+def approve(account: Mentor) -> None:
+    account.approved = True
+    db.session.commit()
+
+
+def reject(account: Mentor) -> None:
+    """A request that is turned down is deleted; nothing else belongs to it yet."""
+    db.session.delete(account)
+    db.session.commit()
+
+
 def delete_account(account: Mentor) -> None:
     has_classes = db.session.scalar(select(func.count()).where(ClassGroup.mentor_id == account.id))
     if has_classes:

@@ -1,0 +1,28 @@
+{% extends "layouts/app.html" %}
+{% from "components/navigation/breadcrumb.html" import breadcrumb %}
+{% from "components/forms/error_summary.html" import error_summary %}
+
+{% block title %}Settings{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Overview", url_for("home.index")), ("Settings", None)]) }}{% endblock %}
+{% block page_title %}Settings{% endblock %}
+
+{% block content %}
+<section class="settings-section" aria-labelledby="signup-heading">
+  <div class="settings-section__intro">
+    <h2 id="signup-heading">New accounts</h2>
+    <p>Who can get an account. However this is set, you can always create accounts
+      yourself from Users.</p>
+  </div>
+  <form class="settings-section__form form-stack" method="post" action="{{ url_for('admin_settings.save') }}" novalidate>
+    {{ error_summary(form, first_field=form.mode) }}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <fieldset class="field">
+      <legend class="visually-hidden">{{ form.mode.label.text }}</legend>
+      {% for option in form.mode %}
+      <label class="choice">{{ option() }} {{ option.label.text }}</label>
+      {% endfor %}
+    </fieldset>
+    <div><button class="button button--primary" type="submit">Save settings</button></div>
+  </form>
+</section>
+{% endblock %}
