@@ -165,6 +165,8 @@ server planned for 1.0.0.
 
 Things that behave differently on Vercel:
 
+- Only the live site is built. Pull request previews are skipped (`ignoreCommand` in
+  `vercel.json`), so an unmerged change never runs migrations on the live database.
 - The first visit after a quiet spell is slower while a server starts.
 - Sheets are limited to 4 MB, below Vercel's 4.5 MB request cap.
 - The sign-in lockout counts attempts per server, so it is weaker than on one computer.
