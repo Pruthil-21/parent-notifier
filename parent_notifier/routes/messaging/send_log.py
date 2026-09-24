@@ -74,7 +74,7 @@ def log(class_id: int, number: int, student_id: int):
     if status == "sent" and (refused := _check_pacing(timezone)):
         return refused
     context = previews.context_for(
-        number, class_group.midsem_max, current_user.full_name, current_app.config
+        semester, class_group.midsem_max, current_user.full_name, current_app.config
     )
     logged = send_log.log_send(semester, row, current_user.id, context, status=status, note=note)
     log_activity(

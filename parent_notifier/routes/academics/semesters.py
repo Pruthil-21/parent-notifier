@@ -29,9 +29,7 @@ def _popup_payload(class_group, semester, view, rows, marks, pending, mentor) ->
     """The popup's data for the rows on screen: figures, the message and send status.
     Messages are signed by the class's own mentor, whoever is looking."""
     config = current_app.config
-    context = previews.context_for(
-        semester.number, class_group.midsem_max, mentor.full_name, config
-    )
+    context = previews.context_for(semester, class_group.midsem_max, mentor.full_name, config)
     payload = semester_view.popup_payload(rows, view.rules)
     labels = _labels(view, marks)
     for entry, row in zip(payload, rows, strict=True):
@@ -81,7 +79,7 @@ def workspace(class_id: int, number: int):
         **workspace_context(class_group, semester, current_user),
         add_form=add_semester_form(class_group),
         can_remove=semesters.is_empty(semester),
-        upload_form=UploadSheetForm(formdata=None),
+        upload_form=UploadSheetForm.for_semester(semester),
         last_import=undo.latest_undoable(semester),
         pacing=pacing.status_for(current_user, current_app.config["APP_TIMEZONE"]),
     )

@@ -56,6 +56,9 @@ class ParsedSheet:
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     ignored_columns: list[str] = field(default_factory=list)
+    # The days the attendance covers, as ISO dates ("2026-07-07"), when known.
+    attendance_from: str | None = None
+    attendance_to: str | None = None
 
 
 def _normalise(header: str) -> str:

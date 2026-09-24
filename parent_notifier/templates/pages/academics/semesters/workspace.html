@@ -19,7 +19,7 @@
 {% block content %}
 {% set current = summaries | selectattr("number", "equalto", semester.number) | first %}
 {% if current.students %}
-<p class="sheet-summary text-secondary">Last sheet {{ semester.last_imported_at | date }} · {{ current.students }} students · {{ semester.subjects | length }} subjects</p>
+<p class="sheet-summary text-secondary">Last sheet {{ semester.last_imported_at | date }}{% if semester.attendance_from and semester.attendance_to %} · attendance {{ semester.attendance_from.strftime("%d-%m-%y") }} to {{ semester.attendance_to.strftime("%d-%m-%y") }}{% endif %} · {{ current.students }} students · {{ semester.subjects | length }} subjects</p>
 {% include "pages/academics/semesters/_tiles.html" %}
 {% include "pages/academics/semesters/_filters.html" %}
 {% include "pages/academics/semesters/_grid.html" %}

@@ -1,10 +1,21 @@
 {# The upload form, shared by the dialog on the semester page and the upload page. #}
-{% from "components/forms/field.html" import file_field %}
+{% from "components/forms/field.html" import file_field, text_field %}
 <form class="form-stack" method="post" enctype="multipart/form-data" novalidate
       action="{{ url_for('imports.upload', class_id=class_group.id, number=semester.number) }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   {{ file_field(upload_form.sheet, hint="Excel (.xlsx) or CSV, up to " ~ (config.MAX_CONTENT_LENGTH // 1048576) ~ " MB. You check everything before it is saved.",
                 accept=".xlsx,.csv") }}
+  <fieldset class="field upload-period">
+    <legend class="field__label">Attendance period <span class="text-secondary">(optional)</span></legend>
+    <p class="field__hint">The days this sheet's attendance covers, as in the college letter. The message shows them.</p>
+    {% if upload_form.attendance_to.errors %}
+    <p class="field__error">{{ icon("error", size=16) }}<span>{{ upload_form.attendance_to.errors[0] }}</span></p>
+    {% endif %}
+    <div class="upload-period__dates">
+      {{ text_field(upload_form.attendance_from) }}
+      {{ text_field(upload_form.attendance_to) }}
+    </div>
+  </fieldset>
   <p class="text-secondary">Not sure how to lay it out? <a href="{{ url_for('downloads.sheet_format') }}" download>Download the sheet format</a>
     or the <a href="{{ url_for('downloads.semester_sheet', class_id=class_group.id, number=semester.number) }}" download>pre-filled sheet</a>.</p>
   <div class="form-panel__actions">
