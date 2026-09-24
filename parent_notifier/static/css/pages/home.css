@@ -1,0 +1,28 @@
+/* The home workspace: the class list with related links beside it on wide screens. */
+
+@layer pages {
+  .home-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 15rem;
+    align-items: start;
+    gap: var(--space-5);
+  }
+
+  .home-section h2 {
+    margin-bottom: var(--space-3);
+  }
+
+  .related-links ul {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (max-width: 899px) {
+    .home-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}

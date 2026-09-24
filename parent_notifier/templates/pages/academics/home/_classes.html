@@ -1,0 +1,45 @@
+{# My classes: each class with its latest semester's figures. The at-risk and pending
+   counts open that semester's grid filtered to those students. #}
+<section class="home-section" id="my-classes" aria-labelledby="my-classes-heading">
+  <h2 id="my-classes-heading">My classes</h2>
+  <div class="data-grid">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Class</th>
+          <th scope="col">Department</th>
+          <th scope="col" class="numeric">Batch</th>
+          <th scope="col">Current semester</th>
+          <th scope="col" class="numeric">Students</th>
+          <th scope="col" class="numeric">At risk</th>
+          <th scope="col" class="numeric">Pending</th>
+          <th scope="col">Last sheet</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in summary.classes %}
+        {% set class_group = row.class_group %}
+        {% set semester = row.semester %}
+        <tr>
+          <th scope="row"><a href="{{ url_for('classes.open_class', class_id=class_group.id) }}">{{ class_group.name }}</a></th>
+          <td>{{ class_group.department }}</td>
+          <td class="numeric">{{ class_group.admission_year }}</td>
+          <td>{% if semester %}Sem {{ semester.number }}{% else %}<span class="text-muted">None yet</span>{% endif %}</td>
+          <td class="numeric">{{ row.students }}</td>
+          {% for figure, status in [("at_risk", "at_risk"), ("pending", "pending")] %}
+          <td class="numeric">
+            {%- if row[figure] -%}
+            <a href="{{ url_for('semesters.workspace', class_id=class_group.id, number=semester.number, status=status) }}"
+               aria-label="{{ row[figure] }} {{ 'at risk' if figure == 'at_risk' else 'pending' }} in {{ class_group.name }}">{{ row[figure] }}</a>
+            {%- else -%}
+            <span class="text-muted">0</span>
+            {%- endif -%}
+          </td>
+          {% endfor %}
+          <td>{% if row.last_imported_at %}{{ row.last_imported_at | date }}{% elif semester %}<span class="text-muted">No sheet yet</span>{% else %}<span class="text-muted">Not yet</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>

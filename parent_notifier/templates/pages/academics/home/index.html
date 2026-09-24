@@ -1,6 +1,10 @@
 {% extends "layouts/app.html" %}
 {% from "components/navigation/action_bar.html" import action_bar %}
 
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/home.css') }}">
+{% endblock %}
+
 {% block title %}Home{% endblock %}
 {% block page_title %}Home{% endblock %}
 
@@ -12,4 +16,8 @@
 
 {% block content %}
 {% include "pages/academics/home/_tiles.html" %}
+<div class="home-layout">
+  {% include "pages/academics/home/_classes.html" %}
+  {% include "pages/academics/home/_related.html" %}
+</div>
 {% endblock %}

@@ -66,3 +66,19 @@ def test_tiles_point_to_the_class_list_when_several_classes_add_up(
     assert 'href="#my-classes"' in tile(html, "Students at risk")
     assert "in 2 classes" in tile(html, "Parents to message")
     assert "in 2 classes" in tile(html, "Semesters waiting for a sheet")
+
+
+def test_my_classes_lists_each_class_with_its_latest_semester(signed_in_client, one_class):
+    html = signed_in_client.get("/").get_data(as_text=True)
+    grid = html[html.index('id="my-classes"') :]
+    assert f'<a href="/classes/{one_class}">CE-A</a>' in grid
+    assert grid.index(">CE-A<") < grid.index(">CE-B<")
+    assert f'href="/classes/{one_class}/sem/4?status=at_risk"' in grid
+    assert 'aria-label="4 pending in CE-A">4</a>' in grid
+    assert "Sem 1" in grid and "No sheet yet" in grid
+
+
+def test_related_links(signed_in_client):
+    html = signed_in_client.get("/").get_data(as_text=True)
+    assert 'href="/sheet-format.xlsx" download>Download sheet format</a>' in html
+    assert 'href="/profile/">Profile</a>' in html
