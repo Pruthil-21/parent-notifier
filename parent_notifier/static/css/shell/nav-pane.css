@@ -72,6 +72,61 @@
   margin-top: 2px;
 }
 
+/* A section link with its fold and filter buttons beside it. */
+.nav-pane__row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.nav-pane__row .nav-pane__link {
+  flex: 1;
+  min-width: 0;
+}
+
+.nav-pane__tool {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.nav-pane__tool:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.nav-pane__tool[aria-expanded="true"]:not(.nav-pane__fold) {
+  color: var(--color-accent-text);
+}
+
+.nav-pane__fold .icon {
+  transition: transform var(--duration-fast) ease;
+}
+
+.nav-pane__fold[aria-expanded="false"] .icon {
+  transform: rotate(-90deg);
+}
+
+.nav-pane__filter {
+  margin: 2px 0 2px calc(var(--space-3) + 20px + var(--space-3) - var(--space-2));
+}
+
+.nav-pane__filter .input {
+  min-height: 28px;
+}
+
+.nav-pane__empty {
+  padding: var(--space-2) var(--space-2) 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+}
+
 .nav-pane__link--child {
   min-height: 32px;
   /* Lines the text up with the parent's label: icon width plus the gap. */
@@ -115,7 +170,9 @@
 }
 
 /* The icon rail has no room for sub-items; the section icon still leads to them. */
-[data-nav-collapsed] .nav-pane__children {
+[data-nav-collapsed] .nav-pane__children,
+[data-nav-collapsed] .nav-pane__tool,
+[data-nav-collapsed] .nav-pane__filter {
   display: none;
 }
 
@@ -162,5 +219,13 @@
 
   [data-nav-collapsed] .nav-pane__children {
     display: grid;
+  }
+
+  [data-nav-collapsed] .nav-pane__tool {
+    display: inline-grid;
+  }
+
+  [data-nav-collapsed] .nav-pane__filter {
+    display: block;
   }
 }

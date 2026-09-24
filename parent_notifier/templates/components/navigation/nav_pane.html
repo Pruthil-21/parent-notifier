@@ -1,15 +1,41 @@
+{# Sections with sub-items can be folded, and long ones filtered. Those controls stay
+   hidden until nav-sections.js runs; without it every sub-item is simply shown. #}
 <nav id="nav-pane" class="nav-pane" aria-label="Main">
   <ul role="list" class="nav-pane__list">
     {% for item in nav_items %}
-    <li>
-      <a class="nav-pane__link{% if item.active %} nav-pane__link--in-section{% endif %}"
-         href="{{ item.url }}" title="{{ item.label }}"
-         {% if item.current %}aria-current="page"{% endif %}>
-        {{ icon(item.icon) }}
-        <span class="nav-pane__label">{{ item.label }}</span>
-      </a>
+    <li{% if item.children %} data-nav-section="{{ item.id }}" data-nav-label="{{ item.label }}"{% endif %}>
+      <div class="nav-pane__row">
+        <a class="nav-pane__link{% if item.active %} nav-pane__link--in-section{% endif %}"
+           href="{{ item.url }}" title="{{ item.label }}"
+           {% if item.current %}aria-current="page"{% endif %}>
+          {{ icon(item.icon) }}
+          <span class="nav-pane__label">{{ item.label }}</span>
+        </a>
+        {% if item.children %}
+        {% if item.filterable %}
+        <button type="button" class="nav-pane__tool" data-nav-filter-toggle hidden
+                aria-controls="nav-filter-{{ item.id }}" aria-expanded="false"
+                aria-label="Filter {{ item.label | lower }}" title="Filter {{ item.label | lower }}">
+          {{ icon("search", size=16) }}
+        </button>
+        {% endif %}
+        <button type="button" class="nav-pane__tool nav-pane__fold" data-nav-fold hidden
+                aria-controls="nav-children-{{ item.id }}" aria-expanded="true"
+                aria-label="{{ item.label }} list">
+          {{ icon("chevron-down", size=16) }}
+        </button>
+        {% endif %}
+      </div>
+      {% if item.filterable and item.children %}
+      <div class="nav-pane__filter" id="nav-filter-{{ item.id }}" hidden>
+        <label class="visually-hidden" for="nav-filter-{{ item.id }}-input">Filter {{ item.label | lower }}</label>
+        <input class="input" id="nav-filter-{{ item.id }}-input" type="search" autocomplete="off"
+               spellcheck="false" maxlength="60" placeholder="Filter {{ item.label | lower }}">
+        <p class="nav-pane__empty" data-nav-filter-empty role="status" hidden>No matches</p>
+      </div>
+      {% endif %}
       {% if item.children %}
-      <ul role="list" class="nav-pane__children">
+      <ul role="list" class="nav-pane__children" id="nav-children-{{ item.id }}">
         {% for child in item.children %}
         <li>
           <a class="nav-pane__link nav-pane__link--child" href="{{ child.url }}"

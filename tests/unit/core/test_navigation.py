@@ -73,3 +73,12 @@ def test_other_blueprints_can_count_as_a_section(monkeypatch):
         [guide] = navigation_context()["nav_items"]
     assert guide["active"] is True
     assert guide["current"] is True
+
+
+def test_long_sections_can_be_marked_filterable(app_with_sections, monkeypatch):
+    monkeypatch.setattr(
+        navigation, "NAV_ITEMS", (NavItem("help", "User guide", "guide.index", filterable=True),)
+    )
+    with app_with_sections.test_request_context("/guide"):
+        [guide] = navigation_context()["nav_items"]
+    assert guide["id"] == "user-guide" and guide["filterable"] is True

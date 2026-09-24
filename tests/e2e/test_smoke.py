@@ -109,6 +109,22 @@ def test_menus_stay_on_screen_on_a_phone(signed_in, demo):
     assert box["x"] >= 0 and box["x"] + box["width"] <= 390
 
 
+def test_sidebar_sections_filter_and_stay_folded(signed_in, demo):
+    page = signed_in
+    page.goto(demo.url + "/help")
+    classes = page.locator("#nav-children-classes")
+    page.get_by_role("button", name="Filter classes").click()
+    page.locator("#nav-filter-classes-input").fill("zz")
+    expect(page.get_by_text("No matches")).to_be_visible()
+    page.locator("#nav-filter-classes-input").fill("ce-")
+    expect(classes.get_by_role("link", name="CE-A")).to_be_visible()
+    page.get_by_role("button", name="Classes list").click()
+    page.reload()
+    expect(classes).to_be_hidden()
+    page.goto(f"{demo.url}/classes/{demo.class_id}/sem/4")
+    expect(classes).to_be_visible()  # the current page's section always opens
+
+
 def test_resting_on_a_link_loads_its_page_before_the_click(signed_in, demo):
     """Chrome and Edge load a same-site page once the pointer rests on its link, so the
     click shows it at once. A normal browser prerenders it; under test automation the
