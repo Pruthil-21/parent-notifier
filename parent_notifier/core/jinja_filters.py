@@ -4,7 +4,7 @@ from datetime import datetime
 
 from flask import Flask, current_app
 
-from parent_notifier.services.shared.departments import DEPARTMENTS
+from parent_notifier.services.shared import departments
 from parent_notifier.services.shared.formatting import format_date
 from parent_notifier.services.shared.phone import format_for_display
 
@@ -16,4 +16,5 @@ def _local_date(moment: datetime | None) -> str:
 def init_jinja_filters(app: Flask) -> None:
     app.add_template_filter(format_for_display, "phone")
     app.add_template_filter(_local_date, "date")
-    app.add_template_global(DEPARTMENTS, "departments")
+    # A function, so the list is read only on pages with a department field.
+    app.add_template_global(departments.names, "department_names")

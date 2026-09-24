@@ -29,7 +29,7 @@
 {% macro department_field(field, hint="Start typing, then pick from the list") %}
 {{ text_field(field, hint, list=field.id ~ "-options", autocomplete="off", spellcheck="false") }}
 <datalist id="{{ field.id }}-options">
-  {% for name in departments %}<option value="{{ name }}"></option>{% endfor %}
+  {% for name in department_names() %}<option value="{{ name }}"></option>{% endfor %}
 </datalist>
 {% endmacro %}
 
