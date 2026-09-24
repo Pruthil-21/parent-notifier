@@ -58,6 +58,8 @@ and runs on a single computer today.
 
 **Everyday use**
 - Light and dark themes, saved per mentor.
+- Quick page changes: in Chrome and Edge, a page starts loading when you point at
+  its link, and CSS and JavaScript are cached until they change.
 - Built for keyboard use and WCAG 2.2 AA. Every page except the message window works
   without JavaScript.
 

@@ -107,3 +107,22 @@ def test_menus_stay_on_screen_on_a_phone(signed_in, demo):
     expect(panel).to_be_visible()
     box = panel.bounding_box()
     assert box["x"] >= 0 and box["x"] + box["width"] <= 390
+
+
+def test_resting_on_a_link_loads_its_page_before_the_click(signed_in, demo):
+    """Chrome and Edge load a same-site page once the pointer rests on its link, so the
+    click shows it at once. A normal browser prerenders it; under test automation the
+    browser only prefetches it, which this also accepts."""
+    page = signed_in
+    if not page.evaluate("HTMLScriptElement.supports?.('speculationrules')"):
+        pytest.skip("This browser does not support speculation rules")
+    link = page.locator('.nav-pane a[title="Classes"]')
+    link.hover()
+    page.wait_for_timeout(1500)
+    link.click()
+    page.wait_for_url(f"{demo.url}/classes/")
+    entry = page.evaluate(
+        "(({activationStart, deliveryType}) => ({activationStart, deliveryType}))"
+        "(performance.getEntriesByType('navigation')[0])"
+    )
+    assert entry["activationStart"] > 0 or entry["deliveryType"] == "navigational-prefetch"

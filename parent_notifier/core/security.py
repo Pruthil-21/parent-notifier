@@ -1,6 +1,12 @@
-"""Security headers added to every response, and caching rules for static files."""
+"""Headers added to every response: security, caching, and loading the next page early.
 
-from flask import Flask, Response, request
+Pages are never cached, since they hold student data. Instead, Chrome and Edge are
+asked to load a same-site page in the background once the mentor rests the pointer on
+its link (Speculation Rules), so the click shows it at once. Any change made through
+a form or the send button clears pages loaded that way, so none is ever out of date.
+"""
+
+from flask import Flask, Response, jsonify, request
 from flask.sessions import SecureCookieSessionInterface
 
 CONTENT_SECURITY_POLICY = "; ".join(
@@ -27,6 +33,34 @@ HEADERS = {
 }
 
 HSTS = "max-age=31536000; includeSubDomains"
+YEAR = 365 * 24 * 60 * 60
+# Static URLs carry a fingerprint of the files, so they never change under one address.
+STATIC_CACHE = f"public, max-age={YEAR}, s-maxage={YEAR}, immutable"
+SPECULATION_RULES_URL = "/speculation-rules.json"
+# Links that download a file, open a dialog or the student window, or leave the page
+# are left alone: loading those pages early would be wasted work.
+SPECULATION_RULES = {
+    "prerender": [
+        {
+            "where": {
+                "and": [
+                    {"href_matches": "/*"},
+                    {"not": {"href_matches": "/*.xlsx"}},
+                    {"not": {"href_matches": "/static/*"}},
+                    {
+                        "not": {
+                            "selector_matches": "[download], [target], [data-dialog-open],"
+                            " [data-student-link], [data-queue-open]"
+                        }
+                    },
+                ]
+            },
+            "eagerness": "moderate",
+        }
+    ]
+}
+# Tells the browser to drop pages it loaded early, after something has changed.
+CLEAR_SPECULATIONS = '"prefetchCache", "prerenderCache"'
 
 
 def apply_security_headers(response: Response) -> Response:
@@ -34,13 +68,23 @@ def apply_security_headers(response: Response) -> Response:
         response.headers.setdefault(name, value)
     if request.is_secure:
         response.headers.setdefault("Strict-Transport-Security", HSTS)
-    # Pages hold student and parent data; keep them out of shared browsers' caches.
-    if request.endpoint != "static":
+    if request.endpoint == "static":
+        response.headers["Cache-Control"] = STATIC_CACHE
+        return response
+    if request.endpoint != "speculation_rules":
+        # Pages hold student and parent data; keep them out of shared browsers' caches.
         response.headers["Cache-Control"] = "no-store"
-    else:
-        # CSS and JavaScript: a CDN such as Vercel's keeps them until the next deploy,
-        # and browsers check back each time, so a new version shows at once.
-        response.headers["Cache-Control"] = "public, max-age=0, must-revalidate, s-maxage=31536000"
+    if response.mimetype == "text/html":
+        response.headers["Speculation-Rules"] = f'"{SPECULATION_RULES_URL}"'
+    if request.method not in {"GET", "HEAD"}:
+        response.headers["Clear-Site-Data"] = CLEAR_SPECULATIONS
+    return response
+
+
+def speculation_rules() -> Response:
+    response = jsonify(SPECULATION_RULES)
+    response.mimetype = "application/speculationrules+json"
+    response.headers["Cache-Control"] = f"public, max-age=3600, s-maxage={YEAR}"
     return response
 
 
@@ -49,10 +93,11 @@ class StaticFilesSkipSession(SecureCookieSessionInterface):
     session cookie and no "Vary: Cookie". Either would stop a CDN from caching them."""
 
     def save_session(self, app, session, response) -> None:
-        if request.endpoint != "static":
+        if request.endpoint not in {"static", "speculation_rules"}:
             super().save_session(app, session, response)
 
 
 def init_security(app: Flask) -> None:
     app.after_request(apply_security_headers)
+    app.add_url_rule(SPECULATION_RULES_URL, "speculation_rules", speculation_rules)
     app.session_interface = StaticFilesSkipSession()

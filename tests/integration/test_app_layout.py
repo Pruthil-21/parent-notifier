@@ -1,9 +1,11 @@
 import pytest
 from flask import Blueprint, render_template_string
 
-from parent_notifier import create_app
+from parent_notifier import create_app, static_version
 from parent_notifier.core import navigation
 from parent_notifier.core.navigation import NavItem
+
+STATIC = f"/static/{static_version()}"
 
 PAGE = '{% extends "layouts/app.html" %}{% block title %}Classes{% endblock %}'
 PAGE += "{% block content %}<p>{{ note }}</p>{% endblock %}"
@@ -53,6 +55,6 @@ def test_page_content_is_escaped(app):
 def test_layout_scripts_and_styles_are_served(app):
     client = app.test_client()
     html = client.get("/reports").get_data(as_text=True)
-    for path in ("/static/css/app.css", "/static/js/shell/nav-pane.js"):
+    for path in (f"{STATIC}/css/app.css", f"{STATIC}/js/shell/nav-pane.js"):
         assert path in html
         assert client.get(path).status_code == 200

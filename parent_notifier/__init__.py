@@ -1,6 +1,8 @@
 """Parent Notifier web application."""
 
+import hashlib
 import os
+from functools import cache
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -17,6 +19,21 @@ from parent_notifier.core.navigation import init_navigation
 from parent_notifier.core.security import init_security
 from parent_notifier.routes.blueprints import register_blueprints
 
+STATIC_FOLDER = Path(__file__).parent / "static"
+
+
+@cache
+def static_version() -> str:
+    """A short fingerprint of every CSS and JavaScript file. It is part of each static
+    URL, so browsers can keep the files for a year and still get new ones after any
+    change: relative imports inside the files carry the same fingerprint."""
+    digest = hashlib.sha256()
+    for path in sorted(STATIC_FOLDER.rglob("*")):
+        if path.is_file():
+            digest.update(path.relative_to(STATIC_FOLDER).as_posix().encode())
+            digest.update(path.read_bytes())
+    return digest.hexdigest()[:12]
+
 
 def create_app(env: str | None = None) -> Flask:
     """Build the app for an environment: "development", "testing" or "production".
@@ -26,7 +43,7 @@ def create_app(env: str | None = None) -> Flask:
     """
     load_dotenv()
     env = env or os.environ.get("FLASK_CONFIG", "development")
-    app = Flask(__name__)
+    app = Flask(__name__, static_url_path=f"/static/{static_version()}")
     app.config.update(load_config(env, Path(app.instance_path)))
     if app.config["TRUST_PROXY"]:
         app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
