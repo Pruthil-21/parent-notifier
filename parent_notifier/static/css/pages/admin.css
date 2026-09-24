@@ -270,4 +270,33 @@
     gap: var(--space-2);
     margin-top: var(--space-4);
   }
+
+  /* Overview sections: a heading row with its links, then the table. */
+  .overview-section {
+    margin-top: var(--space-6);
+  }
+
+  .overview-section h2 {
+    font-size: var(--text-subtitle);
+  }
+
+  .overview-section__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-4);
+    margin-bottom: var(--space-3);
+  }
+
+  .overview-section > h2 {
+    margin-bottom: var(--space-3);
+  }
+
+  .overview-section__all {
+    margin-left: auto;
+  }
+
+  .overview-section a[aria-current="true"] {
+    font-weight: var(--weight-semibold);
+  }
 }

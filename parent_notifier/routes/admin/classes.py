@@ -1,11 +1,11 @@
-"""The admin's read-only view of any mentor's class.
+"""The admin's list of every class, and the read-only view of any mentor's class.
 
 These pages only read. Every page that changes a class keeps checking that the signed-in
 mentor owns it, so the admin cannot send from, edit or import into another mentor's
 class even by hand-made requests.
 """
 
-from flask import Blueprint, abort, redirect, render_template, url_for
+from flask import Blueprint, abort, redirect, render_template, request, url_for
 
 from parent_notifier.core.extensions import db
 from parent_notifier.models.academics import ClassGroup
@@ -14,6 +14,8 @@ from parent_notifier.routes.academics.semesters import workspace_context
 from parent_notifier.routes.admin.access import admin_required
 from parent_notifier.services.academics.records import semesters
 from parent_notifier.services.academics.views import semester_view
+from parent_notifier.services.admin import overview
+from parent_notifier.services.shared import departments
 
 bp = Blueprint("admin_classes", __name__, url_prefix="/admin/classes")
 
@@ -34,6 +36,20 @@ def _load(class_id: int, number: int | None = None):
         if semester is None:
             abort(404)
     return class_group, semester, db.session.get(Mentor, class_group.mentor_id)
+
+
+@bp.get("/")
+@admin_required
+def index():
+    filters = overview.ClassFilters.from_args(request.args)
+    return render_template(
+        "pages/admin/classes/index.html",
+        filters=filters,
+        page=overview.class_page(filters),
+        department_list=departments.names(),
+        years=overview.batch_years(),
+        sorts=overview.SORTS,
+    )
 
 
 @bp.get("/<int:class_id>")

@@ -1,7 +1,9 @@
-"""The admin overview: every mentor and every class, with their counts.
+"""The admin overview: what needs attention across the college's current classes, and
+the full class list behind it.
 
 Counts come from each class's latest semester through the semester counts cache, so
-they match the semester pages. Only the rows on the page being shown are counted.
+they match the semester pages. Finished batches are left out of the overview; the class
+list can show them.
 """
 
 import re
@@ -12,7 +14,7 @@ from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import selectinload
 
 from parent_notifier.core.extensions import db
-from parent_notifier.models.academics import ClassGroup, Semester, Student
+from parent_notifier.models.academics import ClassGroup, Semester
 from parent_notifier.models.accounts import Mentor
 from parent_notifier.models.messaging import SendLog
 from parent_notifier.services.academics.views import semester_stats
@@ -20,45 +22,15 @@ from parent_notifier.services.academics.views.semester_stats import Counts
 from parent_notifier.services.shared import clock, departments, pagination
 
 PER_PAGE = 25
-VIEWS = ("mentors", "classes")
 SENT_WINDOW = timedelta(days=7)
-
-
-@dataclass(frozen=True)
-class Filters:
-    view: str = "mentors"
-    search: str = ""
-    department: str | None = None
-    page: int = 1
-
-    @classmethod
-    def from_args(cls, args) -> "Filters":
-        view = args.get("view", "")
-        return cls(
-            view=view if view in VIEWS else "mentors",
-            search=" ".join(args.get("q", "").split())[:100],
-            department=departments.canonical(args.get("department")),
-            page=pagination.page_number(args.get("page")),
-        )
-
-    @property
-    def filtered(self) -> bool:
-        return bool(self.search or self.department)
-
-
-@dataclass(frozen=True)
-class Totals:
-    mentors: int
-    classes: int
-    students: int
-
-
-@dataclass(frozen=True)
-class MentorRow:
-    mentor: Mentor
-    classes: int
-    counts: Counts
-    sent: int
+STATUSES = ("current", "finished", "all")
+SORTS = {
+    "name": "Class name",
+    "pending": "Most pending",
+    "at_risk": "Most at risk",
+    "students": "Most students",
+    "last_sheet": "Latest sheet",
+}
 
 
 @dataclass(frozen=True)
@@ -70,16 +42,33 @@ class ClassRow:
     sent: int
 
 
-def _count(query) -> int:
-    return db.session.scalar(select(func.count()).select_from(query.subquery()))
+@dataclass(frozen=True)
+class Figures:
+    """Totals over some classes: the tiles, and each department's row."""
+
+    classes: int = 0
+    students: int = 0
+    at_risk: int = 0
+    pending: int = 0
+    sent: int = 0
+
+    @classmethod
+    def of(cls, rows: list[ClassRow]) -> "Figures":
+        return cls(
+            classes=len(rows),
+            students=sum(row.counts.students for row in rows),
+            at_risk=sum(row.counts.at_risk for row in rows),
+            pending=sum(row.counts.pending for row in rows),
+            sent=sum(row.sent for row in rows),
+        )
 
 
-def totals() -> Totals:
-    return Totals(
-        mentors=_count(select(Mentor.id).where(Mentor.approved.is_(True))),
-        classes=_count(select(ClassGroup.id)),
-        students=_count(select(Student.id).where(Student.status == "active")),
-    )
+@dataclass(frozen=True)
+class Overview:
+    totals: Figures
+    departments: list[tuple[str, Figures]]
+    pending: pagination.Page  # classes with messages still to send, most first
+    department: str | None
 
 
 def phone_digits(search: str) -> str | None:
@@ -113,45 +102,6 @@ def _latest_semesters(class_ids: list[int]) -> dict[int, Semester]:
 
 def _since():
     return clock.now() - SENT_WINDOW
-
-
-def mentor_page(filters: Filters) -> pagination.Page:
-    query = select(Mentor).where(Mentor.approved.is_(True))
-    if filters.department:
-        query = query.where(Mentor.department == filters.department)
-    if filters.search:
-        matches = [
-            _contains(Mentor.full_name, filters.search),
-            _contains(Mentor.username, filters.search),
-        ]
-        if digits := phone_digits(filters.search):
-            matches.append(Mentor.whatsapp_number.contains(digits, autoescape=True))
-        query = query.where(or_(*matches))
-    page = pagination.paginate(
-        query.order_by(func.lower(Mentor.full_name), Mentor.id), filters.page, PER_PAGE
-    )
-    ids = [mentor.id for mentor in page.items]
-    classes = list(db.session.scalars(select(ClassGroup).where(ClassGroup.mentor_id.in_(ids))))
-    latest = _latest_semesters([class_group.id for class_group in classes])
-    counts = semester_stats.counts_for(list(latest.values()))
-    sent = dict(
-        db.session.execute(
-            select(SendLog.mentor_id, func.count())
-            .where(
-                SendLog.mentor_id.in_(ids), SendLog.status == "sent", SendLog.created_at >= _since()
-            )
-            .group_by(SendLog.mentor_id)
-        ).all()
-    )
-    rows = []
-    for mentor in page.items:
-        own = [c for c in classes if c.mentor_id == mentor.id]
-        found = [counts[latest[c.id].id] for c in own if c.id in latest]
-        total = Counts(
-            *(sum(getattr(c, name) for c in found) for name in ("students", "at_risk", "pending"))
-        )
-        rows.append(MentorRow(mentor, len(own), total, sent.get(mentor.id, 0)))
-    return page.with_items(rows)
 
 
 def _sent_by_class(class_ids: list[int]) -> dict[int, int]:
@@ -195,10 +145,92 @@ def class_rows(classes: list[ClassGroup]) -> list[ClassRow]:
     ]
 
 
-def class_page(filters: Filters) -> pagination.Page:
+def _by_name(row: ClassRow) -> tuple:
+    return (row.class_group.name.lower(), row.mentor.full_name.lower(), row.class_group.id)
+
+
+def overview(department: str | None, page: int) -> Overview:
+    """Totals and departments cover every current class; `department` narrows only the
+    list of classes with pending messages."""
+    classes = list(db.session.scalars(select(ClassGroup).where(ClassGroup.finished_at.is_(None))))
+    rows = class_rows(classes)
+    names = sorted({row.class_group.department for row in rows})
+    by_department = [
+        (name, Figures.of([row for row in rows if row.class_group.department == name]))
+        for name in names
+    ]
+    pending = [
+        row
+        for row in rows
+        if row.counts.pending and (department is None or row.class_group.department == department)
+    ]
+    pending.sort(key=lambda row: (-row.counts.pending, -row.counts.at_risk, *_by_name(row)))
+    return Overview(
+        totals=Figures.of(rows),
+        departments=by_department,
+        pending=pagination.paginate_list(pending, page, PER_PAGE),
+        department=department,
+    )
+
+
+@dataclass(frozen=True)
+class ClassFilters:
+    search: str = ""
+    department: str | None = None
+    year: int | None = None
+    status: str = "current"
+    sort: str = "name"
+    page: int = 1
+
+    @classmethod
+    def from_args(cls, args) -> "ClassFilters":
+        year = args.get("year", "")
+        status = args.get("status", "")
+        sort = args.get("sort", "")
+        return cls(
+            search=" ".join(args.get("q", "").split())[:100],
+            department=departments.canonical(args.get("department")),
+            year=int(year) if year.isdecimal() and len(year) == 4 else None,
+            status=status if status in STATUSES else "current",
+            sort=sort if sort in SORTS else "name",
+            page=pagination.page_number(args.get("page")),
+        )
+
+    @property
+    def filtered(self) -> bool:
+        return bool(self.search or self.department or self.year or self.status != "current")
+
+
+def batch_years() -> list[int]:
+    query = select(ClassGroup.admission_year).distinct()
+    return sorted(db.session.scalars(query), reverse=True)
+
+
+def _last_sheet(row: ClassRow) -> tuple:
+    """Newest sheet first; classes without one go last."""
+    when = row.semester.last_imported_at if row.semester else None
+    return (when is None, -when.timestamp() if when else 0, *_by_name(row))
+
+
+def _sort_key(sort: str):
+    if sort == "last_sheet":
+        return _last_sheet
+    if sort in ("pending", "at_risk", "students"):
+        return lambda row: (-getattr(row.counts, sort), *_by_name(row))
+    return _by_name
+
+
+def class_page(filters: ClassFilters) -> pagination.Page:
+    """Every class matching the filters, sorted, one page at a time."""
     query = select(ClassGroup).join(Mentor, ClassGroup.mentor_id == Mentor.id)
+    if filters.status == "current":
+        query = query.where(ClassGroup.finished_at.is_(None))
+    elif filters.status == "finished":
+        query = query.where(ClassGroup.finished_at.is_not(None))
     if filters.department:
         query = query.where(ClassGroup.department == filters.department)
+    if filters.year:
+        query = query.where(ClassGroup.admission_year == filters.year)
     if filters.search:
         query = query.where(
             or_(
@@ -206,9 +238,6 @@ def class_page(filters: Filters) -> pagination.Page:
                 _contains(Mentor.full_name, filters.search),
             )
         )
-    page = pagination.paginate(
-        query.order_by(func.lower(ClassGroup.name), func.lower(Mentor.full_name), ClassGroup.id),
-        filters.page,
-        PER_PAGE,
-    )
-    return page.with_items(class_rows(list(page.items)))
+    rows = class_rows(list(db.session.scalars(query)))
+    rows.sort(key=_sort_key(filters.sort))
+    return pagination.paginate_list(rows, filters.page, PER_PAGE)
