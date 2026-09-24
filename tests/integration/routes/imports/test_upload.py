@@ -1,11 +1,11 @@
 import io
-from pathlib import Path
 
 import pytest
 from sqlalchemy import func, select
 
 from parent_notifier.core.extensions import db
 from parent_notifier.models.academics import Student
+from parent_notifier.models.imports import StagedSheet
 from tests.factories.academics import make_class, make_semester
 from tests.factories.accounts import make_mentor
 from tests.factories.workbooks import make_csv, make_xlsx, sheet_rows
@@ -34,8 +34,8 @@ def _upload(client, base, content=None, filename="sem4.xlsx"):
 
 
 def _staged(app):
-    folder = Path(app.instance_path) / "imports"
-    return sorted(folder.glob("*.json")) if folder.exists() else []
+    with app.app_context():
+        return list(db.session.scalars(select(StagedSheet.token)))
 
 
 def _students(app):
@@ -117,7 +117,7 @@ def test_sheet_content_is_escaped(signed_in_client, base):
 
 def test_cancel_discards_the_staged_sheet(app, signed_in_client, base):
     _upload(signed_in_client, base)
-    token = _staged(app)[0].stem
+    token = _staged(app)[0]
     response = signed_in_client.post(f"{base}/import/cancel", data={"token": token})
     assert response.headers["Location"] == base
     assert _staged(app) == []

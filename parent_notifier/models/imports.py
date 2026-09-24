@@ -1,4 +1,5 @@
-"""The record of each confirmed import, with what the semester held before it."""
+"""Imports: each confirmed import with what the semester held before it, and each
+parsed sheet waiting for the mentor to confirm it."""
 
 from datetime import datetime
 
@@ -28,3 +29,20 @@ class ImportBatch(db.Model):
     snapshot: Mapped[dict] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=lambda: clock.now())
     undone_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+
+
+class StagedSheet(db.Model):
+    """A parsed sheet between the review page and Confirm. Kept in the database rather
+    than on disk, so it works when each request may run on a different server."""
+
+    __tablename__ = "staged_sheets"
+
+    token: Mapped[str] = mapped_column(String(32), primary_key=True)
+    mentor_id: Mapped[int] = mapped_column(ForeignKey("mentors.id", ondelete="CASCADE"))
+    class_id: Mapped[int] = mapped_column(ForeignKey("classes.id", ondelete="CASCADE"))
+    semester_id: Mapped[int] = mapped_column(ForeignKey("semesters.id", ondelete="CASCADE"))
+    filename: Mapped[str] = mapped_column(String(120))
+    sheet: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(
+        UTCDateTime, default=lambda: clock.now(), index=True
+    )

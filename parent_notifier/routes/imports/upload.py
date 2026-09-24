@@ -1,8 +1,6 @@
 """Uploading a semester sheet and the review page. Nothing is saved before Confirm."""
 
-from pathlib import Path
-
-from flask import Blueprint, current_app, flash, redirect, render_template, url_for
+from flask import Blueprint, flash, redirect, render_template, url_for
 from flask_login import current_user, login_required
 
 from parent_notifier.core.extensions import limiter
@@ -18,10 +16,6 @@ from parent_notifier.services.imports.sheet_reader import SheetReadError, read_s
 bp = Blueprint("imports", __name__, url_prefix="/classes/<int:class_id>/sem/<int:number>")
 
 MAX_FILENAME = 120
-
-
-def staging_dir() -> Path:
-    return Path(current_app.instance_path) / "imports"
 
 
 def owner(class_group: ClassGroup, semester: Semester) -> staging.Owner:
@@ -59,7 +53,7 @@ def upload(class_id: int, number: int):
     sheet = parse_sheet(grid, class_group.midsem_max)
     token = None
     if not sheet.errors:
-        token = staging.stage(staging_dir(), owner(class_group, semester), filename, sheet)
+        token = staging.stage(owner(class_group, semester), filename, sheet)
     return review(class_group, semester, filename, sheet, ConfirmImportForm(token=token))
 
 
@@ -82,7 +76,7 @@ def confirm(class_id: int, number: int):
     form = ConfirmImportForm()
     staged = None
     if form.validate_on_submit():
-        staged = staging.load(staging_dir(), form.token.data, owner(class_group, semester))
+        staged = staging.load(form.token.data, owner(class_group, semester))
     if staged is None:
         # Expired, already confirmed in another tab, or not this semester's sheet.
         flash("This review has expired, so nothing was saved. Upload the sheet again.", "error")
@@ -95,7 +89,7 @@ def confirm(class_id: int, number: int):
         staged.sheet,
         update_identity=form.update_identity.data,
     )
-    staging.discard(staging_dir(), staged.token)
+    staging.discard(staged.token)
     flash(
         f"Sheet imported: {outcome.added} new and {outcome.updated} existing students.",
         "success",
@@ -108,6 +102,6 @@ def confirm(class_id: int, number: int):
 def cancel(class_id: int, number: int):
     load_semester(class_id, number)
     form = ConfirmImportForm()
-    staging.discard(staging_dir(), form.token.data or "")
+    staging.discard(form.token.data or "")
     flash("Import cancelled. Nothing was saved.", "info")
     return redirect(url_for("semesters.workspace", class_id=class_id, number=number))
