@@ -1,9 +1,9 @@
 """Signing in and out, and resetting a forgotten password with a recovery code."""
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
-from flask_login import current_user, logout_user
+from flask_login import current_user, login_required, logout_user
 
-from parent_notifier.forms.accounts import ResetPasswordForm, SignInForm
+from parent_notifier.forms.accounts import ChooseOwnPasswordForm, ResetPasswordForm, SignInForm
 from parent_notifier.routes.accounts import throttling
 from parent_notifier.routes.accounts.sessions import safe_next, show_recovery_code, start_session
 from parent_notifier.services.accounts import credentials, registration
@@ -33,6 +33,8 @@ def sign_in():
         elif mentor:
             start_session(mentor, remember=form.remember.data)
             code = registration.record_sign_in(mentor)
+            if mentor.must_change_password:
+                return redirect(url_for("auth.choose_password"))
             if code:
                 return show_recovery_code(code, then="home")
             return redirect(safe_next(form.next.data))
@@ -89,3 +91,34 @@ def sign_out():
     logout_user()
     flash("You have signed out.", "success")
     return redirect(url_for("auth.sign_in"))
+
+
+# Pages a mentor with an admin-set password can still reach before choosing their own.
+_BEFORE_OWN_PASSWORD = {"auth.choose_password", "auth.sign_out", "static", "speculation_rules"}
+
+
+@bp.before_app_request
+def require_own_password():
+    """An admin-set password opens only the page for choosing a new one."""
+    if (
+        current_user.is_authenticated
+        and current_user.must_change_password
+        and request.endpoint not in _BEFORE_OWN_PASSWORD
+    ):
+        return redirect(url_for("auth.choose_password"))
+    return None
+
+
+@bp.route("/choose-password", methods=["GET", "POST"])
+@login_required
+def choose_password():
+    if not current_user.must_change_password:
+        return redirect(url_for("home.index"))
+    form = ChooseOwnPasswordForm()
+    if form.validate_on_submit():
+        mentor = current_user._get_current_object()
+        code = registration.choose_own_password(mentor, form.new_password.data)
+        start_session(mentor)  # set_password signed out every session, this one too
+        flash("Your password is set.", "success")
+        return show_recovery_code(code, then="home")
+    return render_template("pages/accounts/choose_password.html", form=form)
