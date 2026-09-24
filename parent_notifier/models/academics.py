@@ -110,6 +110,7 @@ class Student(Timestamps, db.Model):
             "status IN ({})".format(", ".join(f"'{status}'" for status in STUDENT_STATUSES)),
             name="status",
         ),
+        CheckConstraint("gender IN ('male', 'female')", name="gender"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -122,6 +123,9 @@ class Student(Timestamps, db.Model):
     # listed but cannot be messaged until the number is fixed.
     phone_e164: Mapped[str | None] = mapped_column(String(16))
     status: Mapped[str] = mapped_column(String(10), default="active", server_default="active")
+    # "male" or "female", so the message says "your son" or "your daughter"; None says
+    # "your ward".
+    gender: Mapped[str | None] = mapped_column(String(6))
 
     class_group: Mapped[ClassGroup] = relationship(back_populates="students")
     semesters: Mapped[list[Semester]] = relationship(

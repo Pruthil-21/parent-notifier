@@ -144,6 +144,17 @@ class DeleteStudentForm(FlaskForm):
 
 
 STUDENT_STATUSES = [("active", "Active"), ("left", "Left the class"), ("detained", "Detained")]
+# The message says "your son", "your daughter", or "your ward" when not set.
+GENDERS = [("", "Not set"), ("male", "Son"), ("female", "Daughter")]
+
+
+class _BlankableSelectField(SelectField):
+    """A student saved without a value shows "Not set" rather than failing the choice."""
+
+    def process_data(self, value) -> None:
+        super().process_data("" if value is None else value)
+
+
 ENROLLMENT_TAKEN = "Another student in this class has this enrollment number"
 
 
@@ -179,9 +190,13 @@ class EditStudentForm(FlaskForm):
         filters=[strip],
     )
     status = SelectField("Status", choices=STUDENT_STATUSES)
+    gender = _BlankableSelectField("Son or daughter", choices=GENDERS, default="")
 
     def details(self) -> dict:
-        return {name: self[name].data for name in ("full_name", "parent_name", "phone", "status")}
+        details = {
+            name: self[name].data for name in ("full_name", "parent_name", "phone", "status")
+        }
+        return details | {"gender": self.gender.data or None}
 
 
 class AddStudentForm(EditStudentForm):
