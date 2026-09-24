@@ -74,6 +74,14 @@ uv run ruff format --check .
 uv run pytest
 ```
 
+The browser smoke tests are separate. They need a Playwright browser: install Chromium
+once, or use an installed Edge with `--browser-channel msedge`.
+
+```
+uv run playwright install chromium
+uv run pytest -m e2e
+```
+
 ## Contributing
 
 - Work on a short-lived branch and open a pull request against `main`.

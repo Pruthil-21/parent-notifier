@@ -39,3 +39,23 @@ jobs:
 
       - name: Run tests
         run: uv run pytest
+
+  e2e:
+    name: Browser smoke tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Install Chromium
+        run: uv run playwright install --with-deps chromium
+
+      - name: Run browser smoke tests
+        run: uv run pytest -m e2e
