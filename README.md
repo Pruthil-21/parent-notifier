@@ -50,7 +50,7 @@ and runs on a single computer today.
 - Search, filter and sort the class, and open any student for a subject-by-subject view.
 
 **Messaging**
-- Messages in English or Gujarati from editable templates, with an optional note.
+- One message in English and Gujarati from an editable template, with an optional note.
 - A queue that walks through every parent still waiting for a message.
 - Pacing to protect the mentor's WhatsApp number: a gap between sends, a pause after
   each burst and a daily limit.
@@ -188,11 +188,10 @@ project folder.
 | `TRUST_PROXY` | `false` (`true` on Vercel) | Trust the proxy's forwarded address and https headers |
 | `RUN_MIGRATIONS` | `true` | Set to `false` to skip migrations in the Vercel build |
 | `COLLEGE_NAME` | G. H. Patel College of Engineering & Technology | Signs the English message |
-| `COLLEGE_NAME_GU` | The same name in Gujarati | Signs the Gujarati message |
 | `COLLEGE_SHORT_NAME` | `GCET` | Shown in the top bar |
 
-The message wording lives in `message_templates/parent_report.en.txt` and
-`parent_report.gu.txt`. Edits apply to the next message without a restart.
+The message wording, English and Gujarati together, lives in
+`message_templates/parent_report.txt`. Edits apply to the next message without a restart.
 
 ## Testing
 

@@ -10,7 +10,7 @@ pytestmark = pytest.mark.usefixtures("app_context")
 
 def test_new_mentor_gets_documented_defaults():
     mentor = make_mentor()
-    assert (mentor.theme, mentor.message_language) == ("system", "en")
+    assert mentor.theme == "system"
     assert (mentor.send_gap_seconds, mentor.burst_size) == (20, 15)
     assert (mentor.burst_pause_minutes, mentor.daily_send_limit) == (5, 60)
     assert mentor.session_version == 1
@@ -30,8 +30,8 @@ def test_usernames_are_unique():
 
 @pytest.mark.parametrize(
     "fields",
-    [{"username": "AshaPatel"}, {"theme": "blue"}, {"message_language": "hi"}, {"role": "hod"}],
-    ids=["uppercase username", "unknown theme", "unknown language", "unknown role"],
+    [{"username": "AshaPatel"}, {"theme": "blue"}, {"role": "hod"}],
+    ids=["uppercase username", "unknown theme", "unknown role"],
 )
 def test_database_rejects_invalid_values(fields):
     with pytest.raises(IntegrityError):

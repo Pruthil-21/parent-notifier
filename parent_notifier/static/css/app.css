@@ -21,7 +21,6 @@
 @import url("components/overlays/menus.css") layer(components);
 @import url("components/overlays/dialogs.css") layer(components);
 @import url("components/forms/settings.css") layer(components);
-@import url("components/forms/segmented.css") layer(components);
 @import url("components/feedback/badges.css") layer(components);
 @import url("components/data/tiles.css") layer(components);
 

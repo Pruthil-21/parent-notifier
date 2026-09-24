@@ -25,7 +25,7 @@ def ce_a(owner):
     db.session.scalars(db.select(Student).filter_by(enrollment_no="23CE004")).one().status = "left"
     db.session.commit()
     first = db.session.scalars(db.select(Student).filter_by(enrollment_no="23CE002")).one()
-    send_log.record(sem4, first.id, owner.id, status="sent", language="en", note="", message="")
+    send_log.record(sem4, first.id, owner.id, status="sent", note="", message="")
     return class_group
 
 

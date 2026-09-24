@@ -105,11 +105,9 @@ def test_student_page_needs_sign_in(client, setup):
     assert response.headers["Location"].startswith("/sign-in")
 
 
-def test_popup_carries_messages_and_the_profile_language(signed_in_client, setup):
+def test_popup_carries_the_one_english_and_gujarati_message(signed_in_client, setup):
     base, ids, _ = setup
     html = signed_in_client.get(base).get_data(as_text=True)
-    assert 'data-default-language="en"' in html
-    assert 'value="gu" lang="gu"' in html
+    assert "popup-language" not in html  # no language to choose
     avi = next(s for s in _data(html) if s["id"] == ids["23CE001"])
-    assert avi["messages"]["en"]["plain"].startswith("Dear Parent,")
-    assert avi["messages"]["gu"]["plain"].startswith("આદરણીય વાલીશ્રી,")
+    assert avi["messages"]["plain"].startswith("Dear Parent,\nઆદરણીય વાલીશ્રી,")

@@ -17,7 +17,7 @@ from tests.integration.routes.messaging.send_requests import log as _log
 
 def test_send_is_stored_and_returns_the_whatsapp_link(app, signed_in_client, setup):
     base, ids = setup
-    response = _log(signed_in_client, base, ids["23CE001"], language="gu")
+    response = _log(signed_in_client, base, ids["23CE001"])
     data = response.get_json()
     assert response.status_code == 200
     assert data["status"] == "sent"
@@ -29,13 +29,13 @@ def test_send_is_stored_and_returns_the_whatsapp_link(app, signed_in_client, set
     app_link = urlsplit(data["whatsappAppUrl"])
     assert (app_link.netloc, app_link.path) == ("wa.me", "/919000000101")
     assert parse_qs(app_link.query)["text"] == [entry.message]
-    assert entry.message.startswith("આદરણીય વાલીશ્રી,")
+    assert entry.message.startswith("Dear Parent,\nઆદરણીય વાલીશ્રી,")
     with app.app_context():
         from parent_notifier.models.activity import ActivityEntry
 
         logged = db.session.scalars(db.select(ActivityEntry).filter_by(category="messaging")).one()
-        assert (logged.event, logged.details["language"]) == ("message_sent", "gu")
-    assert (entry.round, entry.language) == (1, "gu")
+        assert (logged.event, logged.details) == ("message_sent", {"semester": 4})
+    assert entry.round == 1
 
 
 def test_skip_is_stored_without_a_link(app, signed_in_client, setup):
@@ -47,7 +47,7 @@ def test_skip_is_stored_without_a_link(app, signed_in_client, setup):
 
 @pytest.mark.parametrize(
     "body",
-    [{"status": "deleted"}, {"language": "hi"}, {"note": "x" * 501}, {"note": "a\u0000b"}],
+    [{"status": "deleted"}, {"note": "x" * 501}, {"note": "a\u0000b"}],
 )
 def test_bad_requests_are_refused(app, signed_in_client, setup, body):
     base, ids = setup
@@ -89,7 +89,7 @@ def test_log_needs_the_csrf_header(app, mentor, setup):
     page = client.get(base).get_data(as_text=True)
     token = re.search(r'name="csrf-token" content="([^"]+)"', page).group(1)
     url = f"{base}/students/{ids['23CE001']}/log"
-    body = {"status": "sent", "language": "en", "note": ""}
+    body = {"status": "sent", "note": ""}
     assert client.post(url, json=body).status_code == 400
     assert client.post(url, json=body, headers={"X-CSRFToken": token}).status_code == 200
 
@@ -136,7 +136,7 @@ def test_note_is_stored_and_added_to_the_message(app, signed_in_client, setup):
     data = _log(signed_in_client, base, ids["23CE001"], note=f"  {note}  ").get_json()
     [entry] = _entries(app)
     assert entry.note == note
-    assert f"Note from the mentor: {note}" in entry.message
+    assert f"Note from the mentor / મેન્ટરની નોંધ: {note}" in entry.message
     assert parse_qs(urlsplit(data["whatsappUrl"]).query)["text"] == [entry.message]
 
 

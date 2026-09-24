@@ -36,7 +36,7 @@ def test_every_change_that_moves_the_counts_clears_them(setup):
     mentor, class_group, semester = setup
     assert _counts(semester).pending == 4
     avi = db.session.scalars(select(Student).filter_by(enrollment_no="23CE001")).one()
-    send_log.record(semester, avi.id, mentor.id, status="sent", language="en", note="", message="")
+    send_log.record(semester, avi.id, mentor.id, status="sent", note="", message="")
     assert _counts(semester).pending == 3
     details = {"full_name": avi.full_name, "parent_name": avi.parent_name, "phone": avi.phone_raw}
     students.update_student(avi, details | {"status": "left"})

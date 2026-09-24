@@ -10,7 +10,6 @@ from parent_notifier.core.extensions import db, login_manager
 from parent_notifier.models.columns import Timestamps, UTCDateTime
 
 THEMES = ("system", "light", "dark")
-MESSAGE_LANGUAGES = ("en", "gu")
 ROLES = ("mentor", "admin")
 
 
@@ -25,7 +24,6 @@ class Mentor(UserMixin, Timestamps, db.Model):
     __table_args__ = (
         CheckConstraint("username = lower(username)", name="username_lowercase"),
         CheckConstraint(_one_of("theme", THEMES), name="theme"),
-        CheckConstraint(_one_of("message_language", MESSAGE_LANGUAGES), name="message_language"),
         CheckConstraint(_one_of("role", ROLES), name="role"),
     )
 
@@ -36,7 +34,6 @@ class Mentor(UserMixin, Timestamps, db.Model):
     password_hash: Mapped[str] = mapped_column(String(255))
     recovery_code_hash: Mapped[str] = mapped_column(String(255))
     theme: Mapped[str] = mapped_column(String(10), default="system", server_default="system")
-    message_language: Mapped[str] = mapped_column(String(2), default="en", server_default="en")
     send_gap_seconds: Mapped[int] = mapped_column(default=20, server_default="20")
     burst_size: Mapped[int] = mapped_column(default=15, server_default="15")
     burst_pause_minutes: Mapped[int] = mapped_column(default=5, server_default="5")

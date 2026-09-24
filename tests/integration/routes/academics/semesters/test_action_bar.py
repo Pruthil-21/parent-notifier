@@ -74,7 +74,6 @@ def test_once_every_parent_is_done_there_is_no_main_button(app, mentor, signed_i
                 student.id,
                 mentor.id,
                 status="skipped",
-                language="en",
                 note="",
                 message="",
             )

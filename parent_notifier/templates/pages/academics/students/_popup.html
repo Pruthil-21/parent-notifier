@@ -4,7 +4,6 @@
         data-threshold="{{ view.rules.attendance_threshold }}"
         data-pass-mark="{{ view.rules.midsem_pass_mark }}"
         data-midsem-max="{{ view.rules.midsem_max }}"
-        data-default-language="{{ current_user.message_language }}"
         {% if read_only %}data-read-only="true"{% else %}data-wait-seconds="{{ pacing.wait_seconds }}" data-wait-reason="{{ pacing.reason or '' }}"
         data-sent-today="{{ pacing.sent_today }}" data-daily-limit="{{ pacing.daily_limit }}"{% endif %}>
   <div class="dialog__header student-popup__header">
@@ -38,17 +37,6 @@
       </table>
     </div>
     <div class="popup-message">
-      <fieldset class="popup-message__language" data-language-picker>
-        <legend class="popup-message__label">Message language</legend>
-        <div class="segmented">
-          {% for code, label in languages.items() %}
-          <label class="segmented__option">
-            <input type="radio" name="popup-language" value="{{ code }}" lang="{{ code }}">
-            <span>{{ label }}</span>
-          </label>
-          {% endfor %}
-        </div>
-      </fieldset>
       <div class="field popup-note"{% if read_only %} hidden{% endif %}>
         <label class="field__label" for="popup-note">Note to parent <span class="text-secondary">(optional)</span></label>
         <textarea class="input" id="popup-note" rows="2" maxlength="500" data-note

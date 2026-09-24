@@ -19,9 +19,7 @@ def setup(app, mentor):
         semester = make_semester(class_group, 4)
         import_sheet(class_group, semester, mentor.id)
         student = db.session.scalars(select(Student)).first()
-        send_log.record(
-            semester, student.id, mentor.id, status="sent", language="en", note="", message=""
-        )
+        send_log.record(semester, student.id, mentor.id, status="sent", note="", message="")
         nirav = make_mentor(
             full_name="Nirav Shah",
             username="niravshah",

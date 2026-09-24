@@ -48,7 +48,7 @@ def test_status_counts_only_todays_sends_across_classes(monkeypatch):
     times = iter([NOW - timedelta(days=1), NOW - timedelta(minutes=9), NOW - timedelta(seconds=8)])
     monkeypatch.setattr(clock, "now", lambda: next(times))
     for (semester, student), status in zip(students * 2, ["sent", "sent", "skipped"], strict=False):
-        send_log.record(semester, student.id, mentor.id, status=status, language="en")
+        send_log.record(semester, student.id, mentor.id, status=status)
     monkeypatch.setattr(clock, "now", lambda: NOW)
     decision = pacing.status_for(mentor, "Asia/Kolkata")
     assert decision.sent_today == 1

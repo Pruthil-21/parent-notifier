@@ -19,7 +19,6 @@ class SendLog(db.Model):
     __tablename__ = "send_log"
     __table_args__ = (
         CheckConstraint("status IN ('sent', 'skipped')", name="status"),
-        CheckConstraint("language IN ('en', 'gu')", name="language"),
         Index("ix_send_log_semester_round", "semester_id", "round"),
         Index("ix_send_log_mentor_created", "mentor_id", "created_at"),
     )
@@ -31,7 +30,6 @@ class SendLog(db.Model):
     mentor_id: Mapped[int | None] = mapped_column(ForeignKey("mentors.id", ondelete="SET NULL"))
     round: Mapped[int]
     status: Mapped[str] = mapped_column(String(10))
-    language: Mapped[str] = mapped_column(String(2))
     note: Mapped[str] = mapped_column(String(500), default="", server_default="")
     # The exact text that was opened in WhatsApp, as a record of what the parent received.
     message: Mapped[str] = mapped_column(Text, default="", server_default="")

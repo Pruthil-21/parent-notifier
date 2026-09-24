@@ -39,8 +39,8 @@ def test_marks_belong_to_the_current_round():
     class_group = make_class(mentor)
     semester = make_semester(class_group, 4, current_round=1, round_counter=1)
     student = make_student(class_group)
-    send_log.record(semester, student.id, mentor.id, status="skipped", language="en")
-    send_log.record(semester, student.id, mentor.id, status="sent", language="en")
+    send_log.record(semester, student.id, mentor.id, status="skipped")
+    send_log.record(semester, student.id, mentor.id, status="sent")
     assert send_log.marks_for(semester)[student.id].status == "sent"
     semester.current_round = 2
     assert send_log.marks_for(semester) == {}

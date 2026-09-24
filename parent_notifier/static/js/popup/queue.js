@@ -49,8 +49,8 @@ export function initQueue(popup) {
     try {
       const data =
         action === "send"
-          ? await sendToParent(link.dataset.logUrl, popup.language(), popup.note())
-          : await postLog(link.dataset.logUrl, { status: "skipped", language: popup.language(), note: "" });
+          ? await sendToParent(link.dataset.logUrl, popup.note())
+          : await postLog(link.dataset.logUrl, { status: "skipped", note: "" });
       popup.markDone(id, data.label);
       popup.pacing.update(data.pacing);
       student.pending = false;

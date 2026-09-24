@@ -69,15 +69,12 @@ def log_send(
     context: previews.MessageContext,
     *,
     status: str,
-    language: str,
     note: str,
 ) -> Logged:
     """Store a send or skip. For a send the server renders the message itself, and the
     link it returns carries exactly the text that was stored."""
-    message = previews.render_for(row, context, language, note) if status == "sent" else ""
-    entry = record(
-        semester, row.id, mentor_id, status=status, language=language, note=note, message=message
-    )
+    message = previews.render_for(row, context, note) if status == "sent" else ""
+    entry = record(semester, row.id, mentor_id, status=status, note=note, message=message)
     mark = Mark(entry.status, entry.created_at)
     if status != "sent":
         return Logged(mark, None, None)

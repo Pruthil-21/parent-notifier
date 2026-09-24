@@ -8,7 +8,7 @@ from parent_notifier.routes.academics.semesters import load_semester
 from parent_notifier.routes.activity import log as log_activity
 from parent_notifier.services.academics.views import semester_view
 from parent_notifier.services.messaging import pacing, previews, send_log
-from parent_notifier.services.messaging.message_templates import LANGUAGES, MAX_NOTE
+from parent_notifier.services.messaging.message_templates import MAX_NOTE
 
 bp = Blueprint(
     "messaging", __name__, url_prefix="/classes/<int:class_id>/sem/<int:number>/students"
@@ -65,8 +65,8 @@ def log(class_id: int, number: int, student_id: int):
     if row is None or not row.active:
         abort(404)
     body = request.get_json(silent=True) or {}
-    status, language, note = body.get("status"), body.get("language"), _clean_note(body.get("note"))
-    if status not in ("sent", "skipped") or language not in LANGUAGES or note is None:
+    status, note = body.get("status"), _clean_note(body.get("note"))
+    if status not in ("sent", "skipped") or note is None:
         return _error("That request could not be used. Reload the page and try again.")
     if status == "sent" and row.phone_e164 is None:
         return _error("This parent has no valid mobile number. Edit the student to fix it.")
@@ -76,15 +76,13 @@ def log(class_id: int, number: int, student_id: int):
     context = previews.context_for(
         number, class_group.midsem_max, current_user.full_name, current_app.config
     )
-    logged = send_log.log_send(
-        semester, row, current_user.id, context, status=status, language=language, note=note
-    )
+    logged = send_log.log_send(semester, row, current_user.id, context, status=status, note=note)
     log_activity(
         "messaging",
         "message_sent" if status == "sent" else "message_skipped",
         target=("student", row.id, f"{row.full_name} ({row.enrollment_no})"),
         class_group=class_group,
-        details={"semester": number, "language": language},
+        details={"semester": number},
     )
     return jsonify(
         status=status,
