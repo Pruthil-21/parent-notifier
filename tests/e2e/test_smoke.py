@@ -160,3 +160,22 @@ def test_a_blocked_whatsapp_tab_offers_a_link_instead(signed_in, demo):
         "href", re.compile(r"^https://web\.whatsapp\.com/send\?phone=919000000104&text=")
     )
     expect(popup.get_by_role("button", name=re.compile(r"^Wait \d+ s$"))).to_be_disabled()
+    expect(popup.locator('[data-slot="send-note"]')).to_contain_text("blocked the WhatsApp tab")
+
+
+def test_a_touch_screen_laptop_still_gets_whatsapp_web(browser, demo):
+    """A laptop whose main pointer is a finger is not mistaken for a phone."""
+    from tests.e2e.conftest import sign_in
+
+    context = browser.new_context(has_touch=True)
+    page = context.new_page()
+    errors = sign_in(page, demo)
+    page.goto(f"{demo.url}/classes/{demo.class_id}/sem/4")
+    page.get_by_role("link", name="Avi Shah").click()
+    popup = page.locator("#student-popup")
+    with page.expect_popup() as opened:
+        _send_first_time(page, popup)
+    opened.value.wait_for_url(re.compile(r"^https://web\.whatsapp\.com/send"))
+    expect(popup.get_by_role("link", name="Open WhatsApp")).to_be_hidden()
+    context.close()
+    assert errors == []

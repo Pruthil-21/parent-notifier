@@ -2,7 +2,7 @@
 // in the grid's order, with Skip and Send and next. Without JavaScript the button is a
 // link to the grid filtered to pending parents.
 
-import { postLog, sendToParent } from "./send.js";
+import { openLinkNote, postLog, sendToParent } from "./send.js";
 import { confirmThen } from "./sending-as.js";
 
 export function initQueue(popup) {
@@ -61,7 +61,7 @@ export function initQueue(popup) {
       if (data.openUrl) {
         // A phone, or a blocked tab: the next parent comes up once Open WhatsApp is used.
         popup.showAppLink(data.openUrl, next);
-        status.textContent = "Saved. Select Open WhatsApp, then press send in WhatsApp.";
+        status.textContent = openLinkNote(data);
         status.classList.remove("is-error");
       } else {
         next();

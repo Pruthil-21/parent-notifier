@@ -9,10 +9,12 @@ import { confirmThen } from "./sending-as.js";
 
 const TAB_NAME = "parent-notifier-whatsapp";
 
-// Phones and tablets: the browser says it is mobile, or the main pointer is a finger.
-// Touchscreen laptops count as laptops, since their main pointer is the trackpad.
+// Phones and tablets, from what the browser says it runs on. A laptop with a touch
+// screen stays a laptop: the pointer type is not used, since some report a finger.
 export function onPhone() {
-  return navigator.userAgentData?.mobile === true || window.matchMedia("(pointer: coarse)").matches;
+  if (navigator.userAgentData?.mobile) return true;
+  if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) return true;
+  return navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1; // iPad
 }
 
 function csrfToken() {
@@ -67,10 +69,17 @@ export async function sendToParent(logUrl, language, note) {
     closeIfBlank(tab);
     throw error;
   }
-  if (!tab) return { ...data, openUrl: data.whatsappUrl }; // the browser blocked the tab
+  if (!tab) return { ...data, openUrl: data.whatsappUrl, blocked: true };
   tab.location.href = data.whatsappUrl;
   tab.focus(); // from the second send on, the reused tab would otherwise stay behind
   return data;
+}
+
+// What to do when WhatsApp could not open by itself.
+export function openLinkNote(data) {
+  return data.blocked
+    ? "Saved. The browser blocked the WhatsApp tab: select Open WhatsApp, or allow pop-ups for this site to skip this step."
+    : "Saved. Tap Open WhatsApp, then press send in WhatsApp.";
 }
 
 // The popup's Send button: disabled with the reason when there is no valid number.
@@ -100,7 +109,7 @@ export function initSendButton(popup) {
       popup.pacing.update(data.pacing);
       if (data.openUrl) {
         popup.showAppLink(data.openUrl);
-        say("Saved. Select Open WhatsApp, then press send in WhatsApp.");
+        say(openLinkNote(data));
       } else {
         say("Opened in WhatsApp Web. Press send there to deliver it.");
       }
