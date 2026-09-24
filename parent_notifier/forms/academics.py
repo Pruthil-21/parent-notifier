@@ -7,6 +7,7 @@ from wtforms.validators import InputRequired, Length, NumberRange, ValidationErr
 
 from parent_notifier.forms.fields import (
     WholeNumberField,
+    department_field,
     indian_mobile,
     printable,
     single_spaced,
@@ -36,15 +37,7 @@ class ClassDetailsForm(FlaskForm):
         ],
         filters=[single_spaced],
     )
-    department = StringField(
-        "Department",
-        validators=[
-            InputRequired("Enter the department"),
-            Length(max=80, message="Department must be 80 characters or fewer"),
-            printable("Department"),
-        ],
-        filters=[single_spaced],
-    )
+    department = department_field("Choose the department")
     admission_year = WholeNumberField(
         "Admission year",
         invalid_message="Enter the admission year as 4 digits, like 2023",
