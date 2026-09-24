@@ -21,6 +21,7 @@ PAGES = [
     ("/classes/{id}/settings", "Class settings"),
     ("/profile/", "Profile"),
     ("/help", "Help"),
+    ("/search?q=avi", "Search"),
 ]
 
 

@@ -57,3 +57,55 @@
   font-size: var(--text-body);
   opacity: 0.85;
 }
+
+.top-bar__search {
+  position: relative;
+  display: flex;
+  flex: 0 1 360px;
+  align-items: center;
+  margin-left: var(--space-4);
+}
+
+.top-bar__search .icon {
+  position: absolute;
+  left: var(--space-2);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.top-bar__search input {
+  width: 100%;
+  min-height: 32px;
+  padding: 0 var(--space-2) 0 calc(var(--space-2) + 16px + var(--space-2));
+  border: 1px solid var(--color-topbar-divider);
+  border-radius: var(--radius-control);
+  background: var(--color-topbar-hover);
+  color: inherit;
+  font: inherit;
+  font-size: var(--text-body);
+}
+
+.top-bar__search input::placeholder {
+  color: inherit;
+  opacity: 0.75;
+}
+
+.top-bar__search input:focus-visible {
+  outline: 2px solid var(--color-topbar-text);
+  outline-offset: 0;
+}
+
+/* On a phone the box would crowd the bar, so a button opens the search page. */
+.top-bar__search-link {
+  display: none;
+}
+
+@media (max-width: 699px) {
+  .top-bar__search {
+    display: none;
+  }
+
+  .top-bar__search-link {
+    display: inline-grid;
+  }
+}
