@@ -1,10 +1,12 @@
-"""Adding a student by hand, editing their details and marking them left or detained."""
+"""Adding a student by hand, editing their details, marking them left or detained, and
+deleting them."""
 
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
 from parent_notifier.core.extensions import db
 from parent_notifier.models.academics import ClassGroup, Semester, Student
+from parent_notifier.models.messaging import SendLog
 from parent_notifier.services.shared.phone import normalise_indian_mobile
 
 
@@ -53,3 +55,16 @@ def _set_details(student: Student, details: dict) -> None:
     student.phone_raw = details["phone"]
     student.phone_e164 = normalise_indian_mobile(details["phone"])
     student.status = details["status"]
+
+
+def messages_sent(student: Student) -> int:
+    """How many messages this student's parent was sent, which deleting also removes."""
+    query = select(func.count()).where(SendLog.student_id == student.id, SendLog.status == "sent")
+    return db.session.scalar(query)
+
+
+def delete_student(student: Student) -> None:
+    """Delete the student with their marks in every semester and their send record. The
+    database removes those rows through its foreign keys."""
+    db.session.delete(student)
+    db.session.commit()

@@ -51,3 +51,8 @@
     padding: var(--space-5) var(--space-4);
   }
 }
+
+/* A danger section under a form, such as Delete student under Edit student. */
+.form-panel + .settings-section {
+  margin-top: var(--space-6);
+}
