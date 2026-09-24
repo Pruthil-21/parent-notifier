@@ -19,7 +19,7 @@
       {% set mentor = row.mentor %}
       <tr>
         <th scope="row">
-          <span class="cell-title">{{ mentor.full_name }}</span>
+          <a class="cell-title" href="{{ url_for('admin_users.detail', account_id=mentor.id) }}">{{ mentor.full_name }}</a>
           <span class="cell-note">{{ mentor.username }}{% if mentor.is_admin %} &middot; Admin{% endif %}</span>
         </th>
         <td>{{ mentor.department or "Not set" }}</td>

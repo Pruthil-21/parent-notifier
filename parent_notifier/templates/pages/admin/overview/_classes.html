@@ -22,7 +22,7 @@
           <span class="cell-title">{{ class_group.name }}</span>
           <span class="cell-note">{{ class_group.admission_year }} batch</span>
         </th>
-        <td>{{ row.mentor.full_name }}</td>
+        <td><a href="{{ url_for('admin_users.detail', account_id=row.mentor.id) }}">{{ row.mentor.full_name }}</a></td>
         <td>{{ class_group.department }}</td>
         <td>{% if row.semester %}Sem {{ row.semester.number }}{% else %}<span class="text-muted">None yet</span>{% endif %}</td>
         <td class="numeric">{{ row.counts.students }}</td>
