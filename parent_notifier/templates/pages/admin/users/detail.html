@@ -1,6 +1,8 @@
 {% extends "layouts/app.html" %}
 {% from "components/navigation/breadcrumb.html" import breadcrumb %}
 {% from "components/navigation/action_bar.html" import action_bar %}
+{% from "components/forms/error_summary.html" import error_summary %}
+{% from "components/forms/field.html" import text_field %}
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/admin.css') }}">
@@ -49,6 +51,24 @@
         <span class="cell-note">{{ class_group.department }} · {{ class_group.admission_year }} batch</span></li>
       {% endfor %}
     </ul>
+    {% if transfer_form.to_mentor.choices | length > 1 %}
+    <form class="form-stack account-transfer" method="post"
+          action="{{ url_for('admin_users.transfer', account_id=account.id) }}" novalidate>
+      <h3>Move classes to another mentor</h3>
+      {{ error_summary(transfer_form, first_field=transfer_form.to_mentor) }}
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <fieldset class="field">
+        <legend class="field__label">{{ transfer_form.classes.label.text }}</legend>
+        {{ transfer_form.classes(class_="choice-list") }}
+      </fieldset>
+      <div class="field">
+        {{ transfer_form.to_mentor.label(class_="field__label") }}
+        {{ transfer_form.to_mentor(class_="input") }}
+      </div>
+      <p class="field__hint">Everything in the classes moves with them. Messages already sent keep who sent them.</p>
+      <div><button class="button" type="submit">Move classes</button></div>
+    </form>
+    {% endif %}
     {% else %}
     <p class="text-secondary">No classes.</p>
     {% endif %}
@@ -68,4 +88,29 @@
     {% endif %}
   </section>
 </div>
+
+{% if account.id != current_user.id %}
+<section class="settings-section settings-section--danger account-delete" aria-labelledby="delete-heading">
+  <div class="settings-section__intro">
+    <h2 id="delete-heading">Delete account</h2>
+    {% if classes %}
+    <p>{{ account.full_name }} still has {{ classes | length }} class{{ "es" if classes | length != 1 }}.
+      Move them to another mentor first, or delete them.</p>
+    {% else %}
+    <p>{{ account.full_name }} can no longer sign in. Their activity and the messages they sent
+      stay on record under their name. This cannot be undone.</p>
+    {% endif %}
+  </div>
+  {% if not classes %}
+  <form class="settings-section__form form-stack" method="post"
+        action="{{ url_for('admin_users.delete', account_id=account.id) }}" novalidate>
+    {{ error_summary(delete_form, first_field=delete_form.confirmation) }}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {{ text_field(delete_form.confirmation, hint="Type " ~ account.username ~ " exactly as shown",
+                  autocomplete="off", spellcheck="false", autocapitalize="none") }}
+    <div><button class="button button--danger" type="submit">Delete account</button></div>
+  </form>
+  {% endif %}
+</section>
+{% endif %}
 {% endblock %}

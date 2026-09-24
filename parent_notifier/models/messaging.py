@@ -27,7 +27,8 @@ class SendLog(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     semester_id: Mapped[int] = mapped_column(ForeignKey("semesters.id", ondelete="CASCADE"))
     student_id: Mapped[int] = mapped_column(ForeignKey("students.id", ondelete="CASCADE"))
-    mentor_id: Mapped[int] = mapped_column(ForeignKey("mentors.id", ondelete="CASCADE"))
+    # Who sent it. Empty once that account is deleted; the record stays with the class.
+    mentor_id: Mapped[int | None] = mapped_column(ForeignKey("mentors.id", ondelete="SET NULL"))
     round: Mapped[int]
     status: Mapped[str] = mapped_column(String(10))
     language: Mapped[str] = mapped_column(String(2))

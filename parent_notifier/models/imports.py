@@ -18,7 +18,8 @@ class ImportBatch(db.Model):
     semester_id: Mapped[int] = mapped_column(
         ForeignKey("semesters.id", ondelete="CASCADE"), index=True
     )
-    mentor_id: Mapped[int] = mapped_column(ForeignKey("mentors.id", ondelete="CASCADE"))
+    # Who imported it. Empty once that account is deleted; undo still works.
+    mentor_id: Mapped[int | None] = mapped_column(ForeignKey("mentors.id", ondelete="SET NULL"))
     filename: Mapped[str] = mapped_column(String(120))
     round: Mapped[int]
     previous_round: Mapped[int]
