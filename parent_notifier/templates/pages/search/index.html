@@ -1,0 +1,85 @@
+{% extends "layouts/app.html" %}
+{% from "components/navigation/breadcrumb.html" import breadcrumb %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/search.css') }}">
+{% endblock %}
+
+{% block title %}{{ ("Search: " ~ query) if query else "Search" }}{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Overview" if current_user.is_admin else "Home", url_for("home.index")), ("Search", None)]) }}{% endblock %}
+{% block page_title %}Search{% endblock %}
+{% block page_meta %}{{ "Classes, students and mentors" if current_user.is_admin else "Your classes and students" }}{% endblock %}
+
+{% macro more_note(group) %}
+{% if group.more %}<p class="search-group__more">Showing the first {{ limit }}. Add more to your search to narrow it.</p>{% endif %}
+{% endmacro %}
+
+{% block content %}
+<form class="search-form" role="search" method="get" action="{{ url_for('search.index') }}">
+  <label class="visually-hidden" for="search-page-input">Search</label>
+  <input class="input" id="search-page-input" name="q" type="search" value="{{ query }}" maxlength="80"
+         autocomplete="off" spellcheck="false"
+         placeholder="{{ 'Name, enrollment no., phone, class or department' if current_user.is_admin else 'Name, enrollment no., phone or class' }}">
+  <button class="button button--primary" type="submit">{{ icon("search", size=16) }}Search</button>
+</form>
+
+{% if results is none %}
+<p class="search-hint">{% if query %}Type at least {{ min_length }} characters.{% else %}Search by a student's name, enrollment number or parent's phone, or by a class name{% if current_user.is_admin %}, a mentor or a department{% endif %}.{% endif %}</p>
+{% elif results.empty %}
+<p class="search-hint" role="status">Nothing matches &ldquo;{{ query }}&rdquo;.</p>
+{% else %}
+<div class="search-results">
+  {% if results.students.hits %}
+  <section class="search-group" aria-labelledby="found-students">
+    <h2 id="found-students">Students <span class="text-secondary">({{ results.students.hits | length }}{% if results.students.more %}+{% endif %})</span></h2>
+    <ul class="search-list" role="list">
+      {% for hit in results.students.hits %}
+      {% if hit.semester is none %}
+        {% set link = url_for("classes.open_class", class_id=hit.class_id) if hit.own else url_for("admin_classes.open_class", class_id=hit.class_id) %}
+      {% elif hit.own %}
+        {% set link = url_for("students.detail", class_id=hit.class_id, number=hit.semester, student_id=hit.id) %}
+      {% else %}
+        {% set link = url_for("admin_classes.student", class_id=hit.class_id, number=hit.semester, student_id=hit.id) %}
+      {% endif %}
+      <li>
+        <a class="search-list__title" href="{{ link }}">{{ hit.name }}</a>
+        <span class="search-list__note">{{ hit.enrollment_no }} · {{ hit.class_name }}{% if hit.semester %} · Sem {{ hit.semester }}{% endif %}{% if hit.status != "active" %} · {{ "Left the class" if hit.status == "left" else "Detained" }}{% endif %}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {{ more_note(results.students) }}
+  </section>
+  {% endif %}
+
+  {% if results.classes.hits %}
+  <section class="search-group" aria-labelledby="found-classes">
+    <h2 id="found-classes">Classes <span class="text-secondary">({{ results.classes.hits | length }}{% if results.classes.more %}+{% endif %})</span></h2>
+    <ul class="search-list" role="list">
+      {% for hit in results.classes.hits %}
+      <li>
+        <a class="search-list__title" href="{{ url_for('classes.open_class', class_id=hit.id) if hit.own else url_for('admin_classes.open_class', class_id=hit.id) }}">{{ hit.name }}</a>
+        <span class="search-list__note">{{ hit.department }} · {{ hit.admission_year }} batch</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {{ more_note(results.classes) }}
+  </section>
+  {% endif %}
+
+  {% if results.mentors and results.mentors.hits %}
+  <section class="search-group" aria-labelledby="found-mentors">
+    <h2 id="found-mentors">Mentors <span class="text-secondary">({{ results.mentors.hits | length }}{% if results.mentors.more %}+{% endif %})</span></h2>
+    <ul class="search-list" role="list">
+      {% for mentor in results.mentors.hits %}
+      <li>
+        <a class="search-list__title" href="{{ url_for('admin_users.detail', account_id=mentor.id) }}">{{ mentor.full_name }}</a>
+        <span class="search-list__note">{{ mentor.username }} · {{ mentor.department or "No department" }} · <span class="numeric">{{ mentor.whatsapp_number | phone }}</span></span>
+      </li>
+      {% endfor %}
+    </ul>
+    {{ more_note(results.mentors) }}
+  </section>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

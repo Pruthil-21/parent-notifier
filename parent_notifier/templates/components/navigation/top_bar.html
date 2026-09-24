@@ -8,7 +8,16 @@
     <span class="top-bar__org">{{ config.COLLEGE_SHORT_NAME }}</span>
   </a>
   {% if current_user.is_authenticated %}
+  <form class="top-bar__search" role="search" method="get" action="{{ url_for('search.index') }}">
+    <label class="visually-hidden" for="top-bar-search">Search</label>
+    {{ icon("search", size=16) }}
+    <input id="top-bar-search" name="q" type="search" maxlength="80" autocomplete="off" spellcheck="false"
+           value="{{ request.args.get('q', '') if request.endpoint == 'search.index' else '' }}"
+           placeholder="{{ 'Search students, classes, mentors' if current_user.is_admin else 'Search students and classes' }}">
+  </form>
   <div class="top-bar__end">
+    <a class="top-bar__button top-bar__search-link" href="{{ url_for('search.index') }}"
+       aria-label="Search" title="Search">{{ icon("search") }}</a>
     <p class="top-bar__sending-as">
       Sending as <span class="numeric">{{ current_user.whatsapp_number | phone }}</span>
     </p>
