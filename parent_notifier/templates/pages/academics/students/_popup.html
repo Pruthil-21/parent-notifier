@@ -5,8 +5,8 @@
         data-pass-mark="{{ view.rules.midsem_pass_mark }}"
         data-midsem-max="{{ view.rules.midsem_max }}"
         data-default-language="{{ current_user.message_language }}"
-        data-wait-seconds="{{ pacing.wait_seconds }}" data-wait-reason="{{ pacing.reason or '' }}"
-        data-sent-today="{{ pacing.sent_today }}" data-daily-limit="{{ pacing.daily_limit }}">
+        {% if read_only %}data-read-only="true"{% else %}data-wait-seconds="{{ pacing.wait_seconds }}" data-wait-reason="{{ pacing.reason or '' }}"
+        data-sent-today="{{ pacing.sent_today }}" data-daily-limit="{{ pacing.daily_limit }}"{% endif %}>
   <div class="dialog__header student-popup__header">
     <div>
       <h2 class="dialog__title" id="popup-name" data-slot="name"></h2>
@@ -49,7 +49,7 @@
           {% endfor %}
         </div>
       </fieldset>
-      <div class="field popup-note">
+      <div class="field popup-note"{% if read_only %} hidden{% endif %}>
         <label class="field__label" for="popup-note">Note to parent <span class="text-secondary">(optional)</span></label>
         <textarea class="input" id="popup-note" rows="2" maxlength="500" data-note
                   aria-describedby="popup-note-count"></textarea>
@@ -65,6 +65,7 @@
     <button type="button" class="button" data-popup-move="-1">{{ icon("chevron-left", size=16) }}Previous</button>
     <button type="button" class="button" data-popup-move="1">Next{{ icon("chevron-right", size=16) }}</button>
     <span class="student-popup__position text-secondary" data-slot="position" aria-live="polite"></span>
+    {% if not read_only %}
     <a class="button" data-popup-edit href="#">Edit student</a>
     <button type="button" class="button button--primary" data-popup-send>Send on WhatsApp</button>
     <button type="button" class="button" data-queue-skip>Skip</button>
@@ -72,6 +73,7 @@
     {# Shown after Send saves the message when a tab can't be opened for it: on a phone,
        where the WhatsApp app opens only from a tap, or when the browser blocks the tab. #}
     <a class="button button--primary" data-whatsapp-open hidden target="_blank" rel="noopener noreferrer">Open WhatsApp</a>
+    {% endif %}
   </div>
   <div class="queue-done" data-queue-done hidden>
     <p class="queue-done__title">All pending parents are done.</p>
@@ -81,5 +83,5 @@
   <p class="student-popup__send-note" data-slot="send-note" role="status"></p>
   <p class="student-popup__pacing" data-slot="pacing" aria-live="polite"></p>
 </dialog>
-{% include "pages/academics/students/_sending_as.html" %}
+{% if not read_only %}{% include "pages/academics/students/_sending_as.html" %}{% endif %}
 <script type="application/json" id="students-data">{{ popup | tojson }}</script>

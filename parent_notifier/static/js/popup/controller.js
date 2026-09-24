@@ -16,7 +16,7 @@ function createPopup(dialog, students) {
   const note = dialog.querySelector("[data-note]");
   const noteCount = dialog.querySelector('[data-slot="note-count"]');
   const showListeners = [];
-  const appLink = dialog.querySelector("[data-whatsapp-open]");
+  const appLink = dialog.querySelector("[data-whatsapp-open]") ?? document.createElement("a");
   let afterAppLink = null;
   const links = () => [...document.querySelectorAll("[data-student-link]")];
   let currentId = null;
@@ -122,6 +122,8 @@ export function initPopup() {
   const students = new Map(JSON.parse(dataBlock.textContent).map((s) => [String(s.id), s]));
   const popup = createPopup(dialog, students);
   initBrowsing(popup);
+  // The admin's view of another mentor's class shows the figures and messages only.
+  if (dialog.dataset.readOnly === "true") return popup;
   initSendButton(popup);
   popup.pacing = initPacing(popup); // after the send button, so its checks run last
   return popup;

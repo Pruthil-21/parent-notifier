@@ -26,11 +26,12 @@ def load_semester(class_id: int, number: int) -> tuple[ClassGroup, Semester]:
     return class_group, semester
 
 
-def _popup_payload(class_group, semester, view, rows, marks, pending) -> list[dict]:
-    """The popup's data for the rows on screen: figures, both messages and send status."""
+def _popup_payload(class_group, semester, view, rows, marks, pending, mentor) -> list[dict]:
+    """The popup's data for the rows on screen: figures, both messages and send status.
+    Messages are signed by the class's own mentor, whoever is looking."""
     config = current_app.config
     context = previews.context_for(
-        semester.number, class_group.midsem_max, current_user.full_name, config
+        semester.number, class_group.midsem_max, mentor.full_name, config
     )
     payload = semester_view.popup_payload(rows, view.rules)
     labels = _labels(view, marks)
@@ -49,35 +50,42 @@ def _labels(view, marks) -> dict[int, str]:
     }
 
 
-@bp.get("/sem/<int:number>")
-@login_required
-def workspace(class_id: int, number: int):
-    class_group, semester = load_semester(class_id, number)
+def workspace_context(class_group, semester, mentor) -> dict:
+    """Everything the semester page shows, for the class's mentor or the admin."""
     view = semester_view.build(class_group, semester)
     query = grid_filters.GridQuery.from_args(request.args)
     marks = send_log.marks_for(semester)
     pending = send_log.pending_ids(view.rows, marks)
     rows = grid_filters.apply(view.rows, query, pending)
+    return {
+        "class_group": class_group,
+        "semester": semester,
+        "summaries": semesters.summaries(class_group),
+        "view": view,
+        "query": query,
+        "rows": rows,
+        "status_filters": grid_filters.STATUS_FILTERS,
+        "popup": _popup_payload(class_group, semester, view, rows, marks, pending, mentor),
+        "pending_count": len(pending),
+        "marks": marks,
+        "labels": _labels(view, marks),
+        "sent_ids": {sid for sid, mark in marks.items() if mark.status == "sent"},
+        "languages": LANGUAGES,
+    }
+
+
+@bp.get("/sem/<int:number>")
+@login_required
+def workspace(class_id: int, number: int):
+    class_group, semester = load_semester(class_id, number)
     return render_template(
         "pages/academics/semesters/workspace.html",
-        class_group=class_group,
-        semester=semester,
-        summaries=semesters.summaries(class_group),
+        **workspace_context(class_group, semester, current_user),
         add_form=add_semester_form(class_group),
         can_remove=semesters.is_empty(semester),
         upload_form=UploadSheetForm(formdata=None),
         last_import=undo.latest_undoable(semester),
-        view=view,
-        query=query,
-        rows=rows,
-        status_filters=grid_filters.STATUS_FILTERS,
-        popup=_popup_payload(class_group, semester, view, rows, marks, pending),
-        pending_count=len(pending),
         pacing=pacing.status_for(current_user, current_app.config["APP_TIMEZONE"]),
-        marks=marks,
-        labels=_labels(view, marks),
-        sent_ids={sid for sid, mark in marks.items() if mark.status == "sent"},
-        languages=LANGUAGES,
     )
 
 

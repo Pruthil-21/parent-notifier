@@ -2,14 +2,14 @@
 {% set total = view.active_rows | length %}
 <ul class="tiles" role="list" aria-label="Sem {{ semester.number }} summary">
   <li class="tile">
-    <a class="tile__link" href="{{ url_for('semesters.workspace', class_id=class_group.id, number=semester.number) }}">
+    <a class="tile__link" href="{{ url_for(workspace_endpoint | default('semesters.workspace'), class_id=class_group.id, number=semester.number) }}">
       <span class="tile__label">Students</span>
       <span class="tile__value numeric">{{ total }}</span>
     </a>
   </li>
   {% for band, label in [("at_risk", "At risk"), ("needs_attention", "Needs attention"), ("doing_well", "Doing well")] %}
   <li class="tile tile--{{ band | replace('_', '-') }}">
-    <a class="tile__link" href="{{ url_for('semesters.workspace', class_id=class_group.id, number=semester.number, status=band) }}"
+    <a class="tile__link" href="{{ url_for(workspace_endpoint | default('semesters.workspace'), class_id=class_group.id, number=semester.number, status=band) }}"
        {% if query.status == band %}aria-current="true"{% endif %}>
       <span class="tile__label">{{ label }}</span>
       <span class="tile__value numeric">{{ view.tiles[band] }}</span>

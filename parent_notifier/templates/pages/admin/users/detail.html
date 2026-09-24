@@ -47,7 +47,7 @@
     {% if classes %}
     <ul class="account-list" role="list">
       {% for class_group in classes %}
-      <li><span class="cell-title">{{ class_group.name }}</span>
+      <li><a class="cell-title" href="{{ url_for('admin_classes.open_class', class_id=class_group.id) }}">{{ class_group.name }}</a>
         <span class="cell-note">{{ class_group.department }} · {{ class_group.admission_year }} batch</span></li>
       {% endfor %}
     </ul>

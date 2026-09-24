@@ -19,7 +19,7 @@
       {% set class_group = row.class_group %}
       <tr>
         <th scope="row">
-          <span class="cell-title">{{ class_group.name }}</span>
+          <a class="cell-title" href="{{ url_for('admin_classes.open_class', class_id=class_group.id) }}">{{ class_group.name }}</a>
           <span class="cell-note">{{ class_group.admission_year }} batch</span>
         </th>
         <td><a href="{{ url_for('admin_users.detail', account_id=row.mentor.id) }}">{{ row.mentor.full_name }}</a></td>

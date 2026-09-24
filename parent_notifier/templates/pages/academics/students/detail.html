@@ -7,7 +7,8 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/semester.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/student-popup.css') }}">
 {% endblock %}
-{% block breadcrumb %}{{ breadcrumb([("Home", url_for("home.index")), ("Classes", url_for("classes.index")), (class_group.name, url_for("classes.open_class", class_id=class_group.id)), ("Sem " ~ semester.number, url_for("semesters.workspace", class_id=class_group.id, number=semester.number)), (row.full_name, None)]) }}{% endblock %}
+{% set sem_url = url_for(workspace_endpoint | default("semesters.workspace"), class_id=class_group.id, number=semester.number) %}
+{% block breadcrumb %}{% if read_only %}{{ breadcrumb([("Overview", url_for("home.index")), (owner.full_name, url_for("admin_users.detail", account_id=owner.id)), (class_group.name ~ " · Sem " ~ semester.number, sem_url), (row.full_name, None)]) }}{% else %}{{ breadcrumb([("Home", url_for("home.index")), ("Classes", url_for("classes.index")), (class_group.name, url_for("classes.open_class", class_id=class_group.id)), ("Sem " ~ semester.number, sem_url), (row.full_name, None)]) }}{% endif %}{% endblock %}
 {% block page_title %}{{ row.full_name }}{% endblock %}
 {% block title_extra %}{{ student_badge(row) }}{% endblock %}
 {% block page_meta %}{{ row.enrollment_no }} · Sem {{ semester.number }}{% endblock %}
@@ -22,7 +23,7 @@
 </dl>
 {% include "pages/academics/students/_subjects_table.html" %}
 <p class="student-back">
-  <a class="button" href="{{ url_for('students.edit', class_id=class_group.id, number=semester.number, student_id=row.id) }}">Edit student</a>
-  <a href="{{ url_for('semesters.workspace', class_id=class_group.id, number=semester.number) }}">Back to Sem {{ semester.number }}</a>
+  {% if not read_only %}<a class="button" href="{{ url_for('students.edit', class_id=class_group.id, number=semester.number, student_id=row.id) }}">Edit student</a>{% endif %}
+  <a href="{{ sem_url }}">Back to Sem {{ semester.number }}</a>
 </p>
 {% endblock %}
