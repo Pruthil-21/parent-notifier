@@ -33,6 +33,7 @@ def render_for(row: StudentRow, context: MessageContext, note: str = "") -> str:
         midsem_max=context.midsem_max,
         mentor_name=context.mentor_name,
         college_name=context.college_name,
+        gender=row.gender,
         note=note,
     )
 

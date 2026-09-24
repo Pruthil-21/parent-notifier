@@ -30,6 +30,7 @@ class StudentRow:
     fails: list[Fail]
     lowest: Shortage | None
     average: float | None
+    gender: str | None = None
 
     @property
     def active(self) -> bool:
@@ -101,6 +102,7 @@ def build(class_group: ClassGroup, semester: Semester) -> SemesterView:
                 fails=risk.fails(results, rules),
                 lowest=risk.lowest_attendance(results),
                 average=risk.midsem_average(results),
+                gender=student.gender,
             )
         )
     return view

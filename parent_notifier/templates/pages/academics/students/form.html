@@ -24,6 +24,11 @@
       <p class="field__hint" id="status-hint">Left and detained students stay on record but are not counted or messaged</p>
       {{ form.status(class_="input", aria_describedby="status-hint") }}
     </div>
+    <div class="field">
+      {{ form.gender.label(class_="field__label") }}
+      <p class="field__hint" id="gender-hint">The message says your son or your daughter; when not set, your ward</p>
+      {{ form.gender(class_="input", aria_describedby="gender-hint") }}
+    </div>
     <div class="form-panel__actions">
       <button class="button button--primary" type="submit">{{ "Save student" if student else "Add student" }}</button>
       <a class="button button--subtle" href="{{ back }}">Cancel</a>

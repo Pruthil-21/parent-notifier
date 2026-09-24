@@ -58,6 +58,7 @@ def _set_details(student: Student, details: dict) -> None:
     student.phone_raw = details["phone"]
     student.phone_e164 = normalise_indian_mobile(details["phone"])
     student.status = details["status"]
+    student.gender = details.get("gender")
 
 
 def messages_sent(student: Student) -> int:

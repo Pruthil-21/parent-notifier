@@ -16,6 +16,7 @@
 {% block content %}
 <dl class="student-facts">
   <div><dt>Parent</dt><dd>{{ row.parent_name or "Not given" }}</dd></div>
+  <div><dt>Son or daughter</dt><dd>{{ {"male": "Son", "female": "Daughter"}.get(row.gender, "Not set") }}</dd></div>
   <div><dt>Parent phone</dt><dd>
     {% if row.phone_e164 %}{{ row.phone_e164 | phone }}
     {% else %}<span class="figure-fail">{{ row.phone_raw or "Missing" }}</span> · not a valid mobile number{% endif %}

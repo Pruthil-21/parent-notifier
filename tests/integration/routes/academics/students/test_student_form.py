@@ -110,3 +110,18 @@ def test_another_mentors_student_cannot_be_edited(app, signed_in_client, setup):
 def test_student_forms_need_sign_in(client, setup, path):
     base, _ = setup
     assert client.get(f"{base}/{path}").headers["Location"].startswith("/sign-in")
+
+
+def test_son_or_daughter_changes_the_message_wording(app, signed_in_client, setup):
+    base, student_id = setup
+    edit = f"{base}/students/{student_id}/edit"
+    details = {"full_name": "Avi Shah", "parent_name": "", "phone": "90000 00101"}
+    signed_in_client.post(edit, data=details | {"status": "active", "gender": "female"})
+    assert _student(app, "23CE001").gender == "female"
+    assert 'selected value="female"' in signed_in_client.get(edit).get_data(as_text=True)
+    page = signed_in_client.get(base).get_data(as_text=True)
+    assert "your daughter Avi Shah" in page and "guide her to attend" in page
+    signed_in_client.post(edit, data=details | {"status": "active", "gender": ""})
+    assert _student(app, "23CE001").gender is None
+    bad = signed_in_client.post(edit, data=details | {"status": "active", "gender": "other"})
+    assert "Not a valid choice" in bad.get_data(as_text=True)
