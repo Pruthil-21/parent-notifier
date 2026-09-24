@@ -1,11 +1,13 @@
-"""Command-line tasks for developers: `flask seed-demo` resets the demo account."""
+"""Command-line tasks: `flask seed-demo` resets the demo account, and `flask create-admin`
+creates the one admin account. No page in the app can make anyone an admin."""
 
 from pathlib import Path
 
 import click
 from flask import Flask, current_app
 from flask.cli import with_appcontext
-from sqlalchemy import select
+from sqlalchemy import exists, select
+from werkzeug.datastructures import MultiDict
 
 from parent_notifier.core.extensions import db
 from parent_notifier.models.accounts import Mentor
@@ -56,5 +58,41 @@ def seed_demo() -> None:
     click.echo(f"Demo ready. Sign in as {DEMO_USERNAME} with password {DEMO_PASSWORD}")
 
 
+@click.command("create-admin")
+@click.option("--name", required=True, help="Full name, as messages are signed")
+@click.option("--username", required=True)
+@click.option("--phone", required=True, help="The WhatsApp number, like 98765 43210")
+@click.option("--department", required=True)
+@click.password_option(help="Asked for twice, without showing it")
+@with_appcontext
+def create_admin(name: str, username: str, phone: str, department: str, password: str) -> None:
+    """Create the admin account. There is one admin, so this refuses if one exists."""
+    from parent_notifier.forms.accounts import CreateAccountForm
+    from parent_notifier.services.accounts import registration
+
+    if db.session.scalar(select(exists().where(Mentor.role == "admin"))):
+        raise click.ClickException("An admin account already exists.")
+    # The same checks as the create account page, so the admin follows the same rules.
+    fields = {"full_name": name, "username": username, "whatsapp_number": phone}
+    form = CreateAccountForm(
+        formdata=MultiDict(fields | {"department": department, "password": password}),
+        meta={"csrf": False},
+    )
+    if not form.validate():
+        problems = "; ".join(error for errors in form.errors.values() for error in errors)
+        raise click.ClickException(problems)
+    mentor, code = registration.create_mentor(
+        form.full_name.data,
+        form.username.data,
+        form.whatsapp_number.data,
+        form.password.data,
+        form.department.data,
+        role="admin",
+    )
+    click.echo(f"Admin account created for {mentor.username}.")
+    click.echo(f"Recovery code, shown only now: {code}")
+
+
 def init_cli(app: Flask) -> None:
     app.cli.add_command(seed_demo)
+    app.cli.add_command(create_admin)
