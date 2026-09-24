@@ -39,7 +39,7 @@ def test_new_account_is_saved_and_signed_in(app, client):
     assert mentor.full_name == "Nirav Shah"
     assert mentor.whatsapp_number == "+919000000002"
     assert mentor.password_hash.startswith("scrypt:")
-    assert "Signed in as Nirav Shah" in client.get("/").get_data(as_text=True)
+    assert 'aria-label="Account: Nirav Shah"' in client.get("/").get_data(as_text=True)
 
 
 @pytest.mark.parametrize(
