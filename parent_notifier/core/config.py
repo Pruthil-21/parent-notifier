@@ -30,6 +30,8 @@ def load_config(env: str, instance_path: Path) -> dict[str, object]:
         # Behind a proxy such as Vercel's, trust its X-Forwarded headers for the client's
         # address (used by the sign-in lockout) and for https.
         "TRUST_PROXY": _flag("TRUST_PROXY", default=on_vercel),
+        # Each request may start a fresh server, so only what pages need is loaded.
+        "SERVERLESS": on_vercel,
         "APP_TIMEZONE": os.environ.get("APP_TIMEZONE", "Asia/Kolkata"),
         "MAX_CONTENT_LENGTH": _int("MAX_UPLOAD_MB", 4 if on_vercel else 5) * 1024 * 1024,
         "SESSION_COOKIE_HTTPONLY": True,

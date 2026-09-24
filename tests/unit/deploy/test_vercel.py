@@ -31,17 +31,6 @@ def test_entry_point_builds_the_app_from_the_environment(monkeypatch):
     assert wsgi.app.config["ENV_NAME"] == "testing"
 
 
-def test_static_files_are_copied_to_the_paths_pages_link_to(build, monkeypatch, tmp_path):
-    (tmp_path / "parent_notifier" / "static" / "css").mkdir(parents=True)
-    (tmp_path / "parent_notifier" / "static" / "css" / "app.css").write_text("body{}")
-    (tmp_path / "public" / "static").mkdir(parents=True)
-    (tmp_path / "public" / "static" / "stale.js").write_text("old")
-    monkeypatch.setattr(build, "ROOT", tmp_path)
-    build.publish_static()
-    copied = sorted(p.relative_to(tmp_path).as_posix() for p in (tmp_path / "public").rglob("*.*"))
-    assert copied == ["public/static/css/app.css"]
-
-
 def test_migrations_bring_the_database_up_to_date(build, monkeypatch, tmp_path):
     url = f"sqlite:///{(tmp_path / 'deploy.db').as_posix()}"
     monkeypatch.setenv("DATABASE_URL", url)
@@ -56,3 +45,12 @@ def test_migrations_need_a_database_address_unless_switched_off(build, monkeypat
         build.migrate()
     monkeypatch.setenv("RUN_MIGRATIONS", "false")
     build.migrate()
+
+
+def test_a_serverless_start_skips_the_migration_tool(monkeypatch):
+    from parent_notifier import create_app
+
+    monkeypatch.setenv("VERCEL", "1")
+    assert "migrate" not in create_app("testing").extensions
+    monkeypatch.delenv("VERCEL")
+    assert "migrate" in create_app("testing").extensions

@@ -1,6 +1,7 @@
-"""Security headers added to every response."""
+"""Security headers added to every response, and caching rules for static files."""
 
 from flask import Flask, Response, request
+from flask.sessions import SecureCookieSessionInterface
 
 CONTENT_SECURITY_POLICY = "; ".join(
     (
@@ -36,8 +37,22 @@ def apply_security_headers(response: Response) -> Response:
     # Pages hold student and parent data; keep them out of shared browsers' caches.
     if request.endpoint != "static":
         response.headers["Cache-Control"] = "no-store"
+    else:
+        # CSS and JavaScript: a CDN such as Vercel's keeps them until the next deploy,
+        # and browsers check back each time, so a new version shows at once.
+        response.headers["Cache-Control"] = "public, max-age=0, must-revalidate, s-maxage=31536000"
     return response
+
+
+class StaticFilesSkipSession(SecureCookieSessionInterface):
+    """CSS and JavaScript never depend on who is signed in, so their responses carry no
+    session cookie and no "Vary: Cookie". Either would stop a CDN from caching them."""
+
+    def save_session(self, app, session, response) -> None:
+        if request.endpoint != "static":
+            super().save_session(app, session, response)
 
 
 def init_security(app: Flask) -> None:
     app.after_request(apply_security_headers)
+    app.session_interface = StaticFilesSkipSession()
