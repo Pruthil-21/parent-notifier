@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from parent_notifier import create_app
@@ -10,15 +12,25 @@ from tests.factories.accounts import PASSWORD, make_mentor, sign_in
 credentials.HASH_METHOD = "scrypt:1024:8:1"
 
 
+# Set TEST_DATABASE_URL to run the suite against Postgres (one test at a time: -n 0);
+# otherwise each test gets its own in-memory SQLite database.
+POSTGRES_URL = os.environ.get("TEST_DATABASE_URL")
+
+
 @pytest.fixture
-def app(tmp_path):
+def app(tmp_path, monkeypatch):
+    if POSTGRES_URL:
+        monkeypatch.setenv("DATABASE_URL", POSTGRES_URL)
     app = create_app("testing")
-    # Staged imports and other runtime files go to a throwaway folder, never instance/.
+    # Runtime files go to a throwaway folder, never instance/.
     app.instance_path = str(tmp_path / "instance")
     with app.app_context():
         db.create_all()
     yield app
     with app.app_context():
+        if POSTGRES_URL:
+            db.session.remove()
+            db.drop_all()
         db.engine.dispose()
 
 

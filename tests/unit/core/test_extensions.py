@@ -26,10 +26,12 @@ def test_development_database_lives_in_instance_folder(tmp_path):
 def test_database_url_overrides_default(tmp_path, monkeypatch):
     monkeypatch.setenv("DATABASE_URL", "postgresql://college-server/notifier")
     url = load_config("development", tmp_path)["SQLALCHEMY_DATABASE_URI"]
-    assert url == "postgresql://college-server/notifier"
+    assert url == "postgresql+psycopg://college-server/notifier"
 
 
 def test_sqlite_connections_enforce_foreign_keys(app_context):
+    if db.engine.dialect.name != "sqlite":
+        pytest.skip("Postgres always enforces foreign keys")
     assert db.session.execute(text("PRAGMA foreign_keys")).scalar() == 1
 
 

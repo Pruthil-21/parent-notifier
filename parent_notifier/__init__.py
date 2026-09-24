@@ -5,6 +5,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from flask import Flask
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from parent_notifier.core.cli import init_cli
 from parent_notifier.core.config import load_config
@@ -27,6 +28,8 @@ def create_app(env: str | None = None) -> Flask:
     env = env or os.environ.get("FLASK_CONFIG", "development")
     app = Flask(__name__)
     app.config.update(load_config(env, Path(app.instance_path)))
+    if app.config["TRUST_PROXY"]:
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
     init_extensions(app)
     app.add_template_global(render_icon, "icon")
     init_jinja_filters(app)

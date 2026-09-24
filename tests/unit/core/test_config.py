@@ -5,7 +5,8 @@ from parent_notifier.core.config import TESTING_SECRET_KEY, load_config
 
 @pytest.fixture(autouse=True)
 def clean_environment(monkeypatch):
-    for name in ("SECRET_KEY", "MAX_UPLOAD_MB", "SESSION_COOKIE_SECURE", "APP_TIMEZONE"):
+    names = ("SECRET_KEY", "MAX_UPLOAD_MB", "SESSION_COOKIE_SECURE", "APP_TIMEZONE", "TRUST_PROXY")
+    for name in (*names, "DATABASE_URL"):
         monkeypatch.delenv(name, raising=False)
 
 
@@ -62,3 +63,28 @@ def test_invalid_number_names_the_variable(tmp_path, monkeypatch):
 def test_only_development_reloads_templates(tmp_path):
     assert load_config("development", tmp_path / "instance")["TEMPLATES_AUTO_RELOAD"] is True
     assert load_config("testing", tmp_path)["TEMPLATES_AUTO_RELOAD"] is False
+
+
+@pytest.mark.parametrize("scheme", ["postgres", "postgresql"])
+def test_supabase_addresses_use_psycopg_with_encryption(tmp_path, monkeypatch, scheme):
+    host = "aws-0-ap-south-1.pooler.supabase.com:6543"
+    monkeypatch.setenv("DATABASE_URL", f"{scheme}://postgres.ref:secret@{host}/postgres")
+    config = load_config("testing", tmp_path)
+    assert config["SQLALCHEMY_DATABASE_URI"].startswith("postgresql+psycopg://postgres.ref:")
+    options = config["SQLALCHEMY_ENGINE_OPTIONS"]
+    assert options["connect_args"] == {"prepare_threshold": None, "sslmode": "require"}
+    assert (options["pool_size"], options["pool_pre_ping"]) == (1, True)
+
+
+def test_local_postgres_and_sqlite_need_no_extra_options(tmp_path, monkeypatch):
+    monkeypatch.setenv("DATABASE_URL", "postgresql://app:app@localhost:5432/app")
+    config = load_config("testing", tmp_path)
+    assert config["SQLALCHEMY_ENGINE_OPTIONS"]["connect_args"] == {"prepare_threshold": None}
+    monkeypatch.delenv("DATABASE_URL")
+    assert load_config("testing", tmp_path)["SQLALCHEMY_ENGINE_OPTIONS"] == {}
+
+
+def test_proxy_headers_are_trusted_only_when_asked(tmp_path, monkeypatch):
+    assert load_config("testing", tmp_path)["TRUST_PROXY"] is False
+    monkeypatch.setenv("TRUST_PROXY", "true")
+    assert load_config("testing", tmp_path)["TRUST_PROXY"] is True
