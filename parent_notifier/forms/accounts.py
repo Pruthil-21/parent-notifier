@@ -15,6 +15,7 @@ from wtforms.validators import (
 
 from parent_notifier.forms.fields import (
     WholeNumberField,
+    department_field,
     indian_mobile,
     lowercase,
     printable,
@@ -100,6 +101,7 @@ class CreateAccountForm(FlaskForm):
     full_name = full_name_field()
     username = username_field()
     whatsapp_number = whatsapp_number_field()
+    department = department_field()
     password = new_password_field()
 
     def validate_username(self, field) -> None:
@@ -128,6 +130,7 @@ class AccountDetailsForm(FlaskForm):
     full_name = full_name_field()
     username = username_field()
     whatsapp_number = whatsapp_number_field()
+    department = department_field()
 
     def __init__(self, *args, mentor_id: int, **kwargs) -> None:
         super().__init__(*args, **kwargs)

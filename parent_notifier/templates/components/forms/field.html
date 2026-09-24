@@ -25,6 +25,14 @@
 {% endmacro %}
 
 {# The Show button stays hidden until JavaScript can make it work. #}
+{# Typing filters the college's departments; the server accepts only a listed one. #}
+{% macro department_field(field, hint="Start typing, then pick from the list") %}
+{{ text_field(field, hint, list=field.id ~ "-options", autocomplete="off", spellcheck="false") }}
+<datalist id="{{ field.id }}-options">
+  {% for name in departments %}<option value="{{ name }}"></option>{% endfor %}
+</datalist>
+{% endmacro %}
+
 {% macro password_field(field, hint=None) %}
 <div class="field{% if field.errors %} field--error{% endif %}">
   {{ _label_hint_error(field, hint) }}

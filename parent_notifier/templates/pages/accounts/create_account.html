@@ -1,6 +1,6 @@
 {% extends "layouts/public.html" %}
 {% from "components/forms/error_summary.html" import error_summary %}
-{% from "components/forms/field.html" import text_field, password_field %}
+{% from "components/forms/field.html" import department_field, password_field, text_field %}
 
 {% block title %}Create account{% endblock %}
 
@@ -15,6 +15,7 @@
                 autocapitalize="none", spellcheck="false") }}
   {{ text_field(form.whatsapp_number, hint="10-digit mobile number, like 98765 43210",
                 type="tel", inputmode="tel", autocomplete="tel-national") }}
+  {{ department_field(form.department) }}
   {{ password_field(form.password, hint="8 to 128 characters", autocomplete="new-password") }}
   <button class="button button--primary button--full" type="submit">Create account</button>
 </form>

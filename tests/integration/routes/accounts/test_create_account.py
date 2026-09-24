@@ -9,6 +9,7 @@ VALID = {
     "full_name": "  Nirav   Shah ",
     "username": "NiravShah",
     "whatsapp_number": "+91 90000 00002",
+    "department": "Civil Engineering",
     "password": "Monsoon-exams-7",
 }
 

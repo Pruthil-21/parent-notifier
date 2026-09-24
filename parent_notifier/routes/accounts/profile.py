@@ -31,6 +31,7 @@ def _default_forms() -> dict:
                 "full_name": current_user.full_name,
                 "username": current_user.username,
                 "whatsapp_number": format_for_display(current_user.whatsapp_number),
+                "department": current_user.department,
             },
         ),
         "password_form": ChangePasswordForm(formdata=None),
@@ -59,7 +60,11 @@ def save_account():
     if form.validate_on_submit():
         try:
             profile.update_details(
-                current_user, form.full_name.data, form.username.data, form.whatsapp_number.data
+                current_user,
+                form.full_name.data,
+                form.username.data,
+                form.whatsapp_number.data,
+                form.department.data,
             )
         except registration.UsernameTakenError:
             form.username.errors.append(USERNAME_TAKEN)
