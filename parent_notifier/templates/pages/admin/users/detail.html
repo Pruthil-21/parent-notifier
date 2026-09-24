@@ -1,5 +1,6 @@
 {% extends "layouts/app.html" %}
 {% from "components/navigation/breadcrumb.html" import breadcrumb %}
+{% from "components/navigation/action_bar.html" import action_bar %}
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/admin.css') }}">
@@ -9,6 +10,22 @@
 {% block breadcrumb %}{{ breadcrumb([("Overview", url_for("home.index")), ("Users", url_for("admin_users.index")), (account.full_name, None)]) }}{% endblock %}
 {% block page_title %}{{ account.full_name }}{% endblock %}
 {% block page_meta %}{{ "Admin" if account.is_admin else "Mentor" }}{% if account.department %} · {{ account.department }}{% endif %}{% endblock %}
+
+{% block actions %}
+{% if account.id != current_user.id %}
+{% call action_bar() %}
+<a class="button" href="{{ url_for('admin_users.edit', account_id=account.id) }}">Edit details</a>
+<form method="post" action="{{ url_for('admin_users.reset_password', account_id=account.id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button class="button" type="submit">Reset password</button>
+</form>
+<form method="post" action="{{ url_for('admin_users.sign_out_everywhere', account_id=account.id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button class="button" type="submit">Sign out everywhere</button>
+</form>
+{% endcall %}
+{% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="account-layout">

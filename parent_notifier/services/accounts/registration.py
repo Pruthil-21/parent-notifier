@@ -144,3 +144,14 @@ def choose_own_password(mentor: Mentor, password: str) -> str:
     mentor.recovery_code_hash = recovery_codes.hash_code(code)
     db.session.commit()
     return code
+
+
+def unguessable_password() -> str:
+    """For an account the admin creates: replaced by a temporary password straight away,
+    so nobody ever knows or uses it."""
+    return secrets.token_urlsafe(32)
+
+
+def sign_out_everywhere(mentor: Mentor) -> None:
+    mentor.session_version += 1
+    db.session.commit()
