@@ -1,0 +1,34 @@
+{# The Sheet menu: everything about the semester's sheet in one place. A native
+   disclosure, so it opens without JavaScript; the upload and undo items then link to
+   their own pages instead of opening a dialog. #}
+<details class="menu sheet-menu" data-menu>
+  <summary class="menu__button">
+    <span>Sheet</span>{{ icon("chevron-down", size=16) }}
+  </summary>
+  <div class="menu__panel">
+    <ul class="menu__items" role="list">
+      <li>
+        <a class="menu__item" data-dialog-open="upload-sheet"
+           href="{{ url_for('imports.upload_page', class_id=class_group.id, number=semester.number) }}">Upload sheet</a>
+      </li>
+      <li>
+        <a class="menu__item" href="{{ url_for('downloads.semester_sheet', class_id=class_group.id, number=semester.number) }}" download>
+          <span>Download current data</span><span class="menu__item-note">Excel</span>
+        </a>
+      </li>
+      <li>
+        <a class="menu__item" href="{{ url_for('downloads.sheet_format') }}" download>
+          <span>Sheet format</span><span class="menu__item-note">Blank template</span>
+        </a>
+      </li>
+    </ul>
+    {% if last_import %}
+    <div class="menu__footer">
+      <a class="menu__item menu__item--danger" data-dialog-open="undo-import"
+         href="{{ url_for('import_undo.confirm_undo', class_id=class_group.id, number=semester.number) }}">
+        <span>Undo last import</span><span class="menu__item-note">{{ last_import.created_at | date }}</span>
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</details>

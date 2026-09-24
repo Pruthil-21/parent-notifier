@@ -1,21 +1,17 @@
-{# The page-level action bar on a class's pages. #}
+{# The page-level action bar on a class's pages. One main button: messaging while
+   parents are pending, uploading before the semester's first sheet. Everything else
+   about the sheet sits in the Sheet menu. #}
 {% from "components/navigation/action_bar.html" import action_bar %}
 {% call action_bar() %}
 {% if upload %}
-{% with upload_button_class = "" if pending_count else "button--primary" %}{% include "pages/imports/upload/_upload_button.html" %}{% endwith %}
 {% if pending_count %}
 <a class="button button--primary" data-queue-open
    href="{{ url_for('semesters.workspace', class_id=class_group.id, number=semester.number, status='pending') }}">Message pending parents ({{ pending_count }})</a>
+{% elif not semester.last_imported_at %}
+{% include "pages/imports/upload/_upload_button.html" %}
 {% endif %}
-<a class="button" href="{{ url_for('downloads.semester_sheet', class_id=class_group.id, number=semester.number) }}" download>Download pre-filled sheet</a>
-<a class="button button--subtle" href="{{ url_for('downloads.sheet_format') }}" download>Sheet format</a>
-{% if last_import %}
-<a class="button" data-dialog-open="undo-import"
-   href="{{ url_for('import_undo.confirm_undo', class_id=class_group.id, number=semester.number) }}">Undo last import</a>
-{% else %}
-<button class="button" type="button" disabled>Undo last import</button>
+{% include "pages/academics/classes/_sheet_menu.html" %}
+<a class="button" href="{{ url_for('students.add', class_id=class_group.id, number=semester.number) }}">{{ icon("add", size=16) }}Add student</a>
 {% endif %}
-{% endif %}
-{% if upload %}<a class="button" href="{{ url_for('students.add', class_id=class_group.id, number=semester.number) }}">{{ icon("add", size=16) }}Add student</a>{% endif %}
 <a class="button" href="{{ url_for('class_settings.index', class_id=class_group.id) }}">Class settings</a>
 {% endcall %}

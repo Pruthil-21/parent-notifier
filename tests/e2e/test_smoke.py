@@ -1,5 +1,5 @@
 """One pass over every page in a real browser, in light and dark, plus the flows that
-only work with JavaScript: the theme menu, the popup, the queue and a send."""
+only work with JavaScript: the menus, the popup, the queue and a send."""
 
 import re
 from urllib.parse import parse_qs, urlsplit
@@ -59,9 +59,14 @@ def test_sheet_import_through_review(signed_in, demo, tmp_path):
     page = signed_in
     sheet = tmp_path / "sem5.xlsx"
     sheet.write_bytes(make_xlsx())
-    page.goto(f"{demo.url}/classes/{demo.class_id}/sem/5/upload")
-    page.set_input_files("input[type=file]", str(sheet))
-    page.get_by_role("button", name="Upload and review").click()
+    page.goto(f"{demo.url}/classes/{demo.class_id}/sem/5")
+    page.locator(".sheet-menu summary").click()
+    page.locator(".sheet-menu").get_by_role("link", name="Upload sheet").click()
+    dialog = page.locator("#upload-sheet")
+    expect(dialog).to_be_visible()
+    expect(page.locator(".sheet-menu")).not_to_have_attribute("open", "")
+    dialog.locator("input[type=file]").set_input_files(str(sheet))
+    dialog.get_by_role("button", name="Upload and review").click()
     page.get_by_role("button", name="Confirm import").click()
     expect(page.locator(".tiles")).to_be_visible()
     assert page.url.endswith(f"/classes/{demo.class_id}/sem/5")
@@ -91,3 +96,14 @@ def test_popup_queue_and_send(signed_in, demo):
     expect(position).to_have_text(re.compile(r"^Parent 1 of \d+$"))
     popup.get_by_role("button", name="Skip").click()
     expect(position).to_have_text(re.compile(r"^Parent 2 of \d+$"))
+
+
+def test_menus_stay_on_screen_on_a_phone(signed_in, demo):
+    page = signed_in
+    page.set_viewport_size({"width": 390, "height": 800})
+    page.goto(f"{demo.url}/classes/{demo.class_id}/sem/4")
+    page.locator(".sheet-menu summary").click()
+    panel = page.locator(".sheet-menu .menu__panel")
+    expect(panel).to_be_visible()
+    box = panel.bounding_box()
+    assert box["x"] >= 0 and box["x"] + box["width"] <= 390
