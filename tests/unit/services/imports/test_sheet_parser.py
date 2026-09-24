@@ -133,3 +133,29 @@ def test_a_subject_takes_one_total_from_its_marks():
     assert any(
         "OS: Mid-Sem marks are out of 20 and 25 in different rows" in e for e in mixed.errors
     )
+
+
+def test_son_or_daughter_is_read_and_anything_else_left_unset():
+    header = [*HEADER[:4], "Son / Daughter", *HEADER[4:]]
+    rows = [
+        ["23CE001", "Riya Patel", "Kiran Patel", "90000 00103", "Daughter", "", ""],
+        ["23CE002", "Om Desai", "Nilesh Desai", "90000 00102", "M", "", ""],
+        ["23CE003", "Avi Shah", "Mehul Shah", "90000 00101", "maybe", "", ""],
+    ]
+    sheet = parse(sheet_rows(header=header, rows=rows))
+    assert [row.gender for row in sheet.rows] == ["female", "male", None]
+    assert sheet.warnings == [
+        'Row 4: Son or daughter "maybe" is not Son or Daughter, so it is left unset'
+    ]
+
+
+def test_numbers_shortened_by_excel_are_refused():
+    rows = [["1.25020405011E+13", "Riya Patel", "", "9.19E+11", "", ""]]
+    sheet = parse(sheet_rows(rows=rows))
+    assert sheet.rows == [] and sheet.warnings == []
+    assert sheet.errors == [
+        "Row 2: Enrollment No 1.25020405011E+13 was shortened by Excel and has lost digits. "
+        "Format the column as Text, type the numbers again and save",
+        "Row 2: Parent Phone 9.19E+11 was shortened by Excel and has lost digits. "
+        "Format the column as Text, type the numbers again and save",
+    ]
