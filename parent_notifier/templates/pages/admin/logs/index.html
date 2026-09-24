@@ -87,9 +87,9 @@
           {% if entry.actor_name %}<span class="cell-title">{{ entry.actor_name }}</span>{% endif %}
           <span class="cell-note">{{ entry.username or "" }}{% if entry.department %} · {{ entry.department }}{% endif %}</span>
         </td>
-        <td>{{ entry.target_label or "" }}</td>
+        <td class="log-text">{{ entry.target_label or "" }}</td>
         <td>{{ entry.class_label or "" }}</td>
-        <td class="cell-note">{{ describe(entry.details) }}{% if entry.ip_address %}{% if entry.details %} · {% endif %}from {{ entry.ip_address }}{% endif %}</td>
+        <td class="cell-note log-text">{{ describe(entry.details) }}{% if entry.ip_address %}{% if entry.details %} · {% endif %}from {{ entry.ip_address }}{% endif %}</td>
       </tr>
       {% endfor %}
     </tbody>
