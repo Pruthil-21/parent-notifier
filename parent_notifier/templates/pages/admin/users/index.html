@@ -1,0 +1,69 @@
+{% extends "layouts/app.html" %}
+{% from "components/navigation/breadcrumb.html" import breadcrumb %}
+{% from "components/data/pagination.html" import pagination %}
+{% from "components/feedback/empty_state.html" import empty_state %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/admin.css') }}">
+{% endblock %}
+
+{% block title %}Users{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Overview", url_for("home.index")), ("Users", None)]) }}{% endblock %}
+{% block page_title %}Users{% endblock %}
+{% block page_meta %}Every account that can sign in{% endblock %}
+
+{% block content %}
+<form class="admin-filters" method="get" role="search">
+  <div class="admin-filters__field">
+    <label for="users-search">Search users</label>
+    <input class="input" id="users-search" name="q" type="search" value="{{ filters.search }}" maxlength="100"
+           placeholder="Name, username or phone" autocomplete="off">
+  </div>
+  <div class="admin-filters__field">
+    <label for="users-department">Department</label>
+    <select class="input" id="users-department" name="department">
+      <option value="">All departments</option>
+      {% for name in department_list %}<option value="{{ name }}" {% if name == filters.department %}selected{% endif %}>{{ name }}</option>{% endfor %}
+    </select>
+  </div>
+  <button class="button" type="submit">Apply</button>
+  {% if filters.filtered %}<a class="button button--subtle" href="{{ url_with(q=None, department=None) }}">Clear</a>{% endif %}
+</form>
+
+{% if page.items %}
+<div class="data-grid">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Department</th>
+        <th scope="col">WhatsApp</th>
+        <th scope="col">Role</th>
+        <th scope="col" class="numeric">Classes</th>
+        <th scope="col">Last sign-in</th>
+        <th scope="col">Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for account, class_count in page.items %}
+      <tr>
+        <th scope="row">
+          <a class="cell-title" href="{{ url_for('admin_users.detail', account_id=account.id) }}">{{ account.full_name }}</a>
+          <span class="cell-note">{{ account.username }}</span>
+        </th>
+        <td>{{ account.department or "Not set" }}</td>
+        <td class="numeric">{{ account.whatsapp_number | phone }}</td>
+        <td>{{ "Admin" if account.is_admin else "Mentor" }}</td>
+        <td class="numeric">{{ class_count }}</td>
+        <td>{% if account.last_sign_in_at %}{{ account.last_sign_in_at | date }}{% else %}<span class="text-muted">Never</span>{% endif %}</td>
+        <td>{{ account.created_at | date }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{{ pagination(page, "users") }}
+{% elif filters.filtered %}
+{% call empty_state("Nothing matches", "Try another search or department, or clear the filters.") %}{% endcall %}
+{% endif %}
+{% endblock %}

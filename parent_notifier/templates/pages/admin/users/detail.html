@@ -1,0 +1,54 @@
+{% extends "layouts/app.html" %}
+{% from "components/navigation/breadcrumb.html" import breadcrumb %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/admin.css') }}">
+{% endblock %}
+
+{% block title %}{{ account.full_name }} · Users{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Overview", url_for("home.index")), ("Users", url_for("admin_users.index")), (account.full_name, None)]) }}{% endblock %}
+{% block page_title %}{{ account.full_name }}{% endblock %}
+{% block page_meta %}{{ "Admin" if account.is_admin else "Mentor" }}{% if account.department %} · {{ account.department }}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="account-layout">
+  <section class="account-panel" aria-labelledby="details-heading">
+    <h2 id="details-heading">Details</h2>
+    <dl class="account-facts">
+      <div><dt>Username</dt><dd>{{ account.username }}</dd></div>
+      <div><dt>WhatsApp</dt><dd class="numeric">{{ account.whatsapp_number | phone }}</dd></div>
+      <div><dt>Department</dt><dd>{{ account.department or "Not set" }}</dd></div>
+      <div><dt>Account created</dt><dd>{{ account.created_at | date }}</dd></div>
+      <div><dt>Last sign-in</dt><dd>{% if account.last_sign_in_at %}{{ account.last_sign_in_at | date }}{% else %}Never{% endif %}</dd></div>
+    </dl>
+  </section>
+
+  <section class="account-panel" aria-labelledby="classes-heading">
+    <h2 id="classes-heading">Classes</h2>
+    {% if classes %}
+    <ul class="account-list" role="list">
+      {% for class_group in classes %}
+      <li><span class="cell-title">{{ class_group.name }}</span>
+        <span class="cell-note">{{ class_group.department }} · {{ class_group.admission_year }} batch</span></li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-secondary">No classes.</p>
+    {% endif %}
+  </section>
+
+  <section class="account-panel account-panel--wide" aria-labelledby="activity-heading">
+    <h2 id="activity-heading">Recent activity</h2>
+    {% if recent %}
+    <ul class="account-list" role="list">
+      {% for entry in recent %}
+      <li><span>{{ event_label(entry.category, entry.event) }}{% if entry.target_label %}: {{ entry.target_label }}{% endif %}{% if not entry.succeeded %} <span class="text-muted">(failed)</span>{% endif %}</span>
+        <span class="cell-note">{{ entry.created_at | date }}{% if entry.class_label %} · {{ entry.class_label }}{% endif %}</span></li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-secondary">Nothing yet.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

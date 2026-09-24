@@ -4,6 +4,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from flask import Flask, current_app, request, url_for
+from flask_login import current_user
 
 # A section's sub-items, such as each class under Classes: dicts with label, url, active.
 ChildLinks = Callable[[], list[dict[str, object]]]
@@ -16,6 +17,8 @@ class NavItem:
     endpoint: str
     # Other blueprints whose pages count as this section, such as semesters for Classes.
     also_covers: tuple[str, ...] = ()
+    # Shown only to the admin.
+    admin_only: bool = False
 
     @property
     def blueprints(self) -> tuple[str, ...]:
@@ -29,6 +32,13 @@ NAV_ITEMS = (
         "Classes",
         "classes.index",
         also_covers=("semesters", "class_settings", "imports", "import_undo", "students"),
+    ),
+    NavItem(
+        "admin",
+        "Admin",
+        "admin_users.index",
+        also_covers=("admin_logs", "admin_classes", "admin_settings"),
+        admin_only=True,
     ),
     NavItem("person", "Profile", "profile.index"),
     NavItem("help", "Help", "help.index"),
@@ -60,7 +70,12 @@ def navigation_context() -> dict[str, object]:
     """Only sections whose pages are registered appear, so the pane never links to a
     page that does not exist yet."""
     registered = current_app.view_functions
-    items = [_item_context(item) for item in NAV_ITEMS if item.endpoint in registered]
+    is_admin = current_user.is_authenticated and current_user.is_admin
+    items = [
+        _item_context(item)
+        for item in NAV_ITEMS
+        if item.endpoint in registered and (is_admin or not item.admin_only)
+    ]
     home_url = items[0]["url"] if items else "/"
     return {"nav_items": items, "home_url": home_url}
 

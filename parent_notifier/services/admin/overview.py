@@ -82,6 +82,12 @@ def totals() -> Totals:
     )
 
 
+def phone_digits(search: str) -> str | None:
+    """The last ten digits of a search that looks like a phone number, however typed."""
+    digits = re.sub(r"\D", "", search)
+    return digits[-10:] if len(digits) >= 4 else None
+
+
 def _contains(column, text: str):
     return func.lower(column).contains(text.lower(), autoescape=True)
 
@@ -118,9 +124,8 @@ def mentor_page(filters: Filters) -> pagination.Page:
             _contains(Mentor.full_name, filters.search),
             _contains(Mentor.username, filters.search),
         ]
-        digits = re.sub(r"\D", "", filters.search)
-        if len(digits) >= 4:  # a phone number, however it was typed
-            matches.append(Mentor.whatsapp_number.contains(digits[-10:], autoescape=True))
+        if digits := phone_digits(filters.search):
+            matches.append(Mentor.whatsapp_number.contains(digits, autoescape=True))
         query = query.where(or_(*matches))
     page = pagination.paginate(
         query.order_by(func.lower(Mentor.full_name), Mentor.id), filters.page, PER_PAGE
