@@ -5,6 +5,7 @@ from flask import (
     abort,
     current_app,
     flash,
+    g,
     redirect,
     render_template,
     request,
@@ -31,13 +32,14 @@ from parent_notifier.services.shared import activity, departments
 
 bp = Blueprint("admin_users", __name__, url_prefix="/admin/users")
 
-# The admin section's pages, in the order the navigation lists them.
+# The admin section's pages, in the order the navigation lists them, with the
+# endpoints or blueprints that count as each.
 ADMIN_PAGES = (
-    ("Users", "admin_users.index", "admin_users"),
-    ("Activity log", "admin_logs.index", "admin_logs"),
-    ("Departments", "admin_settings.departments_page", "admin_settings.departments_page"),
-    ("Announcement", "admin_settings.announcement", "admin_settings.announcement"),
-    ("Settings", "admin_settings.index", "admin_settings.index"),
+    ("Users", "admin_users.index", ("admin_users.index", "admin_users.new")),
+    ("Activity log", "admin_logs.index", ("admin_logs",)),
+    ("Departments", "admin_settings.departments_page", ("admin_settings.departments_page",)),
+    ("Announcement", "admin_settings.announcement", ("admin_settings.announcement",)),
+    ("Settings", "admin_settings.index", ("admin_settings.index",)),
 )
 
 
@@ -46,12 +48,29 @@ def _admin_links() -> list[dict[str, object]]:
     for label, endpoint, covers in ADMIN_PAGES:
         if endpoint not in current_app.view_functions:
             continue
-        active = request.endpoint == covers or request.blueprint == covers
+        active = request.endpoint in covers or request.blueprint in covers
         links.append({"label": label, "url": url_for(endpoint), "active": active})
     return links
 
 
+def _mentor_links() -> list[dict[str, object]]:
+    """Every account, so the admin can reach any mentor's page from the menu. On a
+    class page the class's mentor is current."""
+    if not (current_user.is_authenticated and current_user.is_admin):
+        return []
+    current_id = (request.view_args or {}).get("account_id", g.get("nav_mentor_id"))
+    return [
+        {
+            "label": name,
+            "url": url_for("admin_users.detail", account_id=account_id),
+            "active": account_id == current_id,
+        }
+        for account_id, name in users.menu_links()
+    ]
+
+
 bp.record_once(lambda state: register_child_links(state.app, "admin_users.index", _admin_links))
+bp.record_once(lambda state: register_child_links(state.app, "mentors", _mentor_links))
 
 
 def load_account(account_id: int):
