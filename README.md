@@ -21,6 +21,7 @@ and runs on a single computer today.
 - [How it works](#how-it-works)
 - [Sheet format](#sheet-format)
 - [Getting started](#getting-started)
+- [Deploy for testing (Vercel and Supabase)](#deploy-for-testing-vercel-and-supabase)
 - [Configuration](#configuration)
 - [Testing](#testing)
 - [Project layout](#project-layout)
@@ -127,6 +128,44 @@ Open http://127.0.0.1:5000 and sign in with the username and password that
 sheets are in `samples/`, and `uv run python scripts/dev/make_samples.py` rebuilds
 them. `seed-demo` refuses to run in production.
 
+## Deploy for testing (Vercel and Supabase)
+
+The app runs on Vercel's free plan with a free Supabase Postgres database. Use it for
+testing with the fictional demo data only; real student records belong on the college
+server planned for 1.0.0.
+
+1. **Create the database.** In a new Supabase project, open **Connect**, choose
+   **Transaction pooler** and copy the address (it ends in `:6543/postgres`). Put your
+   database password in place of `[YOUR-PASSWORD]`.
+2. **Create the Vercel project.** Import this repository in Vercel; it detects the app
+   from `pyproject.toml`. Before the first deploy, add these environment variables:
+
+   | Variable | Value |
+   |---|---|
+   | `FLASK_CONFIG` | `production` |
+   | `SECRET_KEY` | a long random value, from `python -c "import secrets; print(secrets.token_hex(32))"` |
+   | `DATABASE_URL` | the Supabase address from step 1 |
+
+3. **Deploy.** The build copies the CSS and JavaScript to Vercel's CDN and creates the
+   tables in Supabase.
+4. **Load the demo data (optional).** From your computer, in PowerShell:
+
+   ```
+   $env:DATABASE_URL = "<the Supabase address>"
+   $env:FLASK_CONFIG = "development"
+   uv run flask --app parent_notifier seed-demo
+   ```
+
+5. **Keep it private.** In the Vercel project, check **Settings → Deployment
+   Protection**. Anyone who can open the site can also create an account.
+
+Things that behave differently on Vercel:
+
+- The first visit after a quiet spell is slower while a server starts.
+- Sheets are limited to 4 MB, below Vercel's 4.5 MB request cap.
+- The sign-in lockout counts attempts per server, so it is weaker than on one computer.
+- Supabase pauses free projects after a week without use; resume it from the dashboard.
+
 ## Configuration
 
 Settings come from environment variables, or from a git-ignored `.env` file in the
@@ -136,10 +175,12 @@ project folder.
 |---|---|---|
 | `FLASK_CONFIG` | `development` | `development`, `testing` or `production` |
 | `SECRET_KEY` | generated into `instance/` | Required in production |
-| `DATABASE_URL` | `sqlite:///instance/parent_notifier.db` | Any SQLAlchemy database URL |
+| `DATABASE_URL` | `sqlite:///instance/parent_notifier.db` | SQLite or Postgres, such as a Supabase address |
 | `APP_TIMEZONE` | `Asia/Kolkata` | Dates shown, and when the daily send limit resets |
-| `MAX_UPLOAD_MB` | `5` | Largest sheet accepted |
-| `SESSION_COOKIE_SECURE` | `false` | Set to `true` when served over HTTPS |
+| `MAX_UPLOAD_MB` | `5` (`4` on Vercel) | Largest sheet accepted |
+| `SESSION_COOKIE_SECURE` | `false` (`true` on Vercel) | Set to `true` when served over HTTPS |
+| `TRUST_PROXY` | `false` (`true` on Vercel) | Trust the proxy's forwarded address and https headers |
+| `RUN_MIGRATIONS` | `true` | Set to `false` to skip migrations in the Vercel build |
 | `COLLEGE_NAME` | G. H. Patel College of Engineering & Technology | Signs the English message |
 | `COLLEGE_NAME_GU` | The same name in Gujarati | Signs the Gujarati message |
 | `COLLEGE_SHORT_NAME` | `GCET` | Shown in the top bar |
@@ -164,8 +205,11 @@ uv run pytest -m e2e
 ```
 
 On Windows, `uv run pytest -m e2e --browser-channel msedge` uses the installed Edge
-instead. CI runs lint, formatting and tests on Ubuntu and Windows, and the smoke tests
-on Ubuntu.
+instead. To run the tests against Postgres, set `TEST_DATABASE_URL` to an empty
+database and run them one at a time with `uv run pytest -n 0`.
+
+CI runs lint, formatting and tests on Ubuntu and Windows, the tests again on
+Postgres, and the smoke tests on Ubuntu.
 
 | Layer | Covers |
 |---|---|
@@ -195,9 +239,9 @@ tests/              unit, integration and end-to-end tests
 Parent Notifier holds students' records and parents' phone numbers, so it keeps them
 close.
 
-- **Data stays local.** Everything is stored in one SQLite file on the machine that
-  runs the app. The app makes no outside network calls; only the mentor's browser
-  talks to WhatsApp Web.
+- **Data stays where you run it.** On a college computer everything is in one SQLite
+  file; a test deployment on Vercel keeps it in your own Supabase database. The app
+  makes no other outside calls; only the mentor's browser talks to WhatsApp Web.
 - **Each mentor sees only their own classes.** Every query is scoped to the signed-in
   mentor, and anything else answers "not found".
 - **Accounts.** Passwords are hashed with scrypt, repeated failed sign-ins are locked
