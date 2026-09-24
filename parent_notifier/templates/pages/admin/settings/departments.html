@@ -1,0 +1,66 @@
+{% extends "layouts/app.html" %}
+{% from "components/navigation/breadcrumb.html" import breadcrumb %}
+{% from "components/forms/error_summary.html" import error_summary %}
+{% from "components/forms/field.html" import text_field %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/admin.css') }}">
+{% endblock %}
+
+{% block title %}Departments{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Overview", url_for("home.index")), ("Departments", None)]) }}{% endblock %}
+{% block page_title %}Departments{% endblock %}
+{% block page_meta %}The list mentors and classes choose from. Renaming one updates everyone who uses it.{% endblock %}
+
+{% block content %}
+{{ error_summary(add_form, first_field=add_form.name) }}
+<form class="admin-filters" method="post" action="{{ url_for('admin_settings.add_department') }}" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="admin-filters__field">
+    {{ add_form.name.label(for="department-new") }}
+    {{ add_form.name(class_="input", id="department-new", autocomplete="off", maxlength=60) }}
+  </div>
+  <button class="button button--primary" type="submit">{{ icon("add", size=16) }}Add department</button>
+</form>
+
+<div class="data-grid">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Department</th>
+        <th scope="col" class="numeric">Mentors</th>
+        <th scope="col" class="numeric">Classes</th>
+        <th scope="col"><span class="visually-hidden">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for department, mentor_count, class_count in rows %}
+      <tr>
+        <th scope="row">
+          <form class="department-rename" method="post" action="{{ url_for('admin_settings.rename_department', department_id=department.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label class="visually-hidden" for="department-{{ department.id }}">Name of {{ department.name }}</label>
+            <input class="input" id="department-{{ department.id }}" name="name" value="{{ department.name }}" maxlength="60" autocomplete="off"
+                   {% if errors[department.id] %}aria-invalid="true" aria-describedby="department-{{ department.id }}-error"{% endif %}>
+            <button class="button" type="submit">Rename</button>
+          </form>
+          {% if errors[department.id] %}<p class="field__error" id="department-{{ department.id }}-error">{{ errors[department.id] }}</p>{% endif %}
+        </th>
+        <td class="numeric">{{ mentor_count }}</td>
+        <td class="numeric">{{ class_count }}</td>
+        <td>
+          {% if mentor_count or class_count %}
+          <span class="text-muted" title="Only an unused department can be removed">In use</span>
+          {% else %}
+          <form method="post" action="{{ url_for('admin_settings.remove_department', department_id=department.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="button button--subtle" type="submit" aria-label="Remove {{ department.name }}">Remove</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
