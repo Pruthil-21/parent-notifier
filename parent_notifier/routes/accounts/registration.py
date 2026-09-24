@@ -1,6 +1,6 @@
 """Creating an account, and the page that shows a new recovery code once."""
 
-from flask import Blueprint, abort, flash, redirect, render_template, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from parent_notifier.core.extensions import limiter
@@ -19,6 +19,12 @@ CREATE_TEMPLATE = "pages/accounts/create_account.html"
 def create_account():
     if current_user.is_authenticated:
         return redirect(url_for("home.index"))
+    mode = registration.signup_mode()
+    if mode == registration.SIGNUP_OFF:
+        # Refused on the server too, so a hand-made request cannot create an account.
+        status = 403 if request.method == "POST" else 200
+        return render_template("pages/accounts/signup_closed.html"), status
+    needs_approval = mode == registration.SIGNUP_APPROVAL
     form = CreateAccountForm()
     if form.validate_on_submit():
         try:
@@ -28,14 +34,17 @@ def create_account():
                 form.whatsapp_number.data,
                 form.password.data,
                 form.department.data,
+                approved=not needs_approval,
             )
         except registration.UsernameTakenError:
             form.username.errors.append(USERNAME_TAKEN)
         else:
+            if needs_approval:
+                return render_template("pages/accounts/request_sent.html", mentor=mentor)
             sessions.start_session(mentor)
             flash("Your account is ready.", "success")
             return sessions.show_recovery_code(code, then="home")
-    return render_template(CREATE_TEMPLATE, form=form)
+    return render_template(CREATE_TEMPLATE, form=form, needs_approval=needs_approval)
 
 
 @bp.errorhandler(429)

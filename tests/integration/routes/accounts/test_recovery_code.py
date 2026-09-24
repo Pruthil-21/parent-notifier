@@ -1,10 +1,14 @@
 import re
 
+import pytest
 from sqlalchemy import select
 from werkzeug.security import check_password_hash
 
 from parent_notifier.core.extensions import db
 from parent_notifier.models.accounts import Mentor
+
+pytestmark = pytest.mark.usefixtures("open_signup")
+
 
 ACCOUNT = {
     "full_name": "Nirav Shah",

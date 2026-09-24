@@ -60,3 +60,12 @@ def mentor(app):
 def signed_in_client(client, mentor):
     sign_in(client)
     return client
+
+
+@pytest.fixture
+def open_signup(app):
+    """Sign-up starts off; tests of the create account page open it first."""
+    from parent_notifier.services.accounts import registration
+
+    with app.app_context():
+        registration.set_signup_mode(registration.SIGNUP_OPEN)

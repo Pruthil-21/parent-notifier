@@ -35,6 +35,15 @@ class Department(Timestamps, db.Model):
         return f"<Department {self.id} {self.name}>"
 
 
+class Setting(Timestamps, db.Model):
+    """One college-wide setting, such as who may create an account."""
+
+    __tablename__ = "settings"
+
+    key: Mapped[str] = mapped_column(String(40), primary_key=True)
+    value: Mapped[str] = mapped_column(String(200))
+
+
 @event.listens_for(Department.__table__, "after_create")
 def _add_default_departments(table, connection, **_) -> None:
     """A database built with create_all(), as in tests, starts with the same list as a

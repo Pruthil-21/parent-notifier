@@ -5,6 +5,9 @@ from parent_notifier.core.extensions import db
 from parent_notifier.models.accounts import Mentor
 from parent_notifier.services.accounts import registration
 
+pytestmark = pytest.mark.usefixtures("open_signup")
+
+
 VALID = {
     "full_name": "  Nirav   Shah ",
     "username": "NiravShah",

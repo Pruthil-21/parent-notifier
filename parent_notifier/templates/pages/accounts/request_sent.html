@@ -1,0 +1,13 @@
+{% extends "layouts/public.html" %}
+
+{% block title %}Request sent{% endblock %}
+
+{% block panel %}
+<h1 class="public-panel__title">Request sent</h1>
+<p>Thank you, {{ mentor.full_name }}. The admin will review your request for the username
+  <strong>{{ mentor.username }}</strong>. Once it is approved, sign in with the password you
+  chose; your recovery code is shown then.</p>
+<div class="public-panel__links">
+  <p><a href="{{ url_for('auth.sign_in') }}">Back to sign in</a></p>
+</div>
+{% endblock %}

@@ -7,6 +7,7 @@ from parent_notifier.core.extensions import db
 from parent_notifier.models.accounts import Mentor
 from parent_notifier.services.accounts import recovery_codes
 from parent_notifier.services.accounts.credentials import hash_password, normalise_username
+from parent_notifier.services.shared import clock, settings
 from parent_notifier.services.shared.phone import normalise_indian_mobile
 
 
@@ -20,6 +21,23 @@ def username_taken(username: str, except_mentor_id: int | None = None) -> bool:
         Mentor.username == normalise_username(username), Mentor.id != (except_mentor_id or 0)
     )
     return db.session.scalar(select(query))
+
+
+# Who may create an account: nobody but the admin, anyone who is then approved, or anyone.
+SIGNUP_OFF, SIGNUP_APPROVAL, SIGNUP_OPEN = "off", "approval", "open"
+SIGNUP_MODES = (SIGNUP_OFF, SIGNUP_APPROVAL, SIGNUP_OPEN)
+_SIGNUP_KEY = "signup_mode"
+
+
+def signup_mode() -> str:
+    mode = settings.get(_SIGNUP_KEY, SIGNUP_OFF)
+    return mode if mode in SIGNUP_MODES else SIGNUP_OFF
+
+
+def set_signup_mode(mode: str) -> None:
+    if mode not in SIGNUP_MODES:
+        raise ValueError(f"Unknown sign-up mode {mode!r}")
+    settings.put(_SIGNUP_KEY, mode)
 
 
 def create_mentor(
@@ -36,12 +54,14 @@ def create_mentor(
     if e164 is None:
         raise ValueError("The WhatsApp number is not a valid Indian mobile number.")
     code = recovery_codes.generate()
+    # An account that cannot sign in yet gets its recovery code at its first sign-in.
+    code_hash = recovery_codes.hash_code(code) if fields.get("approved", True) else ""
     mentor = Mentor(
         full_name=full_name,
         username=normalise_username(username),
         whatsapp_number=e164,
         password_hash=hash_password(password),
-        recovery_code_hash=recovery_codes.hash_code(code),
+        recovery_code_hash=code_hash,
         department=department,
         **fields,
     )
@@ -81,3 +101,15 @@ def reset_password(username: str, code: str, new_password: str) -> tuple[Mentor,
     new_code = rotate_recovery_code(mentor)
     db.session.commit()
     return mentor, new_code
+
+
+def record_sign_in(mentor: Mentor) -> str | None:
+    """Note the sign-in. An account that has no recovery code yet (a request the admin
+    approved) gets one now, returned so it can be shown once."""
+    mentor.last_sign_in_at = clock.now()
+    code = None
+    if not mentor.recovery_code_hash:
+        code = recovery_codes.generate()
+        mentor.recovery_code_hash = recovery_codes.hash_code(code)
+    db.session.commit()
+    return code
