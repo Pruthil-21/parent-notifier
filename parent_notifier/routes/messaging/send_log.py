@@ -5,7 +5,7 @@ from flask_login import current_user, login_required
 
 from parent_notifier.core.extensions import limiter
 from parent_notifier.routes.academics.semesters import load_semester
-from parent_notifier.services.academics import semester_view
+from parent_notifier.services.academics.views import semester_view
 from parent_notifier.services.messaging import pacing, previews, send_log
 from parent_notifier.services.messaging.message_templates import LANGUAGES, MAX_NOTE
 

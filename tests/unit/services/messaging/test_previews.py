@@ -1,5 +1,5 @@
-from parent_notifier.services.academics.risk import SubjectResult
-from parent_notifier.services.academics.semester_view import StudentRow
+from parent_notifier.services.academics.views.risk import SubjectResult
+from parent_notifier.services.academics.views.semester_view import StudentRow
 from parent_notifier.services.messaging import previews
 
 CONFIG = {"COLLEGE_NAME": "GCET", "COLLEGE_NAME_GU": "જી.સી.ઈ.ટી."}

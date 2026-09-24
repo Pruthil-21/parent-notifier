@@ -9,7 +9,7 @@ from sqlalchemy import select
 
 from parent_notifier.core.extensions import db
 from parent_notifier.models.accounts import Mentor
-from parent_notifier.services.academics import classes, semesters
+from parent_notifier.services.academics.records import classes, semesters
 from parent_notifier.services.accounts import registration
 from parent_notifier.services.imports.apply import apply_import
 from parent_notifier.services.imports.sheet_parser import parse_sheet

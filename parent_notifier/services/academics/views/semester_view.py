@@ -10,8 +10,8 @@ from sqlalchemy import select
 
 from parent_notifier.core.extensions import db
 from parent_notifier.models.academics import ClassGroup, Result, Semester, SemesterSubject
-from parent_notifier.services.academics import risk
-from parent_notifier.services.academics.risk import Fail, Rules, Shortage, SubjectResult
+from parent_notifier.services.academics.views import risk
+from parent_notifier.services.academics.views.risk import Fail, Rules, Shortage, SubjectResult
 from parent_notifier.services.shared.phone import format_for_display
 
 

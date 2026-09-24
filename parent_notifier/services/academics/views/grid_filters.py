@@ -6,8 +6,8 @@ anything unexpected falls back to the default rather than raising an error.
 
 from dataclasses import dataclass
 
-from parent_notifier.services.academics import risk
-from parent_notifier.services.academics.semester_view import StudentRow
+from parent_notifier.services.academics.views import risk
+from parent_notifier.services.academics.views.semester_view import StudentRow
 
 INACTIVE = "inactive"
 PENDING = "pending"

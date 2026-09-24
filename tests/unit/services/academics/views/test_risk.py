@@ -1,6 +1,6 @@
 import pytest
 
-from parent_notifier.services.academics.risk import (
+from parent_notifier.services.academics.views.risk import (
     AT_RISK,
     DOING_WELL,
     NEEDS_ATTENTION,

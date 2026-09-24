@@ -12,7 +12,7 @@ from parent_notifier.forms.academics import (
 )
 from parent_notifier.models.academics import ClassGroup
 from parent_notifier.routes.academics.classes import load_class
-from parent_notifier.services.academics import classes
+from parent_notifier.services.academics.records import classes
 
 bp = Blueprint("class_settings", __name__, url_prefix="/classes/<int:class_id>/settings")
 

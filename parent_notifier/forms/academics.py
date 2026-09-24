@@ -13,7 +13,7 @@ from parent_notifier.forms.fields import (
     strip,
 )
 from parent_notifier.models.academics import MAX_SEMESTER, MIN_SEMESTER, ClassGroup
-from parent_notifier.services.academics import classes, semester_numbers, students
+from parent_notifier.services.academics.records import classes, semester_numbers, students
 from parent_notifier.services.shared import clock
 
 CLASS_NAME_TAKEN = "You already have a class with this name. Choose another"
