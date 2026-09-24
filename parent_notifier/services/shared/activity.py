@@ -44,6 +44,8 @@ EVENTS = {
         "class_created": "Created a class",
         "class_edited": "Edited class details",
         "class_rules_changed": "Changed status rules",
+        "class_finished": "Finished a batch",
+        "class_reopened": "Reopened a batch",
         "class_deleted": "Deleted a class",
         "semester_added": "Added a semester",
         "semester_removed": "Removed a semester",
