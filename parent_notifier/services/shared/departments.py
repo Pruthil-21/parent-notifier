@@ -57,3 +57,23 @@ def remove(department: Department) -> None:
         raise DepartmentInUseError(department.name)
     db.session.delete(department)
     db.session.commit()
+
+
+def listing() -> list[tuple[Department, int, int]]:
+    """Each department with its mentor and class counts, in name order."""
+    mentors = dict(
+        db.session.execute(
+            select(Mentor.department, func.count()).group_by(Mentor.department)
+        ).all()
+    )
+    classes = dict(
+        db.session.execute(
+            select(ClassGroup.department, func.count()).group_by(ClassGroup.department)
+        ).all()
+    )
+    listed = db.session.scalars(select(Department).order_by(Department.name))
+    return [(d, mentors.get(d.name, 0), classes.get(d.name, 0)) for d in listed]
+
+
+def get(department_id: int) -> Department | None:
+    return db.session.get(Department, department_id)

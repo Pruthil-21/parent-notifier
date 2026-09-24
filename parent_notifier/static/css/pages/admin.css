@@ -204,4 +204,14 @@
     gap: var(--space-2);
     padding: var(--space-1) 0;
   }
+
+  .department-rename {
+    display: flex;
+    gap: var(--space-2);
+    font-weight: var(--weight-regular);
+  }
+
+  .department-rename .input {
+    width: min(360px, 60vw);
+  }
 }

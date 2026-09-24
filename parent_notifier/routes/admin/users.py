@@ -35,7 +35,7 @@ bp = Blueprint("admin_users", __name__, url_prefix="/admin/users")
 ADMIN_PAGES = (
     ("Users", "admin_users.index", "admin_users"),
     ("Activity log", "admin_logs.index", "admin_logs"),
-    ("Departments", "admin_settings.departments", "admin_settings.departments"),
+    ("Departments", "admin_settings.departments_page", "admin_settings.departments_page"),
     ("Announcement", "admin_settings.announcement", "admin_settings.announcement"),
     ("Settings", "admin_settings.index", "admin_settings.index"),
 )
