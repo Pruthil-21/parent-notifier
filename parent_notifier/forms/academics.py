@@ -134,6 +134,22 @@ class DeleteClassForm(FlaskForm):
             raise ValidationError(f"Type {self.class_name} exactly to delete this class")
 
 
+class DeleteStudentForm(FlaskForm):
+    confirmation = StringField(
+        "Type the enrollment number to confirm",
+        validators=[InputRequired("Type the enrollment number to confirm")],
+        filters=[single_spaced],
+    )
+
+    def __init__(self, *args, enrollment_no: str, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.enrollment_no = enrollment_no
+
+    def validate_confirmation(self, field) -> None:
+        if (field.data or "").upper() != self.enrollment_no.upper():
+            raise ValidationError(f"Type {self.enrollment_no} exactly to delete this student")
+
+
 STUDENT_STATUSES = [("active", "Active"), ("left", "Left the class"), ("detained", "Detained")]
 ENROLLMENT_TAKEN = "Another student in this class has this enrollment number"
 

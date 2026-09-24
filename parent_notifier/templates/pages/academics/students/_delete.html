@@ -1,0 +1,18 @@
+{# Deleting a student for good. Marking them Left keeps their history, so that comes
+   first; this is for a student added by mistake or whose family asks for erasure. #}
+<section class="settings-section settings-section--danger student-delete" aria-labelledby="delete-heading">
+  <div class="settings-section__intro">
+    <h2 id="delete-heading">Delete student</h2>
+    <p>Removes {{ student.full_name }} from {{ class_group.name }}, with their marks in every
+      semester{% if messages_sent %} and the record of {{ messages_sent }} message{{ "s" if messages_sent != 1 }} sent to their parent{% endif %}.
+      This cannot be undone. To keep their history, set the status to Left instead.</p>
+  </div>
+  <form class="settings-section__form form-stack" method="post"
+        action="{{ url_for('students.delete', class_id=class_group.id, number=semester.number, student_id=student.id) }}" novalidate>
+    {{ error_summary(delete_form, first_field=delete_form.confirmation) }}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {{ text_field(delete_form.confirmation, hint="Type " ~ student.enrollment_no ~ " exactly as shown",
+                  autocomplete="off", spellcheck="false") }}
+    <div><button class="button button--danger" type="submit">Delete student</button></div>
+  </form>
+</section>

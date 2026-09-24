@@ -3,7 +3,12 @@
 from flask import Blueprint, abort, flash, redirect, render_template, url_for
 from flask_login import login_required
 
-from parent_notifier.forms.academics import ENROLLMENT_TAKEN, AddStudentForm, EditStudentForm
+from parent_notifier.forms.academics import (
+    ENROLLMENT_TAKEN,
+    AddStudentForm,
+    DeleteStudentForm,
+    EditStudentForm,
+)
 from parent_notifier.routes.academics.semesters import load_semester
 from parent_notifier.services.academics.records import students
 from parent_notifier.services.academics.views import semester_view
@@ -28,13 +33,17 @@ def detail(class_id: int, number: int, student_id: int):
     )
 
 
-def _form_page(class_group, semester, form, student=None):
+def _form_page(class_group, semester, form, student=None, delete_form=None):
+    if student is not None and delete_form is None:
+        delete_form = DeleteStudentForm(formdata=None, enrollment_no=student.enrollment_no)
     return render_template(
         "pages/academics/students/form.html",
         class_group=class_group,
         semester=semester,
         form=form,
         student=student,
+        delete_form=delete_form,
+        messages_sent=students.messages_sent(student) if student else 0,
     )
 
 
@@ -70,3 +79,20 @@ def edit(class_id: int, number: int, student_id: int):
         flash(f"{student.full_name} saved.", "success")
         return redirect(url_for("semesters.workspace", class_id=class_id, number=number))
     return _form_page(class_group, semester, form, student)
+
+
+@bp.post("/sem/<int:number>/students/<int:student_id>/delete")
+@login_required
+def delete(class_id: int, number: int, student_id: int):
+    class_group, semester = load_semester(class_id, number)
+    student = students.get_student(class_group, student_id)
+    if student is None:
+        abort(404)
+    form = DeleteStudentForm(enrollment_no=student.enrollment_no)
+    if form.validate_on_submit():
+        name = student.full_name
+        students.delete_student(student)
+        flash(f"{name} deleted, with their marks and send record.", "success")
+        return redirect(url_for("semesters.workspace", class_id=class_id, number=number))
+    edit_form = EditStudentForm(formdata=None, obj=student, phone=student.phone_raw)
+    return _form_page(class_group, semester, edit_form, student, delete_form=form)
