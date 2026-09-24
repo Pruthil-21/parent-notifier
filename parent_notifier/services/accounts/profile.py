@@ -9,14 +9,17 @@ from parent_notifier.services.accounts.credentials import authenticate, normalis
 from parent_notifier.services.shared.phone import normalise_indian_mobile
 
 
-def update_details(mentor: Mentor, full_name: str, username: str, whatsapp_number: str) -> None:
-    """Save name, username and number, all already validated by the form."""
+def update_details(
+    mentor: Mentor, full_name: str, username: str, whatsapp_number: str, department: str
+) -> None:
+    """Save name, username, number and department, all already validated by the form."""
     e164 = normalise_indian_mobile(whatsapp_number)
     if e164 is None:
         raise ValueError("The WhatsApp number is not a valid Indian mobile number.")
     mentor.full_name = full_name
     mentor.username = normalise_username(username)
     mentor.whatsapp_number = e164
+    mentor.department = department
     try:
         db.session.commit()
     except IntegrityError:

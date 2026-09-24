@@ -6,7 +6,12 @@ from parent_notifier.models.accounts import Mentor
 from parent_notifier.routes.accounts.throttling import FAILURES_PER_USERNAME
 from tests.factories.accounts import PASSWORD, make_mentor, sign_in
 
-DETAILS = {"full_name": "Asha R. Patel", "username": "ashap", "whatsapp_number": "90000 00009"}
+DETAILS = {
+    "full_name": "Asha R. Patel",
+    "username": "ashap",
+    "whatsapp_number": "90000 00009",
+    "department": "computer  engineering",
+}
 NEW_PASSWORD = "Brand-new-pass-1"
 
 
@@ -45,7 +50,15 @@ def test_saving_details_updates_the_account(app, signed_in_client, mentor):
         "ashap",
         "+919000000009",
     )
-    assert signed_in_client.get("/profile/").status_code == 200
+    assert saved.department == "Computer Engineering"  # written the way the list writes it
+    html = signed_in_client.get("/profile/").get_data(as_text=True)
+    assert 'list="department-options"' in html and '<option value="Civil Engineering">' in html
+
+
+def test_only_a_listed_department_is_accepted(app, signed_in_client, mentor):
+    html = signed_in_client.post("/profile/account", data=DETAILS | {"department": "Physics"})
+    assert "Choose a department from the list" in html.get_data(as_text=True)
+    assert _saved(app, mentor.id).department is None
 
 
 def test_keeping_your_own_username_is_allowed(signed_in_client):

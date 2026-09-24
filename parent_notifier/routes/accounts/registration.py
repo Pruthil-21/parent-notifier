@@ -27,6 +27,7 @@ def create_account():
                 form.username.data,
                 form.whatsapp_number.data,
                 form.password.data,
+                form.department.data,
             )
         except registration.UsernameTakenError:
             form.username.errors.append(USERNAME_TAKEN)

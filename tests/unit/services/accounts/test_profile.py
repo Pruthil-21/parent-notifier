@@ -9,7 +9,7 @@ pytestmark = pytest.mark.usefixtures("app_context")
 
 def test_details_are_saved_normalised():
     mentor = make_mentor()
-    profile.update_details(mentor, "Asha R. Patel", "AshaP", "+91 90000 00009")
+    profile.update_details(mentor, "Asha R. Patel", "AshaP", "+91 90000 00009", "Civil Engineering")
     assert (mentor.username, mentor.whatsapp_number) == ("ashap", "+919000000009")
 
 
@@ -23,7 +23,7 @@ def test_clash_at_save_time_raises_and_keeps_the_old_details():
     make_mentor(username="niravshah", whatsapp_number="+919000000002")
     mentor = make_mentor()
     with pytest.raises(registration.UsernameTakenError):
-        profile.update_details(mentor, "Asha Patel", "niravshah", "9000000001")
+        profile.update_details(mentor, "Asha Patel", "niravshah", "9000000001", "Civil Engineering")
     assert mentor.username == "ashapatel"
 
 

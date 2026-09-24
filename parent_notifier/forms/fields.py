@@ -2,9 +2,10 @@
 
 from collections.abc import Callable
 
-from wtforms import IntegerField
-from wtforms.validators import ValidationError
+from wtforms import IntegerField, StringField
+from wtforms.validators import InputRequired, ValidationError
 
+from parent_notifier.services.shared import departments
 from parent_notifier.services.shared.phone import normalise_indian_mobile
 
 
@@ -48,3 +49,18 @@ class WholeNumberField(IntegerField):
             super().process_formdata(valuelist)
         except ValueError:
             raise ValueError(self.invalid_message) from None
+
+
+def _listed_department(_form, field) -> None:
+    if field.data not in departments.DEPARTMENTS:
+        raise ValidationError("Choose a department from the list")
+
+
+def department_field(required: str = "Choose your department") -> StringField:
+    """Typed with suggestions from the college's list; only a listed department is kept,
+    written the way the list writes it."""
+    return StringField(
+        "Department",
+        validators=[InputRequired(required), _listed_department],
+        filters=[lambda value: departments.canonical(value) or value],
+    )

@@ -1,5 +1,5 @@
 {% from "components/forms/error_summary.html" import error_summary %}
-{% from "components/forms/field.html" import text_field %}
+{% from "components/forms/field.html" import department_field, text_field %}
 <section class="settings-section" aria-labelledby="account-heading">
   <div class="settings-section__intro">
     <h2 id="account-heading">Account</h2>
@@ -16,6 +16,7 @@
                   autocapitalize="none", spellcheck="false") }}
     {{ text_field(account_form.whatsapp_number, hint="10-digit mobile number, like 98765 43210",
                   type="tel", inputmode="tel", autocomplete="tel-national") }}
+    {{ department_field(account_form.department) }}
     <div><button class="button button--primary" type="submit">Save account details</button></div>
   </form>
 </section>

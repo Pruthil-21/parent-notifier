@@ -10,6 +10,7 @@ ACCOUNT = {
     "full_name": "Nirav Shah",
     "username": "niravshah",
     "whatsapp_number": "9000000002",
+    "department": "Civil Engineering",
     "password": "Monsoon-exams-7",
 }
 CODE = re.compile(r"data-recovery-code>([A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4})<")

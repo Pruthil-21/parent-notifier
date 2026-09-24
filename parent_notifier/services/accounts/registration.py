@@ -23,7 +23,12 @@ def username_taken(username: str, except_mentor_id: int | None = None) -> bool:
 
 
 def create_mentor(
-    full_name: str, username: str, whatsapp_number: str, password: str
+    full_name: str,
+    username: str,
+    whatsapp_number: str,
+    password: str,
+    department: str | None = None,
+    **fields,
 ) -> tuple[Mentor, str]:
     """Save a new mentor and return it with the plain recovery code, which is shown once
     and never stored. The number must already have passed normalise_indian_mobile()."""
@@ -37,6 +42,8 @@ def create_mentor(
         whatsapp_number=e164,
         password_hash=hash_password(password),
         recovery_code_hash=recovery_codes.hash_code(code),
+        department=department,
+        **fields,
     )
     db.session.add(mentor)
     try:
