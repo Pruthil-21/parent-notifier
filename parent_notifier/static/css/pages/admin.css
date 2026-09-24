@@ -243,4 +243,31 @@
       flex: 1 1 100%;
     }
   }
+
+  /* The mentor page: classes by batch, then activity, then managing the account. */
+  .mentor-classes h3 {
+    margin: var(--space-5) 0 var(--space-2);
+    font-size: var(--text-body);
+    font-weight: var(--weight-semibold);
+  }
+
+  .mentor-classes h3:first-of-type {
+    margin-top: var(--space-3);
+  }
+
+  .mentor-activity,
+  .mentor-manage {
+    margin-top: var(--space-6);
+  }
+
+  .mentor-manage > h2 {
+    margin-bottom: var(--space-3);
+  }
+
+  .mentor-manage__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+  }
 }

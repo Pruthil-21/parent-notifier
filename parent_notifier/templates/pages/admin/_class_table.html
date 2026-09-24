@@ -1,0 +1,40 @@
+{# Classes with the counts of their latest semester; each opens read-only. The mentor and
+   department columns can be left out where the page already says them. #}
+{% macro class_table(rows, mentor=True, department=True, label="Classes") %}
+<div class="data-grid">
+  <table aria-label="{{ label }}">
+    <thead>
+      <tr>
+        <th scope="col">Class</th>
+        {% if mentor %}<th scope="col">Mentor</th>{% endif %}
+        {% if department %}<th scope="col">Department</th>{% endif %}
+        <th scope="col">Semester</th>
+        <th scope="col" class="numeric">Students</th>
+        <th scope="col" class="numeric">At risk</th>
+        <th scope="col" class="numeric">Pending</th>
+        <th scope="col" class="numeric">Sent, last 7 days</th>
+        <th scope="col">Last sheet</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      {% set class_group = row.class_group %}
+      <tr>
+        <th scope="row">
+          <a class="cell-title" href="{{ url_for('admin_classes.open_class', class_id=class_group.id) }}">{{ class_group.name }}</a>
+          <span class="cell-note">{{ class_group.admission_year }} batch{% if class_group.finished_at %} · finished{% endif %}</span>
+        </th>
+        {% if mentor %}<td><a href="{{ url_for('admin_users.detail', account_id=row.mentor.id) }}">{{ row.mentor.full_name }}</a></td>{% endif %}
+        {% if department %}<td>{{ class_group.department }}</td>{% endif %}
+        <td>{% if row.semester %}Sem {{ row.semester.number }}{% else %}<span class="text-muted">None yet</span>{% endif %}</td>
+        <td class="numeric">{{ row.counts.students }}</td>
+        <td class="numeric">{{ row.counts.at_risk }}</td>
+        <td class="numeric">{{ row.counts.pending }}</td>
+        <td class="numeric">{{ row.sent }}</td>
+        <td>{% if row.semester and row.semester.last_imported_at %}{{ row.semester.last_imported_at | date }}{% else %}<span class="text-muted">No sheet yet</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endmacro %}

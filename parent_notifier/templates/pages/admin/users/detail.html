@@ -1,57 +1,73 @@
 {% extends "layouts/app.html" %}
 {% from "components/navigation/breadcrumb.html" import breadcrumb %}
-{% from "components/navigation/action_bar.html" import action_bar %}
 {% from "components/forms/error_summary.html" import error_summary %}
 {% from "components/forms/field.html" import text_field %}
+{% from "pages/admin/_class_table.html" import class_table %}
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/admin.css') }}">
 {% endblock %}
 
+{# The mentor's classes come first; managing the account is below, as it is needed less. #}
 {% block title %}{{ account.full_name }} · Users{% endblock %}
 {% block breadcrumb %}{{ breadcrumb([("Overview", url_for("home.index")), ("Users", url_for("admin_users.index")), (account.full_name, None)]) }}{% endblock %}
 {% block page_title %}{{ account.full_name }}{% endblock %}
-{% block page_meta %}{{ "Admin" if account.is_admin else "Mentor" }}{% if account.department %} · {{ account.department }}{% endif %}{% endblock %}
-
-{% block actions %}
-{% if account.id != current_user.id %}
-{% call action_bar() %}
-<a class="button" href="{{ url_for('admin_users.edit', account_id=account.id) }}">Edit details</a>
-<form method="post" action="{{ url_for('admin_users.reset_password', account_id=account.id) }}">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <button class="button" type="submit">Reset password</button>
-</form>
-<form method="post" action="{{ url_for('admin_users.sign_out_everywhere', account_id=account.id) }}">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <button class="button" type="submit">Sign out everywhere</button>
-</form>
-{% endcall %}
-{% endif %}
-{% endblock %}
+{% block page_meta %}{{ "Admin" if account.is_admin else "Mentor" }} · {{ account.department or "No department" }} · <span class="numeric">{{ account.whatsapp_number | phone }}</span> · {% if account.last_sign_in_at %}signed in {{ account.last_sign_in_at | date }}{% else %}never signed in{% endif %}{% endblock %}
 
 {% block content %}
-<div class="account-layout">
-  <section class="account-panel" aria-labelledby="details-heading">
-    <h2 id="details-heading">Details</h2>
+{% set current = class_rows | selectattr("class_group.finished_at", "none") | list %}
+{% set finished = class_rows | rejectattr("class_group.finished_at", "none") | list %}
+<section class="mentor-classes" aria-labelledby="classes-heading">
+  <h2 id="classes-heading">Classes</h2>
+  {% if not class_rows %}
+  <p class="text-secondary">No classes yet.</p>
+  {% endif %}
+  {% for year, rows in current | groupby("class_group.admission_year") | reverse %}
+  <h3>{{ year }} batch</h3>
+  {{ class_table(rows, mentor=False, label=year ~ " batch") }}
+  {% endfor %}
+  {% if finished %}
+  <h3>Past batches</h3>
+  {{ class_table(finished | sort(attribute="class_group.admission_year", reverse=true), mentor=False, label="Past batches") }}
+  {% endif %}
+</section>
+
+<section class="account-panel mentor-activity" aria-labelledby="activity-heading">
+  <h2 id="activity-heading">Recent activity</h2>
+  <p><a href="{{ url_for('admin_logs.index', person=account.username) }}">See all activity</a></p>
+  {% if recent %}
+  <ul class="account-list" role="list">
+    {% for entry in recent %}
+    <li><span>{{ event_label(entry.category, entry.event) }}{% if entry.target_label %}: {{ entry.target_label }}{% endif %}{% if not entry.succeeded %} <span class="text-muted">(failed)</span>{% endif %}</span>
+      <span class="cell-note">{{ entry.created_at | date }}{% if entry.class_label %} · {{ entry.class_label }}{% endif %}</span></li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="text-secondary">Nothing yet.</p>
+  {% endif %}
+</section>
+
+{% if account.id != current_user.id %}
+<section class="mentor-manage" aria-labelledby="manage-heading">
+  <h2 id="manage-heading">Manage account</h2>
+  <div class="account-panel">
     <dl class="account-facts">
       <div><dt>Username</dt><dd>{{ account.username }}</dd></div>
-      <div><dt>WhatsApp</dt><dd class="numeric">{{ account.whatsapp_number | phone }}</dd></div>
-      <div><dt>Department</dt><dd>{{ account.department or "Not set" }}</dd></div>
       <div><dt>Account created</dt><dd>{{ account.created_at | date }}</dd></div>
-      <div><dt>Last sign-in</dt><dd>{% if account.last_sign_in_at %}{{ account.last_sign_in_at | date }}{% else %}Never{% endif %}</dd></div>
     </dl>
-  </section>
+    <div class="mentor-manage__actions">
+      <a class="button" href="{{ url_for('admin_users.edit', account_id=account.id) }}">Edit details</a>
+      <form method="post" action="{{ url_for('admin_users.reset_password', account_id=account.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="button" type="submit">Reset password</button>
+      </form>
+      <form method="post" action="{{ url_for('admin_users.sign_out_everywhere', account_id=account.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="button" type="submit">Sign out everywhere</button>
+      </form>
+    </div>
 
-  <section class="account-panel" aria-labelledby="classes-heading">
-    <h2 id="classes-heading">Classes</h2>
-    {% if classes %}
-    <ul class="account-list" role="list">
-      {% for class_group in classes %}
-      <li><a class="cell-title" href="{{ url_for('admin_classes.open_class', class_id=class_group.id) }}">{{ class_group.name }}</a>
-        <span class="cell-note">{{ class_group.department }} · {{ class_group.admission_year }} batch</span></li>
-      {% endfor %}
-    </ul>
-    {% if transfer_form.to_mentor.choices | length > 1 %}
+    {% if classes and transfer_form.to_mentor.choices | length > 1 %}
     <form class="form-stack account-transfer" method="post"
           action="{{ url_for('admin_users.transfer', account_id=account.id) }}" novalidate>
       <h3>Move classes to another mentor</h3>
@@ -69,49 +85,30 @@
       <div><button class="button" type="submit">Move classes</button></div>
     </form>
     {% endif %}
-    {% else %}
-    <p class="text-secondary">No classes.</p>
-    {% endif %}
-  </section>
-
-  <section class="account-panel account-panel--wide" aria-labelledby="activity-heading">
-    <h2 id="activity-heading">Recent activity</h2>
-    <p><a href="{{ url_for('admin_logs.index', person=account.username) }}">See all activity</a></p>
-    {% if recent %}
-    <ul class="account-list" role="list">
-      {% for entry in recent %}
-      <li><span>{{ event_label(entry.category, entry.event) }}{% if entry.target_label %}: {{ entry.target_label }}{% endif %}{% if not entry.succeeded %} <span class="text-muted">(failed)</span>{% endif %}</span>
-        <span class="cell-note">{{ entry.created_at | date }}{% if entry.class_label %} · {{ entry.class_label }}{% endif %}</span></li>
-      {% endfor %}
-    </ul>
-    {% else %}
-    <p class="text-secondary">Nothing yet.</p>
-    {% endif %}
-  </section>
-</div>
-
-{% if account.id != current_user.id %}
-<section class="settings-section settings-section--danger account-delete" aria-labelledby="delete-heading">
-  <div class="settings-section__intro">
-    <h2 id="delete-heading">Delete account</h2>
-    {% if classes %}
-    <p>{{ account.full_name }} still has {{ classes | length }} class{{ "es" if classes | length != 1 }}.
-      Move them to another mentor first, or delete them.</p>
-    {% else %}
-    <p>{{ account.full_name }} can no longer sign in. Their activity and the messages they sent
-      stay on record under their name. This cannot be undone.</p>
-    {% endif %}
   </div>
-  {% if not classes %}
-  <form class="settings-section__form form-stack" method="post"
-        action="{{ url_for('admin_users.delete', account_id=account.id) }}" novalidate>
-    {{ error_summary(delete_form, first_field=delete_form.confirmation) }}
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    {{ text_field(delete_form.confirmation, hint="Type " ~ account.username ~ " exactly as shown",
-                  autocomplete="off", spellcheck="false", autocapitalize="none") }}
-    <div><button class="button button--danger" type="submit">Delete account</button></div>
-  </form>
-  {% endif %}
+
+  <section class="settings-section settings-section--danger account-delete" aria-labelledby="delete-heading">
+    <div class="settings-section__intro">
+      <h2 id="delete-heading">Delete account</h2>
+      {% if classes %}
+      <p>{{ account.full_name }} still has {{ classes | length }} class{{ "es" if classes | length != 1 }}.
+        Move them to another mentor first, or delete them.</p>
+      {% else %}
+      <p>{{ account.full_name }} can no longer sign in. Their activity and the messages they sent
+        stay on record under their name. This cannot be undone.</p>
+      {% endif %}
+    </div>
+    {% if not classes %}
+    <form class="settings-section__form form-stack" method="post"
+          action="{{ url_for('admin_users.delete', account_id=account.id) }}" novalidate>
+      {{ error_summary(delete_form, first_field=delete_form.confirmation) }}
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      {{ text_field(delete_form.confirmation, hint="Type " ~ account.username ~ " exactly as shown",
+                    autocomplete="off", spellcheck="false", autocapitalize="none") }}
+      <div><button class="button button--danger" type="submit">Delete account</button></div>
+    </form>
+    {% endif %}
+  </section>
 </section>
 {% endif %}
 {% endblock %}

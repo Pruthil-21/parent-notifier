@@ -12,7 +12,9 @@ def test_users_list_searches_and_opens_an_account(app, admin_client, mentor):
     found = main_content(admin_client.get("/admin/users/?q=nirav"))
     assert "Nirav Shah" in found and "Asha Patel" not in found
 
-    detail = admin_client.get(f"/admin/users/{mentor.id}").get_data(as_text=True)
+    detail = main_content(admin_client.get(f"/admin/users/{mentor.id}"))
     assert '<h1 class="page-header__title">Asha Patel</h1>' in detail
     assert "CE-B" in detail and "ashapatel" in detail
+    # Classes lead, grouped by batch; managing the account comes after.
+    assert detail.index("2023 batch</h3>") < detail.index("Manage account")
     assert admin_client.get("/admin/users/999").status_code == 404

@@ -1,37 +1,3 @@
 {# One row per class, with the counts of its latest semester. #}
-<div class="data-grid">
-  <table>
-    <thead>
-      <tr>
-        <th scope="col">Class</th>
-        <th scope="col">Mentor</th>
-        <th scope="col">Department</th>
-        <th scope="col">Semester</th>
-        <th scope="col" class="numeric">Students</th>
-        <th scope="col" class="numeric">At risk</th>
-        <th scope="col" class="numeric">Pending</th>
-        <th scope="col" class="numeric">Sent, last 7 days</th>
-        <th scope="col">Last sheet</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for row in page.items %}
-      {% set class_group = row.class_group %}
-      <tr>
-        <th scope="row">
-          <a class="cell-title" href="{{ url_for('admin_classes.open_class', class_id=class_group.id) }}">{{ class_group.name }}</a>
-          <span class="cell-note">{{ class_group.admission_year }} batch</span>
-        </th>
-        <td><a href="{{ url_for('admin_users.detail', account_id=row.mentor.id) }}">{{ row.mentor.full_name }}</a></td>
-        <td>{{ class_group.department }}</td>
-        <td>{% if row.semester %}Sem {{ row.semester.number }}{% else %}<span class="text-muted">None yet</span>{% endif %}</td>
-        <td class="numeric">{{ row.counts.students }}</td>
-        <td class="numeric">{{ row.counts.at_risk }}</td>
-        <td class="numeric">{{ row.counts.pending }}</td>
-        <td class="numeric">{{ row.sent }}</td>
-        <td>{% if row.semester and row.semester.last_imported_at %}{{ row.semester.last_imported_at | date }}{% else %}<span class="text-muted">No sheet yet</span>{% endif %}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+{% from "pages/admin/_class_table.html" import class_table %}
+{{ class_table(page.items) }}
