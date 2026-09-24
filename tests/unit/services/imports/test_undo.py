@@ -94,3 +94,14 @@ def test_students_listed_in_another_semester_are_kept(setup):
     _import(setup, [[*AVI, "Theory=70"]], semester=sem5)
     _undo(sem4)
     assert [student.enrollment_no for student in sem5.students] == ["23CE001"]
+
+
+def test_a_student_deleted_after_a_reimport_stays_deleted_on_undo(setup):
+    _, _, semester = setup
+    _import(setup, [[*AVI, "Theory=80"], [*RIYA, "Theory=70"]])
+    _import(setup, [[*AVI, "Theory=90"], [*RIYA, "Theory=75"]])
+    riya = db.session.scalars(select(Student).filter_by(enrollment_no="23CE002")).one()
+    db.session.delete(riya)
+    db.session.commit()
+    _undo(semester)
+    assert _state(semester) == (["DBMS"], ["23CE001"], [("23CE001", "DBMS", 80)])

@@ -37,7 +37,12 @@ def _restore_results(semester: Semester, snapshot: dict) -> None:
             semester.subjects.remove(subject)  # its results go with it
     subject_ids = select(SemesterSubject.id).where(SemesterSubject.semester_id == semester.id)
     db.session.execute(delete(Result).where(Result.semester_subject_id.in_(subject_ids)))
-    db.session.add_all(Result(**values) for values in snapshot["results"])
+    # A student deleted since the import stays deleted: their saved marks are skipped.
+    saved_ids = {values["student_id"] for values in snapshot["results"]}
+    existing = set(db.session.scalars(select(Student.id).where(Student.id.in_(saved_ids))))
+    db.session.add_all(
+        Result(**values) for values in snapshot["results"] if values["student_id"] in existing
+    )
 
 
 def _restore_identities(snapshot: dict) -> None:
