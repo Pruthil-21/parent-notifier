@@ -1,9 +1,46 @@
-{# Sections with sub-items can be folded, and long ones filtered. Those controls stay
-   hidden until nav-sections.js runs; without it every sub-item is simply shown. #}
+{# Sections with sub-items, and the groups inside them, can be folded; long sections can
+   be filtered. Those controls stay hidden until nav-sections.js runs; without it every
+   sub-item is simply shown. #}
+{% macro entries(children) %}
+{% for entry in children %}
+{% if entry.kind == "group" %}
+<li class="nav-pane__group" data-nav-group="{{ entry.id }}" data-nav-label="{{ entry.label }}"{% if not entry.open %} data-nav-default="closed"{% endif %}>
+  <div class="nav-pane__row">
+    {% if entry.url %}
+    <a class="nav-pane__link nav-pane__link--child" href="{{ entry.url }}"
+       {% if entry.current %}aria-current="page"{% endif %}>
+      <span class="nav-pane__label">{{ entry.label }}</span>
+    </a>
+    {% else %}
+    <span class="nav-pane__group-label" data-nav-group-label>{{ entry.label }}</span>
+    {% endif %}
+    <button type="button" class="nav-pane__tool nav-pane__fold" data-nav-fold hidden
+            aria-controls="nav-children-{{ entry.id }}" aria-expanded="true"
+            aria-label="{{ entry.label }} list">
+      {{ icon("chevron-down", size=16) }}
+    </button>
+  </div>
+  <ul role="list" class="nav-pane__children" id="nav-children-{{ entry.id }}">
+    {{ entries(entry.children) }}
+  </ul>
+</li>
+{% elif entry.kind == "heading" %}
+<li class="nav-pane__heading">{{ entry.label }}</li>
+{% else %}
+<li>
+  <a class="nav-pane__link nav-pane__link--child" href="{{ entry.url }}"
+     {% if entry.active %}aria-current="page"{% endif %}>
+    <span class="nav-pane__label">{{ entry.label }}</span>
+    {% if entry.note %}<span class="nav-pane__note">{{ entry.note }}</span>{% endif %}
+  </a>
+</li>
+{% endif %}
+{% endfor %}
+{% endmacro %}
 <nav id="nav-pane" class="nav-pane" aria-label="Main">
   <ul role="list" class="nav-pane__list">
     {% for item in nav_items %}
-    <li{% if item.children %} data-nav-section="{{ item.id }}" data-nav-label="{{ item.label }}"{% endif %}>
+    <li{% if item.children %} data-nav-section="{{ item.id }}" data-nav-group="{{ item.id }}" data-nav-label="{{ item.label }}"{% endif %}>
       <div class="nav-pane__row">
         <a class="nav-pane__link{% if item.active %} nav-pane__link--in-section{% endif %}"
            href="{{ item.url }}" title="{{ item.label }}"
@@ -36,14 +73,7 @@
       {% endif %}
       {% if item.children %}
       <ul role="list" class="nav-pane__children" id="nav-children-{{ item.id }}">
-        {% for child in item.children %}
-        <li>
-          <a class="nav-pane__link nav-pane__link--child" href="{{ child.url }}"
-             {% if child.active %}aria-current="page"{% endif %}>
-            <span class="nav-pane__label">{{ child.label }}</span>
-          </a>
-        </li>
-        {% endfor %}
+        {{ entries(item.children) }}
       </ul>
       {% endif %}
     </li>

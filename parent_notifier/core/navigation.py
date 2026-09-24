@@ -1,13 +1,53 @@
 """The main navigation pane: which sections exist and which one is current."""
 
+import re
 from collections.abc import Callable
 from dataclasses import dataclass
 
 from flask import Flask, current_app, request, url_for
 from flask_login import current_user
 
-# A section's sub-items, such as each class under Classes: dicts with label, url, active.
+# A section's sub-items, such as each class under Classes: links, headings and groups
+# made by nav_link(), nav_heading() and nav_group(). Each has "active", true when it is,
+# or holds, the current page.
 ChildLinks = Callable[[], list[dict[str, object]]]
+
+
+def nav_link(label: str, url: str, active: bool = False, note: str | None = None) -> dict:
+    """`note` is a quiet detail after the label, such as a class's batch year."""
+    return {"kind": "link", "label": label, "url": url, "active": active, "note": note}
+
+
+def nav_heading(label: str) -> dict:
+    """A small heading over the links after it, such as "2025 batch"; it does not fold."""
+    return {"kind": "heading", "label": label, "active": False}
+
+
+def nav_group(
+    group_id: str,
+    label: str,
+    children: list[dict],
+    url: str | None = None,
+    current: bool = False,
+    open_by_default: bool = True,
+) -> dict:
+    """A foldable group, such as a department. With `url` its label is also a link, and
+    `current` marks that link as the page being shown."""
+    return {
+        "kind": "group",
+        "id": group_id,
+        "label": label,
+        "url": url,
+        "current": current,
+        "open": open_by_default,
+        "children": children,
+        "active": current or any(child["active"] for child in children),
+    }
+
+
+def slug(text: str) -> str:
+    """A name made safe for an element id, such as "computer-engineering"."""
+    return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-") or "group"
 
 
 @dataclass(frozen=True)

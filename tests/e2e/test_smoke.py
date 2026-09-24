@@ -119,6 +119,11 @@ def test_sidebar_sections_filter_and_stay_folded(signed_in, demo):
     expect(page.get_by_text("No matches")).to_be_visible()
     page.locator("#nav-filter-classes-input").fill("ce-")
     expect(classes.get_by_role("link", name="CE-A")).to_be_visible()
+    expect(classes.get_by_role("link", name="CE-OLD")).to_be_visible()  # Past batches opens
+    expect(classes.get_by_role("link", name="IT-A")).to_be_hidden()
+    page.keyboard.press("Escape")
+    expect(classes.get_by_role("link", name="CE-OLD")).to_be_hidden()  # folded again
+    expect(classes.get_by_text("Information Technology")).to_be_visible()
     page.get_by_role("button", name="Classes list").click()
     page.reload()
     expect(classes).to_be_hidden()

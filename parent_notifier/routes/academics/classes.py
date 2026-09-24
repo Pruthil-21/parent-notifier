@@ -6,6 +6,7 @@ from flask_login import current_user, login_required
 from parent_notifier.core.navigation import register_child_links
 from parent_notifier.forms.academics import CLASS_NAME_TAKEN, ClassDetailsForm, add_semester_form
 from parent_notifier.models.academics import ClassGroup
+from parent_notifier.routes.academics.class_menu import MenuClass, class_menu
 from parent_notifier.routes.activity import log
 from parent_notifier.services.academics.records import classes, ownership
 
@@ -23,15 +24,16 @@ def load_class(class_id: int) -> ClassGroup:
 def _class_links() -> list[dict[str, object]]:
     if not current_user.is_authenticated:
         return []
-    current_id = (request.view_args or {}).get("class_id")
-    return [
-        {
-            "label": name,
-            "url": url_for("classes.open_class", class_id=class_id),
-            "active": class_id == current_id,
-        }
-        for class_id, name in ownership.class_links(current_user.id)
-    ]
+    rows = ownership.class_links(current_user.id)
+    return class_menu(
+        [
+            MenuClass(r.id, r.name, r.department, r.admission_year, r.finished_at is not None)
+            for r in rows
+        ],
+        lambda class_id: url_for("classes.open_class", class_id=class_id),
+        (request.view_args or {}).get("class_id"),
+        own_department=current_user.department,
+    )
 
 
 bp.record_once(lambda state: register_child_links(state.app, "classes.index", _class_links))
