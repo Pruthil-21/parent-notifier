@@ -27,7 +27,8 @@ class Demo:
 def demo(tmp_path_factory):
     folder = tmp_path_factory.mktemp("e2e")
     previous = os.environ.get("DATABASE_URL")
-    os.environ["DATABASE_URL"] = f"sqlite:///{(folder / 'e2e.db').as_posix()}"
+    sqlite = f"sqlite:///{(folder / 'e2e.db').as_posix()}"
+    os.environ["DATABASE_URL"] = os.environ.get("TEST_DATABASE_URL", sqlite)
     try:
         app = create_app("testing")
     finally:
@@ -50,6 +51,8 @@ def demo(tmp_path_factory):
     yield Demo(f"http://127.0.0.1:{server.server_port}", class_id)
     server.shutdown()
     with app.app_context():
+        db.session.remove()
+        db.drop_all()
         db.engine.dispose()
 
 

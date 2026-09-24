@@ -16,6 +16,9 @@ def load_config(env: str, instance_path: Path) -> dict[str, object]:
     if env not in ENVIRONMENTS:
         raise ValueError(f"Unknown environment {env!r}; use one of {', '.join(ENVIRONMENTS)}.")
     database_url = _database_url(env, instance_path)
+    # Vercel sets VERCEL=1. There the app is always behind its https proxy, and requests
+    # over 4.5 MB are refused before they reach the app.
+    on_vercel = _flag("VERCEL")
     return {
         "ENV_NAME": env,
         "TESTING": env == "testing",
@@ -26,16 +29,16 @@ def load_config(env: str, instance_path: Path) -> dict[str, object]:
         "SQLALCHEMY_ENGINE_OPTIONS": _engine_options(database_url),
         # Behind a proxy such as Vercel's, trust its X-Forwarded headers for the client's
         # address (used by the sign-in lockout) and for https.
-        "TRUST_PROXY": _flag("TRUST_PROXY"),
+        "TRUST_PROXY": _flag("TRUST_PROXY", default=on_vercel),
         "APP_TIMEZONE": os.environ.get("APP_TIMEZONE", "Asia/Kolkata"),
-        "MAX_CONTENT_LENGTH": _int("MAX_UPLOAD_MB", 5) * 1024 * 1024,
+        "MAX_CONTENT_LENGTH": _int("MAX_UPLOAD_MB", 4 if on_vercel else 5) * 1024 * 1024,
         "SESSION_COOKIE_HTTPONLY": True,
         "SESSION_COOKIE_SAMESITE": "Lax",
-        "SESSION_COOKIE_SECURE": _flag("SESSION_COOKIE_SECURE"),
+        "SESSION_COOKIE_SECURE": _flag("SESSION_COOKIE_SECURE", default=on_vercel),
         "REMEMBER_COOKIE_DURATION": timedelta(days=30),
         "REMEMBER_COOKIE_HTTPONLY": True,
         "REMEMBER_COOKIE_SAMESITE": "Lax",
-        "REMEMBER_COOKIE_SECURE": _flag("SESSION_COOKIE_SECURE"),
+        "REMEMBER_COOKIE_SECURE": _flag("SESSION_COOKIE_SECURE", default=on_vercel),
         # Tests post forms without tokens; one test switches CSRF back on to prove it works.
         "WTF_CSRF_ENABLED": env != "testing",
         # Tokens last as long as the session, so a sign-in page left open all day still works.
@@ -110,8 +113,9 @@ def _engine_options(url: str) -> dict[str, object]:
     }
 
 
-def _flag(name: str) -> bool:
-    return os.environ.get(name, "").strip().lower() in TRUE_VALUES
+def _flag(name: str, default: bool = False) -> bool:
+    raw = os.environ.get(name)
+    return default if raw is None else raw.strip().lower() in TRUE_VALUES
 
 
 def _int(name: str, default: int) -> int:

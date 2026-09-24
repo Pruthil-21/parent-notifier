@@ -15,7 +15,11 @@ htmlcov/
 playwright-report/
 test-results/
 
-# Runtime data: database, secrets, staged imports, logs
+# Vercel: static files copied at build time, and the CLI's project link
+public/
+.vercel/
+
+# Runtime data: database, secrets, logs
 instance/
 *.db
 *.sqlite3
