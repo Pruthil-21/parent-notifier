@@ -1,3 +1,5 @@
+import os
+
 from alembic.autogenerate import compare_metadata
 from alembic.migration import MigrationContext
 from flask_migrate import downgrade, upgrade
@@ -8,7 +10,8 @@ from parent_notifier.core.extensions import db
 
 
 def test_migrations_match_the_models_and_downgrade_cleanly(tmp_path, monkeypatch):
-    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{(tmp_path / 'migrated.db').as_posix()}")
+    sqlite = f"sqlite:///{(tmp_path / 'migrated.db').as_posix()}"
+    monkeypatch.setenv("DATABASE_URL", os.environ.get("TEST_DATABASE_URL", sqlite))
     app = create_app("testing")
     with app.app_context():
         upgrade()

@@ -5,6 +5,8 @@ import secrets
 from datetime import timedelta
 from pathlib import Path
 
+from sqlalchemy.engine import make_url
+
 ENVIRONMENTS = ("development", "testing", "production")
 TRUE_VALUES = {"1", "true", "yes", "on"}
 TESTING_SECRET_KEY = "testing-only-secret-key"  # noqa: S105 (never used outside tests)
@@ -13,13 +15,18 @@ TESTING_SECRET_KEY = "testing-only-secret-key"  # noqa: S105 (never used outside
 def load_config(env: str, instance_path: Path) -> dict[str, object]:
     if env not in ENVIRONMENTS:
         raise ValueError(f"Unknown environment {env!r}; use one of {', '.join(ENVIRONMENTS)}.")
+    database_url = _database_url(env, instance_path)
     return {
         "ENV_NAME": env,
         "TESTING": env == "testing",
         # Edited templates show on the next request in development, without a restart.
         "TEMPLATES_AUTO_RELOAD": env == "development",
         "SECRET_KEY": _secret_key(env, instance_path),
-        "SQLALCHEMY_DATABASE_URI": _database_url(env, instance_path),
+        "SQLALCHEMY_DATABASE_URI": database_url,
+        "SQLALCHEMY_ENGINE_OPTIONS": _engine_options(database_url),
+        # Behind a proxy such as Vercel's, trust its X-Forwarded headers for the client's
+        # address (used by the sign-in lockout) and for https.
+        "TRUST_PROXY": _flag("TRUST_PROXY"),
         "APP_TIMEZONE": os.environ.get("APP_TIMEZONE", "Asia/Kolkata"),
         "MAX_CONTENT_LENGTH": _int("MAX_UPLOAD_MB", 5) * 1024 * 1024,
         "SESSION_COOKIE_HTTPONLY": True,
@@ -69,10 +76,38 @@ def _database_url(env: str, instance_path: Path) -> str:
     environments a SQLite file in the instance folder."""
     url = os.environ.get("DATABASE_URL")
     if url:
-        return url
+        return _with_driver(url)
     if env == "testing":
         return "sqlite://"
     return f"sqlite:///{(instance_path / 'parent_notifier.db').as_posix()}"
+
+
+def _with_driver(url: str) -> str:
+    """Hosts such as Supabase give postgres:// or postgresql:// addresses; SQLAlchemy
+    needs the driver named, and this app uses psycopg 3."""
+    for prefix in ("postgres://", "postgresql://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg://" + url.removeprefix(prefix)
+    return url
+
+
+def _engine_options(url: str) -> dict[str, object]:
+    """Postgres on a serverless host: a small pool per instance, connections checked
+    before use, no prepared statements (transaction-mode poolers such as Supabase's
+    don't support them), and encryption to any database that isn't on this machine."""
+    parsed = make_url(url)
+    if parsed.get_backend_name() != "postgresql":
+        return {}
+    connect_args: dict[str, object] = {"prepare_threshold": None}
+    if parsed.host not in {None, "localhost", "127.0.0.1"} and "sslmode" not in parsed.query:
+        connect_args["sslmode"] = "require"
+    return {
+        "pool_size": 1,
+        "max_overflow": 2,
+        "pool_pre_ping": True,
+        "pool_recycle": 300,
+        "connect_args": connect_args,
+    }
 
 
 def _flag(name: str) -> bool:
