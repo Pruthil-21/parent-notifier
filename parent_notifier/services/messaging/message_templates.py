@@ -11,7 +11,7 @@ from pathlib import Path
 from jinja2 import FileSystemLoader, StrictUndefined
 from jinja2.sandbox import SandboxedEnvironment
 
-from parent_notifier.services.academics.risk import SubjectResult
+from parent_notifier.services.academics.views.risk import SubjectResult
 
 TEMPLATE_DIR = Path(__file__).resolve().parents[3] / "message_templates"
 LANGUAGES = {"en": "English", "gu": "ગુજરાતી"}

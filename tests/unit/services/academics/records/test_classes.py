@@ -1,6 +1,6 @@
 import pytest
 
-from parent_notifier.services.academics import classes
+from parent_notifier.services.academics.records import classes
 from tests.factories.academics import make_class
 from tests.factories.accounts import make_mentor
 

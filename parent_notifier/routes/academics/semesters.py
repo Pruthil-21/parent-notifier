@@ -7,7 +7,8 @@ from parent_notifier.forms.academics import AddSemesterForm, add_semester_form
 from parent_notifier.forms.imports import UploadSheetForm
 from parent_notifier.models.academics import ClassGroup, Semester
 from parent_notifier.routes.academics.classes import load_class
-from parent_notifier.services.academics import grid_filters, semester_view, semesters
+from parent_notifier.services.academics.records import semesters
+from parent_notifier.services.academics.views import grid_filters, semester_view
 from parent_notifier.services.imports import undo
 from parent_notifier.services.messaging import pacing, previews, send_log
 from parent_notifier.services.messaging.message_templates import LANGUAGES

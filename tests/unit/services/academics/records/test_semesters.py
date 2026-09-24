@@ -1,7 +1,7 @@
 import pytest
 
 from parent_notifier.core.extensions import db
-from parent_notifier.services.academics import semesters
+from parent_notifier.services.academics.records import semesters
 from tests.factories.academics import make_class, make_semester, make_student
 from tests.factories.accounts import make_mentor
 

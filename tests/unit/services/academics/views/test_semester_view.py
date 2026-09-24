@@ -1,8 +1,13 @@
 import pytest
 
 from parent_notifier.core.extensions import db
-from parent_notifier.services.academics import semester_view
-from parent_notifier.services.academics.risk import AT_RISK, DOING_WELL, NEEDS_ATTENTION, NO_DATA
+from parent_notifier.services.academics.views import semester_view
+from parent_notifier.services.academics.views.risk import (
+    AT_RISK,
+    DOING_WELL,
+    NEEDS_ATTENTION,
+    NO_DATA,
+)
 from parent_notifier.services.imports.apply import apply_import
 from parent_notifier.services.imports.sheet_parser import parse_sheet
 from tests.factories.academics import make_class, make_semester

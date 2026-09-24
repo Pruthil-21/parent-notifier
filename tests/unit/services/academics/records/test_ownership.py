@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from parent_notifier.services.academics import ownership
+from parent_notifier.services.academics.records import ownership
 from tests.factories.academics import make_class, make_semester, make_student
 from tests.factories.accounts import make_mentor
 

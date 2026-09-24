@@ -1,9 +1,9 @@
 import pytest
 from werkzeug.datastructures import MultiDict
 
-from parent_notifier.services.academics.grid_filters import GridQuery, apply
-from parent_notifier.services.academics.risk import Shortage
-from parent_notifier.services.academics.semester_view import StudentRow
+from parent_notifier.services.academics.views.grid_filters import GridQuery, apply
+from parent_notifier.services.academics.views.risk import Shortage
+from parent_notifier.services.academics.views.semester_view import StudentRow
 
 
 def row(enrollment, name, band="doing_well", status="active", lowest=None, parent="P"):

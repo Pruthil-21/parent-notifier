@@ -5,7 +5,8 @@ from flask_login import login_required
 
 from parent_notifier.forms.academics import ENROLLMENT_TAKEN, AddStudentForm, EditStudentForm
 from parent_notifier.routes.academics.semesters import load_semester
-from parent_notifier.services.academics import semester_view, students
+from parent_notifier.services.academics.records import students
+from parent_notifier.services.academics.views import semester_view
 
 bp = Blueprint("students", __name__, url_prefix="/classes/<int:class_id>")
 

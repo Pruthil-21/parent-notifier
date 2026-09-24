@@ -7,7 +7,7 @@ when a send is logged, so what is stored never depends on the page.
 
 from dataclasses import dataclass
 
-from parent_notifier.services.academics.semester_view import StudentRow
+from parent_notifier.services.academics.views.semester_view import StudentRow
 from parent_notifier.services.messaging.message_templates import LANGUAGES, render_message
 
 # An invisible separator either side keeps the marker from matching anything typed.

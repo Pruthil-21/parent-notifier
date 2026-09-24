@@ -1,6 +1,6 @@
 import pytest
 
-from parent_notifier.services.academics.risk import SubjectResult
+from parent_notifier.services.academics.views.risk import SubjectResult
 from parent_notifier.services.messaging import message_templates
 from parent_notifier.services.messaging.message_templates import render_message, signature
 

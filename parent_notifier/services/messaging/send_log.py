@@ -8,7 +8,7 @@ from sqlalchemy import select
 from parent_notifier.core.extensions import db
 from parent_notifier.models.academics import Semester
 from parent_notifier.models.messaging import SendLog
-from parent_notifier.services.academics.semester_view import StudentRow
+from parent_notifier.services.academics.views.semester_view import StudentRow
 from parent_notifier.services.messaging import previews
 from parent_notifier.services.messaging.whatsapp_links import whatsapp_link
 from parent_notifier.services.shared import clock

@@ -6,7 +6,7 @@ from flask_login import current_user, login_required
 from parent_notifier.core.navigation import register_child_links
 from parent_notifier.forms.academics import CLASS_NAME_TAKEN, ClassDetailsForm, add_semester_form
 from parent_notifier.models.academics import ClassGroup
-from parent_notifier.services.academics import classes, ownership
+from parent_notifier.services.academics.records import classes, ownership
 
 bp = Blueprint("classes", __name__, url_prefix="/classes")
 

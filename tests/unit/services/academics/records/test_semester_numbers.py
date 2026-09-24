@@ -2,7 +2,7 @@ from datetime import date
 
 import pytest
 
-from parent_notifier.services.academics.semester_numbers import current_for_batch, suggest
+from parent_notifier.services.academics.records.semester_numbers import current_for_batch, suggest
 
 
 @pytest.mark.parametrize(
