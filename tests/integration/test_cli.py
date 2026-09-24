@@ -50,3 +50,35 @@ def test_seed_demo_refuses_to_run_in_production(monkeypatch, tmp_path):
     result = app.test_cli_runner().invoke(args=["seed-demo"])
     assert result.exit_code != 0
     assert "seed-demo only runs outside production" in result.output
+
+
+ADMIN = ["create-admin", "--name", "Asha Patel", "--username", "AshaP", "--phone", "90000 00001"]
+
+
+def test_create_admin_makes_the_one_admin_account(app):
+    from parent_notifier.core.extensions import db
+    from parent_notifier.models.accounts import Mentor
+
+    runner = app.test_cli_runner()
+    args = [*ADMIN, "--department", "computer engineering", "--password", "Winter-lecture-42"]
+    result = runner.invoke(args=args)
+    assert result.exit_code == 0, result.output
+    assert "Recovery code, shown only now:" in result.output
+    with app.app_context():
+        admin = db.session.scalars(db.select(Mentor)).one()
+        assert (admin.username, admin.role, admin.department) == (
+            "ashap",
+            "admin",
+            "Computer Engineering",
+        )
+    again = runner.invoke(args=[*args[:4], "second", *args[5:]])
+    assert "An admin account already exists." in again.output
+
+
+def test_create_admin_checks_the_same_rules_as_sign_up(app):
+    result = app.test_cli_runner().invoke(
+        args=[*ADMIN, "--department", "Physics", "--password", "short"]
+    )
+    assert result.exit_code != 0
+    assert "Choose a department from the list" in result.output
+    assert "Password must be" in result.output
