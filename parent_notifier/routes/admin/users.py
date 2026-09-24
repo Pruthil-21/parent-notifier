@@ -5,7 +5,6 @@ from flask import (
     abort,
     current_app,
     flash,
-    g,
     redirect,
     render_template,
     request,
@@ -20,6 +19,7 @@ from parent_notifier.forms.admin_accounts import DeleteAccountForm, TransferClas
 from parent_notifier.routes.accounts import throttling
 from parent_notifier.routes.accounts.sessions import safe_next
 from parent_notifier.routes.activity import log
+from parent_notifier.routes.admin import mentor_menu
 from parent_notifier.routes.admin.access import (
     admin_required,
     confirmed_password_required,
@@ -53,24 +53,8 @@ def _admin_links() -> list[dict[str, object]]:
     return links
 
 
-def _mentor_links() -> list[dict[str, object]]:
-    """Every account, so the admin can reach any mentor's page from the menu. On a
-    class page the class's mentor is current."""
-    if not (current_user.is_authenticated and current_user.is_admin):
-        return []
-    current_id = (request.view_args or {}).get("account_id", g.get("nav_mentor_id"))
-    return [
-        {
-            "label": name,
-            "url": url_for("admin_users.detail", account_id=account_id),
-            "active": account_id == current_id,
-        }
-        for account_id, name in users.menu_links()
-    ]
-
-
 bp.record_once(lambda state: register_child_links(state.app, "admin_users.index", _admin_links))
-bp.record_once(lambda state: register_child_links(state.app, "mentors", _mentor_links))
+bp.record_once(lambda state: register_child_links(state.app, "mentors", mentor_menu.mentor_links))
 
 
 def load_account(account_id: int):

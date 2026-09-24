@@ -74,11 +74,21 @@ def recent_activity(mentor: Mentor, limit: int = 10) -> list[ActivityEntry]:
     return list(db.session.scalars(query.order_by(ActivityEntry.id.desc()).limit(limit)))
 
 
-def menu_links() -> list[tuple[int, str]]:
-    """Each approved account's id and name, in name order, for the admin's menu."""
-    query = (
-        select(Mentor.id, Mentor.full_name)
+def menu_rows() -> tuple[list, list]:
+    """For the admin's menu: each approved account (id, name, department) in name
+    order, and every class (id, name, batch year, finish time, mentor), in two queries."""
+    accounts = db.session.execute(
+        select(Mentor.id, Mentor.full_name, Mentor.department)
         .where(Mentor.approved.is_(True))
         .order_by(func.lower(Mentor.full_name), Mentor.id)
-    )
-    return [(account_id, name) for account_id, name in db.session.execute(query)]
+    ).all()
+    classes = db.session.execute(
+        select(
+            ClassGroup.id,
+            ClassGroup.name,
+            ClassGroup.admission_year,
+            ClassGroup.finished_at,
+            ClassGroup.mentor_id,
+        )
+    ).all()
+    return accounts, classes
