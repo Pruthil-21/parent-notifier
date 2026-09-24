@@ -1,7 +1,7 @@
 {% extends "layouts/app.html" %}
 {% from "components/navigation/breadcrumb.html" import breadcrumb %}
 {% from "components/forms/error_summary.html" import error_summary %}
-{% from "components/forms/field.html" import text_field %}
+{% from "components/forms/field.html" import department_field, text_field %}
 
 {% block title %}New class{% endblock %}
 {% block breadcrumb %}{{ breadcrumb([("Home", url_for("home.index")), ("Classes", url_for("classes.index")), ("New class", None)]) }}{% endblock %}
@@ -13,7 +13,7 @@
   <form class="form-stack" method="post" novalidate>
     {{ form.hidden_tag() }}
     {{ text_field(form.name, hint="For example CE-A", autocomplete="off") }}
-    {{ text_field(form.department, hint="For example Computer Engineering", autocomplete="off") }}
+    {{ department_field(form.department) }}
     {{ text_field(form.admission_year, hint="The year this batch joined, like 2023",
                   inputmode="numeric", autocomplete="off") }}
     <div class="form-panel__actions">
