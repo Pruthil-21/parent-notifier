@@ -1,6 +1,7 @@
 {% extends "layouts/app.html" %}
 {% from "components/navigation/breadcrumb.html" import breadcrumb %}
 {% from "components/data/pagination.html" import pagination %}
+{% from "components/navigation/action_bar.html" import action_bar %}
 {% from "components/feedback/empty_state.html" import empty_state %}
 
 {% block head %}
@@ -11,6 +12,12 @@
 {% block breadcrumb %}{{ breadcrumb([("Overview", url_for("home.index")), ("Users", None)]) }}{% endblock %}
 {% block page_title %}Users{% endblock %}
 {% block page_meta %}Every account that can sign in{% endblock %}
+
+{% block actions %}
+{% call action_bar() %}
+<a class="button button--primary" href="{{ url_for('admin_users.new') }}">{{ icon("add") }}Create account</a>
+{% endcall %}
+{% endblock %}
 
 {% block content %}
 <form class="admin-filters" method="get" role="search">

@@ -1,0 +1,26 @@
+{% extends "layouts/app.html" %}
+{% from "components/navigation/breadcrumb.html" import breadcrumb %}
+{% from "components/forms/error_summary.html" import error_summary %}
+{% from "components/forms/field.html" import department_field, text_field %}
+
+{% block title %}Create account · Users{% endblock %}
+{% block breadcrumb %}{{ breadcrumb([("Overview", url_for("home.index")), ("Users", url_for("admin_users.index")), ("Create account", None)]) }}{% endblock %}
+{% block page_title %}Create account{% endblock %}
+{% block page_meta %}The mentor gets a one-time password from you and chooses their own at first sign-in{% endblock %}
+
+{% block content %}
+<div class="form-panel">
+  {{ error_summary(form, first_field=form.full_name) }}
+  <form class="form-stack" method="post" novalidate>
+    {{ form.hidden_tag() }}
+    {{ text_field(form.full_name, hint="As it should appear in messages, without Prof.", autocomplete="off") }}
+    {{ text_field(form.username, hint="They use it to sign in", autocomplete="off", autocapitalize="none", spellcheck="false") }}
+    {{ text_field(form.whatsapp_number, hint="10-digit mobile number, like 98765 43210", type="tel", inputmode="tel", autocomplete="off") }}
+    {{ department_field(form.department) }}
+    <div class="form-panel__actions">
+      <button class="button button--primary" type="submit">Create account</button>
+      <a class="button button--subtle" href="{{ url_for('admin_users.index') }}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

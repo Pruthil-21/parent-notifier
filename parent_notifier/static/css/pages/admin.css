@@ -124,4 +124,16 @@
     padding: 0;
     list-style: none;
   }
+
+  /* A one-time password, large enough to read out or copy. */
+  .one-time-password {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .one-time-password__value {
+    font-size: var(--text-subtitle);
+    letter-spacing: 0.05em;
+    user-select: all;
+  }
 }
