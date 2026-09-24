@@ -7,6 +7,7 @@ from parent_notifier.forms.academics import AddSemesterForm, add_semester_form
 from parent_notifier.forms.imports import UploadSheetForm
 from parent_notifier.models.academics import ClassGroup, Semester
 from parent_notifier.routes.academics.classes import load_class
+from parent_notifier.routes.activity import log
 from parent_notifier.services.academics.records import semesters
 from parent_notifier.services.academics.views import grid_filters, semester_view
 from parent_notifier.services.imports import undo
@@ -104,6 +105,7 @@ def add_semester(class_id: int):
     semester, created = semesters.add_semester(class_group, form.number.data)
     if created:
         flash(f"Sem {semester.number} added.", "success")
+        log("data", "semester_added", target=semester, class_group=class_group)
     else:
         flash(f"Sem {semester.number} already exists, so it is open now.", "info")
     return redirect(url_for("semesters.workspace", class_id=class_id, number=semester.number))
@@ -122,9 +124,11 @@ def confirm_remove(class_id: int, number: int):
 @bp.post("/sem/<int:number>/remove")
 @login_required
 def remove(class_id: int, number: int):
-    _class_group, semester = load_semester(class_id, number)
+    class_group, semester = load_semester(class_id, number)
+    target = ("semester", semester.id, f"Sem {number}")
     if semesters.remove_if_empty(semester):
         flash(f"Sem {number} removed.", "success")
+        log("data", "semester_removed", target=target, class_group=class_group)
         return redirect(url_for("classes.open_class", class_id=class_id))
     flash(f"Sem {number} has a sheet, so it cannot be removed.", "error")
     return redirect(url_for("semesters.workspace", class_id=class_id, number=number))

@@ -5,6 +5,7 @@ from flask_login import current_user, login_required
 
 from parent_notifier.core.extensions import limiter
 from parent_notifier.routes.academics.semesters import load_semester
+from parent_notifier.routes.activity import log as log_activity
 from parent_notifier.services.academics.views import semester_view
 from parent_notifier.services.messaging import pacing, previews, send_log
 from parent_notifier.services.messaging.message_templates import LANGUAGES, MAX_NOTE
@@ -77,6 +78,13 @@ def log(class_id: int, number: int, student_id: int):
     )
     logged = send_log.log_send(
         semester, row, current_user.id, context, status=status, language=language, note=note
+    )
+    log_activity(
+        "messaging",
+        "message_sent" if status == "sent" else "message_skipped",
+        target=("student", row.id, f"{row.full_name} ({row.enrollment_no})"),
+        class_group=class_group,
+        details={"semester": number, "language": language},
     )
     return jsonify(
         status=status,

@@ -3,6 +3,7 @@ from sqlalchemy import func, select
 
 from parent_notifier.core.extensions import db
 from parent_notifier.models.academics import Result, Student
+from parent_notifier.models.activity import ActivityEntry
 from parent_notifier.models.messaging import SendLog
 from parent_notifier.services.messaging import send_log
 from tests.factories.academics import import_sheet, make_class, make_semester
@@ -55,6 +56,15 @@ def test_delete_removes_the_student_marks_and_send_record(app, signed_in_client,
     assert (_count(app, Student, id=avi), _count(app, Result, student_id=avi)) == (0, 0)
     assert _count(app, SendLog, student_id=avi) == 0
     assert _count(app, Student) == 3
+    with app.app_context():
+        entry = db.session.scalars(
+            db.select(ActivityEntry).filter_by(event="student_deleted")
+        ).one()
+        assert (entry.category, entry.target_label, entry.class_label) == (
+            "data",
+            "Avi Shah (23CE001)",
+            "CE-A",
+        )
 
 
 def test_another_mentors_student_cannot_be_deleted(app, client, setup):
