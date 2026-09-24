@@ -93,8 +93,12 @@ def signed_in(page, demo):
 @pytest.fixture
 def signed_in_phone(browser, demo):
     """The same, on a phone-sized touch screen."""
+    phone = (
+        "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36"
+        " (KHTML, like Gecko) Chrome/140.0 Mobile Safari/537.36"
+    )
     context = browser.new_context(
-        viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True
+        viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True, user_agent=phone
     )
     page = context.new_page()
     errors = sign_in(page, demo)
