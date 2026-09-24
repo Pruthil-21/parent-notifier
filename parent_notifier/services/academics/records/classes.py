@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError
 
 from parent_notifier.core.extensions import db
 from parent_notifier.models.academics import ClassGroup
+from parent_notifier.services.academics.views import semester_stats
 
 
 class ClassNameTakenError(Exception):
@@ -46,6 +47,7 @@ def update_rules(
     class_group.attendance_threshold = attendance_threshold
     class_group.midsem_pass_mark = midsem_pass_mark
     class_group.midsem_max = midsem_max
+    semester_stats.invalidate_class(class_group.id)
     db.session.commit()
 
 

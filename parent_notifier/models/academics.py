@@ -164,3 +164,18 @@ class Result(db.Model):
     practical_pct: Mapped[float | None]
     midsem_marks: Mapped[float | None]
     midsem_absent: Mapped[bool] = mapped_column(default=False, server_default=false())
+
+
+class SemesterStats(db.Model):
+    """A semester's counts, kept so pages across many classes stay quick. Any change that
+    affects them clears the row, and a row older than half an hour is worked out again."""
+
+    __tablename__ = "semester_stats"
+
+    semester_id: Mapped[int] = mapped_column(
+        ForeignKey("semesters.id", ondelete="CASCADE"), primary_key=True
+    )
+    students: Mapped[int]
+    at_risk: Mapped[int]
+    pending: Mapped[int]
+    computed_at: Mapped[datetime] = mapped_column(UTCDateTime)
