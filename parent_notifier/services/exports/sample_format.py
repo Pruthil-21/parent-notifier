@@ -20,11 +20,12 @@ EXAMPLE_ROW = [
 ]
 
 
-CLASS_LIST_HEADERS = [*IDENTITY_HEADERS, "Son / Daughter"]
+# Son or daughter is not asked for: the GIS letters PDF brings it.
+CLASS_LIST_HEADERS = IDENTITY_HEADERS
 # Fictional example students.
 CLASS_LIST_ROWS = [
-    ["230120107001", "Student Name", "Parent Name", "90000 00001", "Daughter"],
-    ["230120107002", "Student Name", "Parent Name", "90000 00002", "Son"],
+    ["230120107001", "Student Name", "Parent Name", "90000 00001"],
+    ["230120107002", "Student Name", "Parent Name", "90000 00002"],
 ]
 
 
