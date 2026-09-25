@@ -44,6 +44,20 @@ def test_every_field_of_a_letter_is_read_exactly():
     assert list(letter.subjects) == FIRST
 
 
+@pytest.mark.parametrize("valign", ["TOP", "MIDDLE", "BOTTOM"])
+@pytest.mark.parametrize("boxes", [False, True])
+def test_rows_are_read_however_text_sits_in_ruled_cells(valign, boxes):
+    """The GIS letters draw each cell as a box with its text in the middle, so a wrapped
+    subject name starts above its row number."""
+    letter, problems = _one(Letter(valign=valign, boxes=boxes))
+    assert problems == [] and list(letter.subjects) == FIRST
+
+
+def test_a_table_without_lines_must_have_text_level_with_its_row_numbers():
+    letter, problems = _one(Letter(without_lines=True, valign="MIDDLE"))
+    assert letter is None and "not level with the row numbers" in problems[0]
+
+
 def test_a_son_and_a_table_without_ruled_lines_are_read_too():
     letter, problems = _one(Letter(child="son", without_lines=True, term="Even"))
     assert problems == [] and letter.gender == "male" and letter.term == "Even"
@@ -57,8 +71,8 @@ def test_a_son_and_a_table_without_ruled_lines_are_read_too():
         ({"numbers": ("1", "2", "4", "5", "6")}, "not numbered 1, 2, 3... (row 3)"),
         ({"period": ("18-09-26", "07-07-26")}, "attendance period ends before it starts"),
         ({"period": ("31-02-26", "18-09-26")}, "are not real dates"),
-        # The ruled cells leave the stray line out and the text reading takes it in.
-        ({"note_under_table": "Note: 21 days of leave were granted"}, "reads differently"),
+        # A line between the table and "Prof." belongs to no row of the table.
+        ({"note_under_table": "Note: 21 days of leave were granted"}, "sits outside the table"),
     ],
 )
 def test_a_damaged_page_is_refused_with_its_reason(changes, reason):
@@ -118,7 +132,7 @@ def _random_letter(rng: random.Random, number: int) -> tuple[Letter, list[Letter
              "PROCESSING", "AND", "OF", "Mathematics", "II", "Operating", "Theory", "Computer",
              "NETWORKS", "Engineering", "Graphics", "Universal", "Human", "Values"]  # fmt: skip
     rows, expected = [], []
-    for index in range(rng.randint(1, 9)):
+    for index in range(rng.randint(1, 12)):
         code = f"10{rng.randint(1000000, 9999999)}{index}"[:9]
         code = f"{code[:8]}{index}"
         name = " ".join(rng.choice(words) for _ in range(rng.randint(1, 7)))
@@ -152,14 +166,17 @@ def _random_letter(rng: random.Random, number: int) -> tuple[Letter, list[Letter
         child=rng.choice(["son", "daughter"]),
         period=(start.strftime("%d-%m-%y"), end.strftime("%d-%m-%y")),
         fake_bold=rng.random() < 0.3,
+        boxes=rng.random() < 0.5,
+        valign=rng.choice(["TOP", "MIDDLE", "BOTTOM"]),
     )
     return letter, expected
 
 
-@pytest.mark.parametrize("seed", range(12))
+@pytest.mark.parametrize("seed", range(24))
 def test_random_classes_read_back_exactly(seed):
-    """Round trip: made-up letters with random subjects, figures and wrapping must come
-    back field for field, with nothing refused, lost or added."""
+    """Round trip: made-up letters with 1 to 12 subjects, a different number on each page,
+    random figures and wrapping, boxes or lines, and text at the top, middle or bottom of
+    each cell must come back field for field, with nothing refused, lost or added."""
     rng = random.Random(seed)  # noqa: S311  (made-up test data, not secrets)
     made = [_random_letter(rng, number) for number in range(1, rng.randint(2, 6))]
     result = read_letters(make_letters([letter for letter, _ in made]))

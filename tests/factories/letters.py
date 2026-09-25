@@ -4,6 +4,7 @@ here is fictional; real letters are never used in tests."""
 
 import io
 from dataclasses import dataclass, field, replace
+from itertools import pairwise
 from xml.sax.saxutils import escape
 
 from reportlab.lib import colors
@@ -65,6 +66,10 @@ class Letter:
     note_under_table: str | None = None
     # Leave out the table's ruled lines.
     without_lines: bool = False
+    # Draw each cell as its own box, as the GIS letters do, instead of grid lines.
+    boxes: bool = False
+    # Where text sits in each cell: "TOP", "MIDDLE" (as in the GIS letters) or "BOTTOM".
+    valign: str = "TOP"
 
 
 def _text(canvas, x, y, text, size=9, bold=False, fake_bold=False, right=False):
@@ -108,13 +113,19 @@ def _page(canvas, letter: Letter) -> None:
                   row.status]  # fmt: skip
         cells.append([Paragraph(escape(value), _CELL) for value in values])
     table = Table(cells, colWidths=WIDTHS)
-    style = [("VALIGN", (0, 0), (-1, -1), "TOP")]
-    if not letter.without_lines:
+    style = [("VALIGN", (0, 0), (-1, -1), letter.valign)]
+    if not letter.without_lines and not letter.boxes:
         style.append(("GRID", (0, 0), (-1, -1), 0.5, colors.black))
     table.setStyle(TableStyle(style))
     _, table_height = table.wrap(0, 0)
     top = height - 340
     table.drawOn(canvas, 50, top - table_height)
+    if letter.boxes:
+        # One rectangle per cell, from the table's own column and row positions.
+        xs, ys = table._colpositions, table._rowpositions
+        for left, right in pairwise(xs):
+            for upper, lower in pairwise(ys):
+                canvas.rect(50 + left, top - table_height + lower, right - left, upper - lower)
     if letter.note_under_table:
         _text(canvas, 60, top - table_height - 15, letter.note_under_table, 7)
     _text(canvas, 50, top - table_height - 45, letter.mentor, fake_bold=letter.fake_bold)
