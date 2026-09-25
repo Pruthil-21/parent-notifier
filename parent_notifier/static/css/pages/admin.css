@@ -233,7 +233,7 @@
   }
 
   .log-text {
-    min-width: 16rem;
+    min-width: 9rem;
     white-space: normal;
     overflow-wrap: anywhere;
   }
