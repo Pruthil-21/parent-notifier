@@ -12,8 +12,12 @@ number and the reason; a refused page is never partly used.
   year 2026-27, Odd term", "from 07-07-26 to 18-09-26", the table's column headings and
   the "Prof." line under the table.
 - The table is read twice: by its ruled cells, and by where each word sits under the
-  column headings. Both readings must agree cell for cell. Every word in the table must
-  belong to exactly one cell, so nothing is dropped or counted twice.
+  column headings and between the table's own drawn row edges. Both readings must agree
+  cell for cell. Every word in the table must belong to exactly one cell, so nothing is
+  dropped or counted twice. Each page is measured on its own, so letters with any number
+  of subjects, with text at the top, middle or bottom of a cell, and wrapped onto several
+  lines all read the same way. A table without lines is read only when every cell starts
+  level with its row number; otherwise it is refused, never guessed at.
 - On each page the enrollment in the Subject line must equal the one ending the Outward
   No, rows run 1, 2, 3... with no gaps, and every figure must be exactly a percentage
   from 0 to 100, "-", or Mid-Sem marks like 17/20.
@@ -24,6 +28,7 @@ import re
 import unicodedata
 from dataclasses import dataclass
 from datetime import date
+from itertools import pairwise
 
 MAX_PAGES = 100
 _UNREADABLE = "The file could not be read as a PDF. Download it from GIS again and retry"
@@ -57,6 +62,12 @@ _MARKS = re.compile(r"^(\d{1,3}(?:\.\d{1,2})?)\s*/\s*(\d{1,3})$")
 _NONE = {"-", "--", "–", ""}  # noqa: RUF001  (a hyphen, two, an en dash, or nothing)
 _ABSENT = {"ab", "abs", "absent"}
 _STATUS = re.compile(r"^[A-Za-z .()/-]{0,40}$")
+
+
+_NOT_LEVEL = (
+    "its table has no lines and its text is not level with the row numbers, so the rows "
+    "cannot be told apart safely"
+)
 
 
 class LetterFileError(ValueError):
@@ -123,27 +134,33 @@ def _lines(words: list[dict]) -> list[list[dict]]:
 def _heading(words: list[dict]) -> tuple[list[float], float, float]:
     """The left edge of each column, and the top and bottom of the heading rows."""
     lines = _lines(words)
-    anchor = next(
-        (
-            index
-            for index, line in enumerate(lines)
-            if {"theory", "practical"} <= {w["text"].lower() for w in line}
-        ),
-        None,
-    )
-    if anchor is None:
-        raise _PageError("the table's column headings were not found")
 
     def heading_line(line) -> bool:
         return all(w["text"].lower() in _HEADING_WORDS for w in line)
 
-    start = anchor
-    while start > 0 and heading_line(lines[start - 1]):
-        start -= 1
-    end = anchor
-    while end + 1 < len(lines) and heading_line(lines[end + 1]):
-        end += 1
-    band = [w for line in lines[start : end + 1] for w in line]
+    def block(anchor: int) -> list[dict]:
+        """The run of heading-only lines around a line, as headings wrap onto several
+        lines and a short one may sit lower when its cell centres it."""
+        start = anchor
+        while start > 0 and heading_line(lines[start - 1]):
+            start -= 1
+        end = anchor
+        while end + 1 < len(lines) and heading_line(lines[end + 1]):
+            end += 1
+        return [w for line in lines[start : end + 1] for w in line]
+
+    band = next(
+        (
+            found
+            for index, line in enumerate(lines)
+            if heading_line(line) and "theory" in {w["text"].lower() for w in line}
+            for found in [block(index)]
+            if "practical" in {w["text"].lower() for w in found}
+        ),
+        None,
+    )
+    if band is None:
+        raise _PageError("the table's column headings were not found")
 
     def first(*names) -> list[float]:
         return sorted(w["x0"] for w in band if w["text"].lower() in names)
@@ -179,7 +196,48 @@ def _column(x0: float, lefts: list[float]) -> int | None:
     return max(index for index, left in enumerate(lefts) if x0 >= left)
 
 
-def _rows_by_position(words, lefts, heading_bottom) -> tuple[list[list[str]], float]:
+def _row_edges(page, lefts, top: float, bottom: float) -> list[float]:
+    """The height of each ruled edge across this page's table, top to bottom, from its
+    lines or its cell boxes. Edges drawn a hair apart, as double lines or the sides of two
+    boxes, count as one. Tables with any number of rows are measured the same way."""
+    spans: dict[float, list[float]] = {}
+    for edge in page.horizontal_edges:
+        if top <= edge["top"] <= bottom:
+            key = next((y for y in spans if abs(y - edge["top"]) <= 1.5), edge["top"])
+            spans.setdefault(key, [edge["x0"], edge["x1"]])
+            spans[key] = [min(spans[key][0], edge["x0"]), max(spans[key][1], edge["x1"])]
+    # Only edges running across the table, from its first columns to its last ones.
+    return sorted(y for y, (x0, x1) in spans.items() if x0 <= lefts[1] and x1 >= lefts[5])
+
+
+def _centre(word: dict) -> float:
+    return (word["top"] + word["bottom"]) / 2
+
+
+def _row_of(word, anchors, edges) -> int | None:
+    """The row a word belongs to. With ruled edges, the row between the edges around it,
+    however the text sits in its cell. Without them the text must sit level with its row
+    number, which the caller checks."""
+    if edges:
+        for upper, lower in pairwise(edges):
+            if upper < _centre(word) < lower:
+                inside = [i for i, a in enumerate(anchors) if upper < _centre(a) < lower]
+                return inside[0] if len(inside) == 1 else None
+        return None
+    return max(
+        (i for i, anchor in enumerate(anchors) if word["top"] >= anchor["top"] - _SAME_LINE),
+        default=None,
+    )
+
+
+def _edges_fit(edges, anchors) -> bool:
+    """Ruled edges are used only when they give every row number a row of its own."""
+    between = list(pairwise(edges))
+    counts = [sum(upper < _centre(a) < lower for a in anchors) for upper, lower in between]
+    return sum(counts) == len(anchors) and all(count <= 1 for count in counts)
+
+
+def _rows_by_position(page, words, lefts, heading_bottom) -> tuple[list[list[str]], float]:
     """The table's cells from where each word sits, and the top of the "Prof." line."""
     below = [w for w in words if w["top"] > heading_bottom]
     prof = min(
@@ -196,16 +254,25 @@ def _rows_by_position(words, lefts, heading_bottom) -> tuple[list[list[str]], fl
     )
     if not anchors:
         raise _PageError("the table has no subject rows")
+    edges = _row_edges(page, lefts, heading_bottom - 4, prof["top"])
+    if not _edges_fit(edges, anchors):
+        edges = []
     rows: list[list[list[dict]]] = [[[] for _ in _COLUMNS] for _ in anchors]
     for word in body:
         column = _column(word["x0"], lefts)
-        row = max(
-            (i for i, anchor in enumerate(anchors) if word["top"] >= anchor["top"] - _SAME_LINE),
-            default=None,
-        )
+        row = _row_of(word, anchors, edges)
+        if row is None and column is not None and not edges:
+            raise _PageError(_NOT_LEVEL)
         if column is None or row is None:
             raise _PageError(f'"{word["text"]}" sits outside the table\'s rows and columns')
         rows[row][column].append(word)
+    if not edges:
+        # Without lines, a cell that starts away from its row number could belong to the
+        # row above or below, so such a table is refused rather than guessed at.
+        for anchor, row in zip(anchors, rows, strict=True):
+            tops = [min(w["top"] for w in cell) for cell in row if cell]
+            if any(abs(top - anchor["top"]) > _SAME_LINE for top in tops):
+                raise _PageError(_NOT_LEVEL)
     cells = [
         [_clean(" ".join(w["text"] for line in _lines(cell) for w in line)) for cell in row]
         for row in rows
@@ -283,7 +350,7 @@ def _parent(text: str) -> str:
     lines = [_clean(line) for line in text.splitlines()]
     for index, line in enumerate(lines[:-1]):
         if line.lower().rstrip(",") == "to":
-            name = lines[index + 1]
+            name = lines[index + 1].rstrip(",").strip()
             return "" if re.search(r"\d", name) else name[:120]
     return ""
 
@@ -333,7 +400,7 @@ def _read_page(page, number: int) -> Letter:
     children = {match.lower() for match in _CHILD.findall(text)}
 
     lefts, heading_top, heading_bottom = _heading(words)
-    cells, prof_top = _rows_by_position(words, lefts, heading_bottom)
+    cells, prof_top = _rows_by_position(page, words, lefts, heading_bottom)
     # A little above the headings, so the table's top line is inside the band.
     ruled = _rows_by_ruling(page, heading_top - 8, prof_top - 1)
     if ruled is not None and ruled != cells:
