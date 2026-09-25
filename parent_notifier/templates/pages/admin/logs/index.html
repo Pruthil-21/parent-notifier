@@ -89,7 +89,7 @@
         </td>
         <td class="log-text">{{ entry.target_label or "" }}</td>
         <td>{{ entry.class_label or "" }}</td>
-        <td class="cell-note log-text">{{ describe(entry.details) }}{% if entry.ip_address %}{% if entry.details %} · {% endif %}from {{ entry.ip_address }}{% endif %}</td>
+        <td class="log-text"><span class="cell-note">{{ describe(entry.details) }}{% if entry.ip_address %}{% if entry.details %} · {% endif %}from {{ entry.ip_address }}{% endif %}</span></td>
       </tr>
       {% endfor %}
     </tbody>

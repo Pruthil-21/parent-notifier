@@ -18,6 +18,8 @@
 
 .nav-pane__list {
   display: grid;
+  /* The column keeps to the pane's width; a long name is cut short instead. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 2px;
 }
 
@@ -68,6 +70,7 @@
 
 .nav-pane__children {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 2px;
   margin-top: 2px;
 }
