@@ -1,4 +1,6 @@
-{# Every student in the class list, as they will be saved. #}
+{# Every student in the class list, as they will be saved. Son or daughter shows only
+   when the list gives it; otherwise the GIS letters PDF brings it later. #}
+{% set gendered = sheet.rows | selectattr("gender") | list %}
 <h2 class="review-heading">{{ sheet.rows | length }} students</h2>
 <div class="data-grid">
   <table>
@@ -9,7 +11,7 @@
         <th scope="col">Student</th>
         <th scope="col">Parent</th>
         <th scope="col">Parent phone</th>
-        <th scope="col">Son or daughter</th>
+        {% if gendered %}<th scope="col">Son or daughter</th>{% endif %}
       </tr>
     </thead>
     <tbody>
@@ -20,7 +22,7 @@
         <th scope="row">{{ row.full_name }}</th>
         <td>{{ row.parent_name or "–" }}</td>
         <td>{% if row.phone_e164 %}{{ row.phone_e164 | phone }}{% else %}<span class="figure-fail">{{ row.phone_raw or "Missing" }}</span>{% endif %}</td>
-        <td>{{ {"male": "Son", "female": "Daughter"}.get(row.gender, "–") }}</td>
+        {% if gendered %}<td>{{ {"male": "Son", "female": "Daughter"}.get(row.gender, "–") }}</td>{% endif %}
       </tr>
       {% endfor %}
     </tbody>

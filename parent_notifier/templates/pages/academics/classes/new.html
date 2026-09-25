@@ -22,7 +22,7 @@
       <p class="field__hint" id="semester-hint">The semester the batch is in now. A semester sheet uploaded here goes into it.</p>
       {{ form.semester(class_="input", aria_describedby="semester-hint") }}
     </div>
-    {{ file_field(form.sheet, hint="The class list: Enrollment No, Student Name, Parent Name and Parent Phone, with an optional Son / Daughter column. A complete semester sheet works too.", accept=".xlsx,.csv") }}
+    {{ file_field(form.sheet, hint="The class list: Enrollment No, Student Name, Parent Name and Parent Phone. Son or daughter comes later from the GIS letters PDF. A complete semester sheet works too.", accept=".xlsx,.csv") }}
     {% if problems %}
     <div class="field__error new-class-problems" role="alert">
       <ul>{% for problem in problems[:20] %}<li>{{ problem }}</li>{% endfor %}</ul>

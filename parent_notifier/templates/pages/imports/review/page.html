@@ -25,7 +25,8 @@
   <div><dt>Already in {{ class_group.name }}</dt><dd class="numeric">{{ comparison.existing_students }}</dd></div>
   {% if sheet.is_class_list %}
   <div><dt>With a valid parent phone</dt><dd class="numeric">{{ sheet.rows | selectattr("phone_e164") | list | length }}</dd></div>
-  <div><dt>Son or daughter given</dt><dd class="numeric">{{ sheet.rows | selectattr("gender") | list | length }}</dd></div>
+  {% set with_gender = sheet.rows | selectattr("gender") | list | length %}
+  {% if with_gender %}<div><dt>Son or daughter given</dt><dd class="numeric">{{ with_gender }}</dd></div>{% endif %}
   {% else %}
   <div><dt>Subjects</dt><dd>{{ sheet.subjects | join(", ") or "None found" }}</dd></div>
   {% endif %}

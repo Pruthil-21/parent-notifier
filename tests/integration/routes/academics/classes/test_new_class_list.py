@@ -53,6 +53,22 @@ def test_a_class_list_is_reviewed_then_saved_to_the_class(app, signed_in_client)
     assert "2 students are on the class list." in page
 
 
+def test_the_class_list_format_asks_only_for_contacts(signed_in_client):
+    from openpyxl import load_workbook
+
+    response = signed_in_client.get("/class-list-format.xlsx")
+    sheet = load_workbook(io.BytesIO(response.data)).active
+    assert [cell.value for cell in sheet[1]] == [
+        "Enrollment No",
+        "Student Name",
+        "Parent Name",
+        "Parent Phone",
+    ]
+    no_gender = [LIST_HEADER[:4], [*CLASS_LIST[1][:4]]]
+    html = _create(signed_in_client, no_gender).get_data(as_text=True)
+    assert "Review CE-A class list" in html and "Son or daughter" not in html
+
+
 def test_cancelling_the_first_review_removes_the_new_class(app, signed_in_client):
     html = _create(signed_in_client, CLASS_LIST).get_data(as_text=True)
     with app.app_context():
